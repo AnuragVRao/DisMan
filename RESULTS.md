@@ -22,6 +22,8 @@ The old Task 3 index had two opposing defects, which together probably explain w
 
 These two effects pull in opposite directions and plausibly roughly cancelled. Removing both gives a result that is smaller on accuracy and weighted-F1 but is at least a valid evaluation.
 
+**Tweet-disjoint splits are the dataset authors' own principle.** Ofli et al. assigned all multi-image tweets to the training set specifically so that no tweet text repeats across train, dev and test. `datasplit_all` does not enforce this for the damage task (62 tweets have one image in train and another in test; 16 are shared between dev and test), so our tweet-disjoint index applies the same principle to the damage split.
+
 ## 3. Before/after table (test split)
 
 | Task | Version | Accuracy | Macro-F1 | Weighted-F1 | n (test) |
@@ -40,14 +42,24 @@ These two effects pull in opposite directions and plausibly roughly cancelled. R
 
 Task 1 reproduces the old accuracy and weighted-F1 to three decimals (it is text-only and never used image paths); only the per-class labels changed.
 
-## 3b. Reference baseline (indicative only)
+## 3b. Reference baseline (indicative only: different split and different label set)
 
-| Source | Split | Informative (acc / F1) | Humanitarian (acc / F1) |
-|---|---|---|---|
-| Ofli, Alam, Imran 2020 (arXiv:2004.11838), multimodal image+text | **agreed-label split (different split, indicative only)** | 84.4 / 84.2 | 78.4 / 78.3 |
-| This work, corrected pipeline | `datasplit_all` (not agreed-label) | 0.7944 / 0.7970 (T1 is text-only; weighted-F1) | 0.7975 / 0.7968 (8 classes; weighted-F1) |
+Reference: Ofli, Alam, Imran 2020 (arXiv:2004.11838), numbers checked against the arXiv PDF. Their F1 appears to be weighted (it tracks accuracy closely), although the paper does not name the averaging, so it is compared against our **weighted-F1**.
 
-The paper's numbers were read from the paper's HTML rendering through an automated fetch and **should be checked against the PDF before presenting**. The paper evaluates only pairs whose text and image labels agree, which removes the hard, ambiguous cases, so the numbers are not comparable with ours. The paper does not report an F1 averaging mode in the extract I could read, so treat the F1 columns as roughly comparable at best.
+| Task | Source | Setup | Accuracy | F1 |
+|---|---|---|---|---|
+| Informative, **text-only** (like-for-like with our T1) | Ofli et al. | agreed-label split | 80.8 | 80.9 |
+| | **This work (T1)** | `datasplit_all`, text-only | 79.44 | 79.70 (weighted) |
+| Informative, multimodal | Ofli et al. | agreed-label split | 84.4 | 84.2 |
+| | This work | no multimodal informative model (our T1 is text-only) | n/a | n/a |
+| Humanitarian, multimodal | Ofli et al. | agreed-label split, **5 classes** | 78.4 | 78.3 |
+| | **This work (T2)** | `datasplit_all`, **8 classes** | 79.75 | 79.68 (weighted) |
+
+Differences that make every row **indicative only**:
+
+1. **Split.** The paper evaluates the agreed-label split (only tweet-image pairs whose text and image labels agree), which removes the ambiguous cases. We use `datasplit_all`.
+2. **Humanitarian label set.** The paper uses 5 classes: injured/dead people and missing/found people are merged into affected individuals, and vehicle damage is merged into infrastructure. Ours has 8 classes (including Not humanitarian and the small classes that are hardest to predict), so the tasks differ in difficulty.
+3. **Informative modality.** Their 84.4 / 84.2 is a multimodal result; our Task 1 is text only, so the like-for-like row is their text-only result (80.8 / 80.9).
 
 ## 3c. Task 2 test results by event (macro over classes present in each event)
 
