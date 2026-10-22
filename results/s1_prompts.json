@@ -1,0 +1,37 @@
+{
+  "E1": {
+    "Severe damage": [
+      "a photo of severe damage"
+    ],
+    "Mild damage": [
+      "a photo of mild damage"
+    ],
+    "Little or no damage": [
+      "a photo of no damage"
+    ]
+  },
+  "E2": {
+    "Severe damage": [
+      "a photo of collapsed or destroyed buildings after a disaster",
+      "a photo of a destroyed road or bridge",
+      "a photo of a house reduced to rubble"
+    ],
+    "Mild damage": [
+      "a photo of a building with a damaged roof or broken windows",
+      "a photo of fallen trees and minor damage after a storm",
+      "a photo of a partially damaged structure that is still standing"
+    ],
+    "Little or no damage": [
+      "a photo of an undamaged building",
+      "a photo of a street with no visible damage",
+      "a photo of people or a scene with no damage"
+    ]
+  },
+  "E3": {
+    "templates": [
+      "a social media photo of {}",
+      "a picture taken during a natural disaster showing {}"
+    ],
+    "phrases_from": "E2 with leading 'a photo of ' removed"
+  }
+}
