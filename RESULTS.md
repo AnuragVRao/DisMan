@@ -141,3 +141,18 @@ The six preloaded examples are test-split tweets with no tweet_id, text or image
 * Zero-shot VLM (LLaVA).
 * Patch-token cross-attention for Task 2.
 * Satellite imagery (xBD).
+
+## 7. Extra experiment S1: CLIP zero-shot damage severity (added after the headline results; headline tables unchanged)
+
+Same 529 damage-test rows. Three prompt sets were fixed in `results/s1_prompts.json` (committed before any result), one was chosen by **dev** macro-F1 (E3: 0.338, vs E1 0.310 and E2 0.316), and test was scored once. Class embeddings are the re-normalised mean of L2-normalised projected CLIP text embeddings; prediction is the argmax cosine similarity.
+
+| Method | Acc | Macro-F1 | Weighted-F1 | Recall Severe / Mild / Little |
+|---|---|---|---|---|
+| Task 3 k-NN, image + text (headline) | 0.667 | 0.491 | 0.620 | 92% / 18% / 32% |
+| Task 3 k-NN, CLIP image only (same index, k=5) | 0.675 | 0.507 | 0.641 | 91% / 27% / 28% |
+| CLIP zero-shot (E3) | 0.303 | 0.299 | 0.349 | 26% / 37% / 38% |
+| Zero-shot + dev-fitted bias terms (not pure zero-shot; dev macro-F1 0.465, test 0.397) | 0.567 | 0.397 | 0.563 | 74% / 37% / 8% |
+| Always "Severe damage" | 0.628 | 0.257 | 0.484 | 100% / 0% / 0% |
+| Stratified random (expected, analytic) | 0.469 | 0.333 | 0.469 | 63% / 24% / 13% |
+
+Zero-shot is below the random baseline, so there is no usable training-free damage classifier here; the labelled index is what carries Task 3. The tweet text adds nothing measurable (0.491 vs 0.507 macro-F1). Feature sanity checks (`results/s1_sanity.txt`): text features equal `text_projection(text_model.pooler_output)` exactly; cached image features match the projected vision output (cosine 1.0, max abs difference 5.7e-3); cat-vs-disaster picks "disaster" for 20/20 images; matched cosine similarities are 0.22-0.29. Caveats: the dev-fitted biases did not transfer cleanly (dev 0.465 vs test 0.397), and the bias grid was searched on dev only.

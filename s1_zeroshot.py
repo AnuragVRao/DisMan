@@ -71,7 +71,7 @@ bias = np.array([0, *bestb]); print("dev-calibrated biases (Severe, Mild, Little
 pc = predict(Xt, W[best], bias); r_cal = full(yt, pc)
 
 # 4) k-NN row read from existing results (not recomputed)
-ba = pd.read_csv(RES / "results_dummy.csv") if False else pd.read_csv(RES / "before_after.csv")
+ba = pd.read_csv(RES / "before_after.csv")
 k = ba[(ba.task == "T3 Damage (3 cls)") & (ba.version == "corrected pipeline")].iloc[0]
 pk = pd.read_csv(RES / "preds_task3_test.csv"); assert list(pk.image_id) == list(test.image_id)
 r_knn = full(pk["true"].to_numpy(), pk["pred"].to_numpy())
