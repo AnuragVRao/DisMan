@@ -1,7 +1,5 @@
 # CrisisMMD pipeline: audit, corrections and results
 
-> Draft. Sections still to be added in Block 4: architecture description, figures, reference-baseline row, full limitations pass.
-
 ## 1. Bug audit
 
 | # | Bug | Why it mattered | Fix |
@@ -42,18 +40,87 @@ These two effects pull in opposite directions and plausibly roughly cancelled. R
 
 Task 1 reproduces the old accuracy and weighted-F1 to three decimals (it is text-only and never used image paths); only the per-class labels changed.
 
+## 3b. Reference baseline (indicative only)
+
+| Source | Split | Informative (acc / F1) | Humanitarian (acc / F1) |
+|---|---|---|---|
+| Ofli, Alam, Imran 2020 (arXiv:2004.11838), multimodal image+text | **agreed-label split (different split, indicative only)** | 84.4 / 84.2 | 78.4 / 78.3 |
+| This work, corrected pipeline | `datasplit_all` (not agreed-label) | 0.7944 / 0.7970 (T1 is text-only; weighted-F1) | 0.7975 / 0.7968 (8 classes; weighted-F1) |
+
+The paper's numbers were read from the paper's HTML rendering through an automated fetch and **should be checked against the PDF before presenting**. The paper evaluates only pairs whose text and image labels agree, which removes the hard, ambiguous cases, so the numbers are not comparable with ours. The paper does not report an F1 averaging mode in the extract I could read, so treat the F1 columns as roughly comparable at best.
+
+## 3c. Task 2 test results by event (macro over classes present in each event)
+
+| Event | n | Accuracy | Macro-F1 | Weighted-F1 |
+|---|---|---|---|---|
+| california_wildfires | 216 | 0.7685 | 0.5860 | 0.7646 |
+| hurricane_harvey | 572 | 0.7990 | 0.6842 | 0.7981 |
+| hurricane_irma | 559 | 0.7996 | 0.5313 | 0.8019 |
+| hurricane_maria | 518 | 0.8127 | 0.5192 | 0.8066 |
+| iraq_iran_earthquake | 73 | 0.7397 | 0.5386 | 0.7528 |
+| mexico_earthquake | 176 | 0.7557 | 0.5980 | 0.7607 |
+| srilanka_floods | 123 | 0.8618 | 0.5965 | 0.8648 |
+
+The two events that the old path bug removed (Iraq-Iran, Mexico) are in the test set now and score within the range of the others. Small events have few samples per class, so their macro-F1 is noisy.
+
 ## 4. Split integrity
 
 * `image_id` is disjoint across train/dev/test in all three tasks (asserted).
 * The Task 1 and Task 2 official splits were verified **tweet-disjoint**; one Task 2 test row has identical cleaned text to a train row, which is negligible.
 * Task 3 (damage) has one row per image, so tweets with several images straddle splits: 62 tweets (67 test rows) are shared between train and test, and **16 tweets are shared between dev and test**. Test results are unaffected, since nothing in Task 3 is fitted or tuned on dev (k is fixed at 5). The headline index excludes train rows sharing a tweet with test, and the Task 3 dev number is computed with an index that excludes train rows sharing a tweet with dev. Counts per pair are in `results/split_overlap.csv`. Effect on the Task 3 dev number (measured): accuracy / macro-F1 / weighted-F1 = 0.6730 / 0.4972 / 0.6379 with the full train index, versus 0.6635 / 0.4832 / 0.6291 with the tweet-disjoint index, i.e. twins inflated dev slightly.
 
-## 5. Limitations (partial list; to be completed in Block 4)
+## 4b. Architecture
 
-* **Task 3 Mild-damage recall is 18%** (Severe 92%, Little or no damage 32%). Severe dominates the train split (1548 of 2468 rows), so the k=5 majority vote is biased towards it.
+![Pipeline architecture](results/figures/architecture.png)
+
+* **Task 1 (informative):** cleaned tweet text, TF-IDF (1-2 grams, 50k features) and class-balanced Logistic Regression. Text only; its output is a badge in the demo and never gates the other stages.
+* **Task 2 (humanitarian, 8 classes):** a frozen CLIP ViT-B/32 image encoder (one 512-d vector per image, computed once and cached) and a fine-tuned DistilBERT text encoder, joined by two cross-attention blocks (d_model 256, 4 heads) and an MLP. Trained for at most 10 epochs with AMP, class-weighted cross-entropy, best checkpoint chosen on **dev** macro-F1 (epoch 8).
+* **Task 3 (damage severity, 3 classes):** CLIP image vector (512-d) concatenated with an SBERT all-MiniLM-L6-v2 text vector (384-d), L2-normalised, searched with an exact FAISS inner-product index built from the damage **train** split only (2361 vectors after the tweet-disjoint exclusion). The prediction is a 5-nearest-neighbour vote; the vote share is not a calibrated probability.
+* All models are loaded from `artifacts/` with `HF_HUB_OFFLINE=1`; weights are not committed to git.
+
+## 4c. Figures
+
+**Task 1**
+
+![Task 1 confusion matrix](results/figures/confusion_task1.png)
+
+![Task 1 per-class F1](results/figures/f1_task1.png)
+
+**Task 2**
+
+![Task 2 confusion matrix](results/figures/confusion_task2.png)
+
+![Task 2 per-class F1](results/figures/f1_task2.png)
+
+**Task 3**
+
+![Task 3 confusion matrix](results/figures/confusion_task3.png)
+
+![Task 3 per-class F1](results/figures/f1_task3.png)
+
+## 4d. Demo
+
+`demo/app.py` (Gradio) loads everything once and returns the Task 1 badge, Task 2 probability bars, the Task 3 vote share, and the five most similar past cases. If Task 1 and Task 2 disagree, both are shown with an explanation (Task 1 is trained on tweet-text labels, Task 2 on image labels). On the RTX 4050 the model call takes about 0.1-0.2 s per prediction and an end-to-end request about 1.8 s (measured through the Gradio API with 3 preloaded examples and 1 fresh upload).
+
+The six preloaded examples are test-split tweets with no tweet_id, text or image twin in the damage-train split (asserted in `tools/select_examples.py`), chosen by their true labels. Running them: 4 of the model's predictions are wrong, all disclosed below.
+
+| Example | Wrong prediction |
+|---|---|
+| iraq_iran_earthquake, "I am alive..." | Task 3: predicted Severe, true Mild |
+| hurricane_irma, "Restoration of Water Supply..." | Task 3: predicted Mild, true Little or no damage |
+| hurricane_harvey, "A picture worth a thousand words..." | Task 2: predicted Affected individuals, true Rescue/volunteering/donation |
+| hurricane_irma, "Cuba announces program to repair..." | Task 2: predicted Infrastructure and utility damage, true Affected individuals |
+## 5. Limitations
+
+* **Task 3 Mild-damage recall is 18%** (Severe 92%, Little or no damage 32%). Severe dominates the train split (1548 of 2468 rows), so the k=5 majority vote is biased towards it. Distance-weighted or class-balanced voting, tuned on dev, is listed under future work and was not implemented.
+* **Task 3 is nearest-neighbour retrieval**, not a trained classifier: it can only echo labels of past cases, and the vote share is not a probability.
 * **Task 2 cross-attention.** The image side is one pooled CLIP vector, so the txt-to-img attention attends over a single key and is effectively a projection. It was not redesigned.
-* Task 2 has tiny classes (e.g. "Missing or found people": 3 test samples, F1 = 0), so macro-F1 is noisy.
-* Task 1 and Task 2 labels come from different annotators/modalities (Task 1 uses the tweet-text label, Task 2 the image label), so the two can legitimately disagree on the same tweet.
+* **Tiny classes.** "Missing or found people" has 3 test samples (F1 = 0) and "Injured or dead people" has 10, so Task 2 macro-F1 is noisy; differences of a point or two between epochs or runs are not meaningful.
+* **Task 2 "after" is a bundle of five changes** and its improvement cannot be attributed to any single one; one training run (seed 42), no repeated runs, and AMP/cuDNN training is not bit-reproducible, so a re-train will give slightly different numbers. The saved artifacts reproduce the reported test metrics exactly (`TRAIN=False`).
+* **Old vs corrected rows are not on identical test sets** (see the footnote in section 3).
+* **Label sources differ across tasks.** Task 1 uses the tweet-text label, Task 2 the image label, so the two can legitimately disagree on the same tweet.
+* **Event and domain shift.** All events are 2017 disaster tweets; the split mixes events, so the numbers say nothing about an unseen event (leave-one-event-out is future work).
+* **Demo checks.** The live app was verified through its API (4 cases, all four outputs returned) but not visually in a browser (the browser extension was not connected).
 
 ## 6. Future work
 
