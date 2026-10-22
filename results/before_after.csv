@@ -1,0 +1,8 @@
+task,version,n_test,accuracy,macro_f1,weighted_f1,notes
+T1 Informative (text-only),"old (leaky/buggy, as reported)",,0.7944,,0.797,numbers from capstone-final.ipynb; blank = not reported then
+T1 Informative (text-only),corrected pipeline,2237.0,0.7943674564148413,0.7512887295620834,0.7969586580300447,same data; only the report labels changed
+T2 Humanitarian (8 cls),"old (leaky/buggy, as reported)",,0.7807,0.4696,,numbers from capstone-final.ipynb; blank = not reported then
+T2 Humanitarian (8 cls),corrected pipeline,2237.0,0.797496647295485,0.5864605883164515,0.7968303198031363,corrected pipeline = path fix + HF CLIP/QuickGELU + cached embeddings + 10-epoch cap + AMP (delta not attributable to any one change)
+T3 Damage (3 cls),"old (leaky/buggy, as reported)",,0.6784,,0.6964,numbers from capstone-final.ipynb; blank = not reported then
+T3 Damage (3 cls),corrected pipeline,529.0,0.667296786389414,0.4914439729128235,0.6202453429276462,index = damage TRAIN minus rows sharing a tweet_id with test; evaluated on damage TEST; 3 real classes; deterministic tie-break
+T3 Damage (3 cls),"corrected, secondary: official split (image-disjoint only)",529.0,0.6748582230623819,0.5090791761056197,0.6309252116092707,index = all damage-train rows; 62 test tweets also have another image in train
