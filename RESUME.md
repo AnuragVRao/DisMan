@@ -1,4 +1,4 @@
-# Resume notes (written 2026-10-22, mid Block 1)
+# Resume notes (updated: Block 1 DONE and committed; STOPPED for user review of before/after table)
 
 **Python:** always `C:\Users\anura\AppData\Local\Programs\Python\Python313\python.exe` (CUDA torch, gradio installed,
 huggingface-hub pinned <1.0 for transformers 4.57.1). The default `python` is 3.14 CPU-only: do not use.
