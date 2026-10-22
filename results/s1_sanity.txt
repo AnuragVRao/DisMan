@@ -1,0 +1,7 @@
+text_projection: (512, 512) | visual_projection: (512, 768) | text hidden 512 | vision hidden 768 | projection_dim 512
+(a) text: max|get_text_features - text_projection(text_model.pooler_output)| = 0.000e+00 (n=10 prompts)
+    unprojected pooler is (10, 512) (hidden 512-d), projected is (10, 512); mean|projected - unprojected| = 0.799 (not equal -> projection applied)
+(b) image: max|cached - visual_projection(vision_model.pooler_output)| over 5 cached rows = 5.719e-03 (cached magnitude ~0.285)
+(c) cat vs disaster on 20 random damage-test images: picked 'disaster' for 20/20 (seed 42)
+(d) raw cosine, image vs E2 prompts (all pairs, n=4761): min 0.122 max 0.318; p5=0.171, p25=0.204, p50=0.226, p75=0.246, p95=0.271
+    best-matching prompt per image (n=529): p5=0.219, p25=0.243, p50=0.260, p75=0.275, p95=0.294
