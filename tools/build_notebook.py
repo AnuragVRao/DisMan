@@ -111,6 +111,26 @@ print("\nOK: both earthquake events present in every split of every task; rows d
 ''')
 
 md(r'''
+### Split-overlap audit
+The official splits separate **images**. T1/T2 have one row per tweet, so they are also tweet-disjoint (verified below). The damage
+task has one row per image, so a tweet with two images can sit in two splits (same text). This is handled for Task 3 below.
+''')
+code(r'''
+rows = []
+for task in ("informative", "humanitarian", "damage"):
+    tr, dv, te = (SPLITS[(task, s)] for s in ("train", "dev", "test"))
+    for na, a, nb_, b in (("dev", dv, "test", te), ("train", tr, "test", te), ("train", tr, "dev", dv)):
+        rows.append(dict(task=task, pair=f"{na}&{nb_}", image_id=len(set(a.image_id) & set(b.image_id)),
+                         tweet_id=len(set(a.tweet_id) & set(b.tweet_id)), rows_2nd_with_shared_tweet=int(b.tweet_id.isin(a.tweet_id).sum()),
+                         rows_2nd_identical_text=int(b.text.isin(set(a.text)).sum())))
+overlap = pd.DataFrame(rows); print(overlap.to_string(index=False)); overlap.to_csv(RES / "split_overlap.csv", index=False)
+assert (overlap.image_id == 0).all(), "image_id overlap between splits"
+assert (overlap[overlap.task != "damage"].tweet_id == 0).all(), "T1/T2 splits are not tweet-disjoint"
+print("OK: no image_id overlap in any task; T1/T2 tweet-disjoint. Damage tweet overlaps are documented (dev&test: "
+      f"{int(overlap[(overlap.task=='damage') & (overlap.pair=='dev&test')].tweet_id.iloc[0])} tweets).")
+''')
+
+md(r'''
 ## 2. Task 1 — Informative vs Not informative (text only)
 **Fix 3 — report labels.** `sklearn` sorts labels alphabetically (`informative`, `not_informative`), but the original
 passed `target_names=["not_informative", "informative"]`, so the per-class rows were mislabelled. We pass `labels=` explicitly
@@ -349,9 +369,16 @@ def t3_run(split, index=None, meta=None):
     labs = meta["label"].to_numpy()
     return [cc.knn_vote(list(labs[i]), list(s))[0] for i, s in zip(idx, scores)]
 
-for s in ("dev", "test"):
-    pred = t3_run(s); RESULTS[f"T3_{s}"] = cc.metrics(t3[s]["label"], pred, cc.T3_LABELS)
-    print(f"T3 {s:4s}:", {k: round(v, 4) for k, v in RESULTS[f"T3_{s}"].items()})
+# dev is evaluated with a tweet-disjoint index too: train rows sharing a tweet_id with dev are left out (71 dev rows have a twin in train)
+dev_keep = ~t3["train"]["tweet_id"].isin(set(t3["dev"]["tweet_id"])).to_numpy()
+print(f"dev index exclusion: {int((~dev_keep).sum())} train rows share a tweet_id with dev")
+dev_index = faiss.IndexFlatIP(T3V["train"].shape[1]); dev_index.add(T3V["train"][dev_keep])
+dev_meta = t3["train"][META_COLS][dev_keep].reset_index(drop=True)
+assert not set(dev_meta.tweet_id) & set(t3["dev"].tweet_id) and not set(dev_meta.image_id) & set(t3["dev"].image_id)
+pred = t3_run("dev", dev_index, dev_meta); RESULTS["T3_dev"] = cc.metrics(t3["dev"]["label"], pred, cc.T3_LABELS)
+print("T3 dev :", {k: round(v, 4) for k, v in RESULTS["T3_dev"].items()}, "(tweet-disjoint index)")
+pred = t3_run("test"); RESULTS["T3_test"] = cc.metrics(t3["test"]["label"], pred, cc.T3_LABELS)
+print("T3 test:", {k: round(v, 4) for k, v in RESULTS["T3_test"].items()})
 t3_pred = pred
 print()
 print(classification_report(t3["test"]["label"], t3_pred, labels=cc.T3_LABELS, target_names=cc.T3_LABELS, zero_division=0, digits=4))
@@ -392,7 +419,7 @@ NOTE = {"T1": "same data; only the report labels changed",
 NAME = {"T1": "T1 Informative (text-only)", "T2": "T2 Humanitarian (8 cls)", "T3": "T3 Damage (3 cls)"}
 rows = []
 for t in ("T1", "T2", "T3"):
-    rows.append(dict(task=NAME[t], version="old (leaky/buggy, as reported)", n_test=np.nan, **OLD[t], notes="numbers from capstone-final.ipynb; blank = not reported then"))
+    rows.append(dict(task=NAME[t], version="old (leaky/buggy, as reported)", n_test=np.nan, **OLD[t], notes="numbers from capstone-final.ipynb; blank = not reported then. FOOTNOTE: old test sets lacked the Iraq-Iran and Mexico earthquake samples (path bug) so old vs corrected are NOT on identical test sets"))
     m = RESULTS[f"{t}_test"]
     rows.append(dict(task=NAME[t], version="corrected pipeline", n_test=m["n"], accuracy=None, **{"acc": m["acc"], "macro_f1": m["macro_f1"], "weighted_f1": m["weighted_f1"]}, notes=NOTE[t]))
 m = RESULTS["T3_test_imageonly"]

@@ -1,0 +1,10 @@
+task,pair,image_id,tweet_id,rows_2nd_with_shared_tweet,rows_2nd_identical_text
+informative,dev&test,0,0,0,0
+informative,train&test,0,0,0,0
+informative,train&dev,0,0,0,4
+humanitarian,dev&test,0,0,0,0
+humanitarian,train&test,0,0,0,1
+humanitarian,train&dev,0,0,0,1
+damage,dev&test,0,16,16,16
+damage,train&test,0,62,67,67
+damage,train&dev,0,62,71,71
