@@ -65,6 +65,10 @@ seconds and a prediction takes about 0.1-0.2 s on the GPU (about 1.8 s end to en
 3. If Task 1 and Task 2 disagree, both are shown with a note. Task 1 is trained on tweet-text labels and Task 2 on image labels, so a
    tweet can be informative as text while its image is not humanitarian, or vice versa.
 
+### Extra demo examples
+
+`demo_examples/` holds ten upload-ready cases (image + tweet text) with a `MANIFEST.md` of true labels versus model output and why each is worth showing: 7 good picks, 1 case where Task 1 and Task 2 disagree, and 2 deliberate failures. They come from the test split with no twin in the damage-train index and are different from the six built-in examples. Rebuild with `python tools/build_demo_folder.py` (images are git-ignored because they come from the dataset).
+
 ### What to expect (be honest on stage)
 * The preloaded examples are test-split tweets with no twin in the damage-train index, chosen by their true labels (not by whether
   the model gets them right). Four of the six examples have a wrong prediction in at least one task: Task 3 on the Iraq-Iran
