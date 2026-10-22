@@ -40,12 +40,16 @@ pip install "huggingface-hub>=0.34,<1.0"
 ```
 
 ### Start it
-`artifacts/` must exist (see "Reproduce"); from the repository root:
+`artifacts/` must exist (see "Reproduce"). From the repository root, in **PowerShell**, use the Python 3.13 interpreter that has the
+packages installed. If another virtual environment (such as a `venv`) is active it will not have them: run `deactivate` first, or call the
+interpreter by its full path as below.
 
 ```
-set HF_HUB_OFFLINE=1
-python demo/app.py
+$env:HF_HUB_OFFLINE = "1"
+& "C:\Users\anura\AppData\Local\Programs\Python\Python313\python.exe" demo/app.py
 ```
+
+In Command Prompt, use `set HF_HUB_OFFLINE=1` for the first line instead.
 
 Then open **http://127.0.0.1:7860**. Everything loads from `artifacts/`, so no internet connection is needed. Loading takes a few
 seconds and a prediction takes about 0.1-0.2 s on the GPU (about 1.8 s end to end through the web request).
