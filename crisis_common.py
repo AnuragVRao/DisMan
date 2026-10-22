@@ -168,7 +168,7 @@ def load_clip(device, source=CLIP_NAME):
 
 def load_sbert(device, source=SBERT_NAME):
     from sentence_transformers import SentenceTransformer
-    return SentenceTransformer(source, device=str(device))
+    return SentenceTransformer(str(source), device=str(device))
 
 
 def _open_rgb(p):
