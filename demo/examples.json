@@ -1,0 +1,62 @@
+[
+ {
+  "image_id": "910536209180626946_0",
+  "tweet_id": "910536209180626946",
+  "event": "mexico_earthquake",
+  "rel_image": "data_image/mexico_earthquake/20_9_2017/910536209180626946_0.jpg",
+  "tweet_text": "RT @CityLab: Mexico City's earthquake, through residents' eyes https://t.co/tu4Jtk8goL #CDMX https://t.co/Ge5100NQz5",
+  "t1_true": "informative",
+  "t2_true": "n/a",
+  "t3_true": "Severe damage"
+ },
+ {
+  "image_id": "930762101836124161_0",
+  "tweet_id": "930762101836124161",
+  "event": "iraq_iran_earthquake",
+  "rel_image": "data_image/iraq_iran_earthquake/15_11_2017/930762101836124161_0.jpg",
+  "tweet_text": "\u201cI am alive,\u201d he recalled thinking over and over again. \u201cAlive.\u201d #iran #earthquake https://t.co/5E5q8DZ8Y9",
+  "t1_true": "n/a",
+  "t2_true": "Infrastructure and utility damage",
+  "t3_true": "Mild damage"
+ },
+ {
+  "image_id": "909880224631857152_0",
+  "tweet_id": "909880224631857152",
+  "event": "hurricane_irma",
+  "rel_image": "data_image/hurricane_irma/18_9_2017/909880224631857152_0.jpg",
+  "tweet_text": "Restoration of Water Supply Benefits 25,000 Cubans Affected by Irma https://t.co/c3OFbNeClz https://t.co/SdqjlogwpZ",
+  "t1_true": "informative",
+  "t2_true": "n/a",
+  "t3_true": "Little or no damage"
+ },
+ {
+  "image_id": "909495463908397056_0",
+  "tweet_id": "909495463908397056",
+  "event": "hurricane_irma",
+  "rel_image": "data_image/hurricane_irma/17_9_2017/909495463908397056_0.jpg",
+  "tweet_text": "RT @TradeCpt: Crude Oil Weekly: Hurricanes Harvey, Irma Lifts Oil Prices - https://t.co/ArnflO659Q https://t.co/S0mxytdIdP",
+  "t1_true": "n/a",
+  "t2_true": "Not humanitarian",
+  "t3_true": "n/a"
+ },
+ {
+  "image_id": "904206815348609026_0",
+  "tweet_id": "904206815348609026",
+  "event": "hurricane_harvey",
+  "rel_image": "data_image/hurricane_harvey/3_9_2017/904206815348609026_0.jpg",
+  "tweet_text": "RT @RyanAFournier: A picture worth a thousand words... #HurricaneHarvey https://t.co/ZM3Yi441FC",
+  "t1_true": "not_informative",
+  "t2_true": "Rescue, volunteering or donation effort",
+  "t3_true": "n/a"
+ },
+ {
+  "image_id": "909908444324532224_0",
+  "tweet_id": "909908444324532224",
+  "event": "hurricane_irma",
+  "rel_image": "data_image/hurricane_irma/18_9_2017/909908444324532224_0.jpg",
+  "tweet_text": "Cuba announces program to repair Irma-damaged homes as experts assess damage to economy https://t.co/m2nRmsW73j https://t.co/iVnBT5zc3Z",
+  "t1_true": "n/a",
+  "t2_true": "Affected individuals",
+  "t3_true": "n/a"
+ }
+]
