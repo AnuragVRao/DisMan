@@ -6,7 +6,9 @@ Rungs (each flag is independent; presets just name the combinations):
   L2  L1 with the fixed activation (HF CLIPModel, QuickGELU); still the v1 random-crop transform, online
   L3  L2 with the epoch budget 30 -> 10 (warm-up 3 + cosine over the remaining epochs, as v2)
   L3b L3 with the deterministic eval transform (v2 preprocessing) so features can be cached; fp32, no AMP
-  L4  v2: L3b + AMP (fp16 autocast + GradScaler) + randomly initialised DistilBERT (v2 behaviour; see PRESETS)
+  L4a L3b + AMP (fp16 autocast + GradScaler), pretrained DistilBERT: v2 as intended
+  L4  v2 exactly: L4a but DistilBERT randomly initialised (v2's DistilBertModel(config) behaviour; see PRESETS)
+Part B variants (--variant text_only|image_only|concat|no_t2i) run on L4a's config and write to results/ablation/B/.
 The test set is always the full corrected humanitarian test split (2237 rows), evaluated once with the dev-selected checkpoint.
 Does not touch artifacts/ files that v2 uses; checkpoints go to artifacts/ablation/ckpt/.
 """
@@ -26,6 +28,7 @@ from PIL import Image
 import torchvision.transforms as T
 
 from common import ABL_ART, ART, DATA, SPLIT_DIR, cc, write_row
+from t2_models import VARIANTS, Variant, param_groups
 
 PRESETS = {
     # bert = DistilBERT initialisation: v1 loaded the pretrained weights; v2's training cell builds DistilBertModel(config), i.e. RANDOM init
@@ -35,6 +38,7 @@ PRESETS = {
     "L2":  dict(data="full", clip="hf", tf="v1_random", epochs=30, cache=False, amp=False, bert="pretrained"),
     "L3":  dict(data="full", clip="hf", tf="v1_random", epochs=10, cache=False, amp=False, bert="pretrained"),
     "L3b": dict(data="full", clip="hf", tf="deterministic", epochs=10, cache=True, amp=False, bert="pretrained"),
+    "L4a": dict(data="full", clip="hf", tf="deterministic", epochs=10, cache=True, amp=True, bert="pretrained"),
     "L4":  dict(data="full", clip="hf", tf="deterministic", epochs=10, cache=True, amp=True, bert="random"),   # = v2
 }
 T2_BATCH, T2_MAX_LEN, T2_LR, T2_WARMUP = 32, 128, 1e-4, 3
@@ -129,6 +133,8 @@ def main():
     ap.add_argument("--max-minutes", type=float)        # abort and report if the run exceeds this
     ap.add_argument("--workers", type=int, default=6)   # train loader workers for the online-CLIP rungs (dev/test use 4)
     ap.add_argument("--debug-steps", type=int, default=0)  # print the first N step losses and exit (determinism debugging)
+    ap.add_argument("--variant", choices=("full",) + VARIANTS, default="full")   # Part B component ablation
+    ap.add_argument("--tier", default="")               # batch tier, recorded in the result JSON
     ap.add_argument("--tag", default="")                # suffix for smoke/timing runs so real rows are never overwritten
     a = ap.parse_args()
     cfg = dict(PRESETS[a.config]); E = a.epochs or cfg["epochs"]
@@ -171,15 +177,14 @@ def main():
                    for s, d in data.items()}
 
     cc.seed_all(a.seed)  # same head init regardless of which CLIP implementation was loaded above
-    model = cc.DualStreamClassifier(NC, bert_config=bert_cfg if cfg["bert"] == "random" else None).to(device)
+    bcfg = bert_cfg if cfg["bert"] == "random" else None
+    model = (cc.DualStreamClassifier(NC, bert_config=bcfg) if a.variant == "full"
+             else Variant(a.variant, NC, bert_config=bcfg)).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     cnt = tr["label"].map(l2i).value_counts().reindex(ALL).values.astype("float32")
     w = 1.0 / cnt; w /= w.sum() / NC
     crit = nn.CrossEntropyLoss(weight=torch.tensor(w, device=device))
-    opt = AdamW([{"params": model.text_encoder.parameters(), "lr": T2_LR * 0.1},
-                 *[{"params": m.parameters(), "lr": T2_LR} for m in
-                   (model.img_proj, model.txt_proj, model.img_to_txt, model.txt_to_img, model.classifier)]],
-                weight_decay=1e-4)
+    opt = AdamW(param_groups(model, T2_LR), weight_decay=1e-4)
     sched = lr_scheduler.SequentialLR(opt, [lr_scheduler.LinearLR(opt, 1e-6, 1.0, T2_WARMUP),
                                             lr_scheduler.CosineAnnealingLR(opt, T_max=E - T2_WARMUP, eta_min=1e-7)],
                                       milestones=[T2_WARMUP])
@@ -240,12 +245,13 @@ def main():
             print(f"ABORT: exceeded --max-minutes {a.max_minutes} after epoch {epoch}/{E}", flush=True)
             break
 
-    name = f"t2_{a.config}{a.tag}"
+    part = "A" if a.variant == "full" else "B"
+    name = f"t2_{a.config if a.variant == 'full' else a.variant}{a.tag}"
     if aborted:
-        row = dict(task="T2", config=name, aborted=True, epochs_trained=len(hist), epochs_planned=E,
+        row = dict(task="T2", config=name, aborted=True, tier=a.tier, epochs_trained=len(hist), epochs_planned=E,
                    mean_epoch_s=float(np.mean(ep_times)), projected_total_min=float(np.mean(ep_times) * E / 60),
                    wall_clock_s=time.time() - t_start, history=hist)
-        print(write_row("A", name, a.seed, row)); return
+        print(write_row(part, name, a.seed, row)); return
 
     model.load_state_dict(best_state)
     (ABL_ART / "ckpt").mkdir(parents=True, exist_ok=True)
@@ -254,12 +260,16 @@ def main():
     t = y["test"].numpy()
     pcf = f1_score(t, p, labels=ALL, average=None, zero_division=0)
     cm = confusion_matrix(t, p, labels=ALL)
+    maj = np.full_like(t, int(np.argmax(cnt)))        # majority-class baseline (stop-and-ask condition in the plan)
+    maj_f1 = float(f1_score(t, maj, labels=ALL, average="macro", zero_division=0))
     row = dict(task="T2", config=name, dev_macro_f1=best_f1, test_acc=tm["acc"], test_macro_f1=tm["macro_f1"],
                test_weighted_f1=tm["weighted_f1"], per_class_f1=dict(zip(labels, map(float, pcf))),
                confusion_matrix=cm.tolist(), labels=labels, epochs_trained=len(hist), best_epoch=best_epoch,
                wall_clock_s=time.time() - t_start, n_train=len(tr), n_dev=len(dv), n_test=len(te), n_params=n_params,
-               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E), history=hist)
-    print(write_row("A", name, a.seed, row))
+               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E), history=hist,
+               variant=a.variant, tier=a.tier, majority_baseline_macro_f1=maj_f1,
+               below_majority_baseline=bool(tm["macro_f1"] < maj_f1))
+    print(write_row(part, name, a.seed, row))
     print(f"TEST acc {tm['acc']:.4f} macroF1 {tm['macro_f1']:.4f} wF1 {tm['weighted_f1']:.4f} | best dev macroF1 {best_f1:.4f} "
           f"@ epoch {best_epoch} | wall {row['wall_clock_s']/60:.1f} min")
 

@@ -190,3 +190,10 @@ Note the plan's phrase "irrelevant-class pollution" describes this: the index is
 Python 3.13 (`C:\Users\anura\AppData\Local\Programs\Python\Python313`), torch 2.13.0+cu126, torchvision 0.28.0+cu126, transformers 4.57.1,
 open_clip_torch 3.3.0, timm 1.0.30, sentence-transformers 5.1.2, faiss-cpu 1.12.0, scikit-learn 1.7.0, pandas 2.3.0; GPU: NVIDIA GeForce RTX 4050 Laptop (6 GB).
 `open_clip_torch`, `timm`, `ftfy`, `wcwidth` were added for this study with `pip install --no-deps` (the v2 requirements did not include them).
+
+## Ladder conventions added during the study
+
+* **L4a** = L3b + AMP with pretrained DistilBERT (v2 as intended). **L4** = v2 exactly (randomly initialised DistilBERT). L4a -> L4 differs only in the encoder initialisation.
+* **Shuffle order.** v2's `tqdm(dl)` makes `tqdm.auto` call `iter(dl)` twice, shifting the shuffle by one generator draw per epoch (see `docs/ablation_findings.md`).
+  Every rung in `ablation/t2_train.py` reproduces that shift. It is equivalent to changing the seed, not a systematic effect, so it gets no rung of its own;
+  the seeds {42, 43, 44} average over it.
