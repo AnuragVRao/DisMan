@@ -1,41 +1,147 @@
-# Ablation findings (running notes)
+# Ablation findings
 
-Facts only; numbers come from `results/ablation/` (not committed yet). Status: Part A T3 ladder done, T2 ladder not started.
+Facts and measured numbers only. Source rows: `results/ablation/{A,B,C}/*.json` (one JSON per run); aggregates: `results/ablation/summary.csv`;
+LaTeX: `results/ablation/tables.tex`; figure: `results/ablation/ladder_t2.pdf`. Method for T2 numbers: mean over seeds {42, 43, 44}, "±" is the sample std (ddof = 1), `n` = runs.
+Paired differences use the same seed on both sides. With n = 3, treat differences smaller than roughly 0.01 macro-F1 as not established.
+Run order and settings are in `ABLATION_PLAN.md`, `docs/v1_config.md`, `ablation/run_batch.py` (33 T2 runs, none failed, no result fell below the majority-class baseline of 0.0801 macro-F1).
 
-## v1 specifics that the ladders must respect
+## 1. Things found in the code that the plan did not anticipate
 
-* **v1 applied `RandomResizedCrop` (scale 0.9-1.0) to dev and test images too**, not only train: `capstone-final.ipynb` cell 15 keeps open_clip's
-  *train* transform (`clip_preprocess_t2`) and cell 18 uses it for all three splits. v1's logged dev and test T2 scores are therefore measured on randomly cropped images.
-  Consequence: CLIP features cannot be cached for L0-L2; L0-L2 run CLIP online. v2's cached features removed the augmentation as a side effect.
-* **v2's Task 2 text encoder starts from random initialisation, not pretrained DistilBERT.** `crisis_common.DualStreamClassifier` builds
-  `DistilBertModel(bert_config)` whenever a config is passed, and the v2 training cell passes one (to avoid hub access in the demo).
-  Evidence: in `artifacts/task2_model.pt` the text encoder's word-embedding std is 0.0200 (the random-init value; pretrained is 0.0470) and its relative L2 distance to
-  pretrained DistilBERT (1.06) equals that between a random init and pretrained. v1 used `DistilBertModel.from_pretrained('distilbert-base-uncased')`.
-  This is not listed in RESULTS.md's audit. v2's reported numbers are unchanged; the ablation presets expose it as `bert=pretrained|random` (L0-L3b pretrained, L4 random = v2).
+1. **v1 applied `RandomResizedCrop` (scale 0.9-1.0) to dev and test images too.** `capstone-final.ipynb` cell 15 keeps open_clip's *train* transform and cell 18 uses it for all three splits,
+   so v1's logged dev/test T2 scores are measured on randomly cropped images. CLIP features therefore cannot be cached for L0-L2 (they run CLIP online); v2's cached features removed the augmentation as a side effect.
+2. **v2's Task 2 text encoder is trained from random initialisation, not from pretrained DistilBERT.** `crisis_common.DualStreamClassifier` builds `DistilBertModel(bert_config)` whenever a config is passed, and v2's training cell passes one.
+   Evidence: saved word-embedding std 0.0200 (random-init value; pretrained 0.0470); cosine similarity of the saved word embeddings with pretrained DistilBERT = -0.0002 (uncorrelated);
+   cosine with the model's own seed-42 random init = 1.000 (relative distance 0.019, i.e. it barely moved at lr 1e-5). v1 used `from_pretrained`. The only other config-built model in the repo is the demo loader (`demo/pipeline.py:37`), which then loads the saved weights. Nothing was changed in v2.
+3. **v2 iterates `tqdm(dl)` and `tqdm.auto` calls `iter(dl)` twice** (also with `disable=True`); the discarded iterator draws one seed from the loader's generator, so v2 trains on a shuffled order shifted by one draw per epoch.
+   This is why a first re-implementation of v2's L4 gave test macro-F1 0.6022 instead of 0.5865 (same init, class weights, CUDA RNG state, data and eval-mode loss; different batch order). `ablation/t2_train.py` now emulates the draw and reproduces v2 exactly
+   (first six step losses to 6 decimals; test acc 0.7975 / macro-F1 0.5865 / weighted-F1 0.7968). The shift is equivalent to a seed change, not a systematic effect, so it has no rung of its own. The 0.6022 vs 0.5865 gap is one measure of order-induced variation at this scale.
+4. **v2 reproduces itself exactly** when its own notebook cells are re-run (`ablation/v2_t2_rerun.py`, outputs redirected): 0.7975 / 0.5865 / 0.7968, identical to the README and the saved history.
+5. **T1 regression check passes.** v1's code, a fresh v2 retrain and the saved v2 artifact give identical predictions on all 2,237 test rows: accuracy 0.794367, weighted-F1 0.796959 (`ablation/t1_regression.py`).
+6. The v1 T3 CLIP was verified, not assumed: HF `openai/clip-vit-base-patch32` (QuickGELU) reproduces the v1 demo cell's top-5 scores `[1, .474, .454, .45, .449]` on exactly one index row (next best misses by 12x more).
 
-## Part A, T3 ladder (deterministic, v2 vote rule, HF CLIP verified as v1's)
+## 2. Part A, Task 2 ladder (full corrected test set, 2237 rows; n = 3 seeds each)
 
-| Rung | Index rows | Acc | Macro-F1 | Weighted-F1 | Test queries with self in top-5 |
+| Rung | Change | Dev macro-F1 | Acc. | Test macro-F1 | Weighted-F1 |
+|---|---|---|---|---|---|
+| L0 | v1 as it was: buggy train/dev (earthquakes missing), GELU open_clip CLIP, random crops, 30 ep, pretrained BERT | 0.557 ± 0.016 | 0.767 ± 0.002 | **0.494 ± 0.006** | 0.760 ± 0.002 |
+| L1 | + full corrected train/dev | 0.643 ± 0.044 | 0.788 ± 0.008 | 0.588 ± 0.012 | 0.788 ± 0.011 |
+| L2 | + QuickGELU CLIP (HF) | 0.648 ± 0.043 | 0.786 ± 0.012 | 0.592 ± 0.012 | 0.787 ± 0.013 |
+| L3 | + epoch budget 30 → 10 | 0.595 ± 0.008 | 0.797 ± 0.005 | 0.600 ± 0.005 | 0.799 ± 0.004 |
+| L3b | + deterministic transform, cached features (fp32) | 0.581 ± 0.011 | 0.792 ± 0.008 | 0.587 ± 0.011 | 0.793 ± 0.007 |
+| L4a | + AMP (pretrained DistilBERT) | 0.585 ± 0.008 | 0.799 ± 0.006 | 0.598 ± 0.010 | 0.800 ± 0.006 |
+| L4 | v2: random-init DistilBERT | 0.581 ± 0.003 | 0.793 ± 0.005 | 0.587 ± 0.001 | 0.795 ± 0.002 |
+
+Paired differences in test macro-F1 (per-seed values, then mean ± std):
+
+| Step | 42 | 43 | 44 | Mean ± std |
+|---|---|---|---|---|
+| L0 → L1 (fix path bug) | +0.103 | +0.082 | +0.099 | **+0.095 ± 0.011** |
+| L1 → L2 (QuickGELU) | +0.003 | +0.003 | +0.007 | +0.004 ± 0.002 |
+| L2 → L3 (30 → 10 epochs) | +0.002 | +0.015 | +0.007 | +0.008 ± 0.007 |
+| L3 → L3b (no augmentation, cache) | -0.031 | -0.006 | -0.004 | -0.013 ± 0.015 |
+| L3b → L4a (AMP) | +0.033 | -0.001 | +0.003 | +0.012 ± 0.019 |
+| L4a → L4 (random-init DistilBERT) | -0.022 | -0.001 | -0.011 | -0.011 ± 0.010 |
+| L3 → L4 (whole v2 bundle) | -0.019 | -0.009 | -0.011 | -0.013 ± 0.005 |
+
+* **The path bug is the one large effect:** training without the two earthquake events costs about 0.095 macro-F1 on the full test set, at every seed. L0 → L1 also accounts for essentially the whole gap between v1 and v2.
+* **L1 → L2 and L2 → L3 are small** (+0.004 and +0.008, below the seed spread). Shortening the epoch budget from 30 to 10 caused no measurable loss.
+* **Dev inflation from 30-epoch selection.** L1/L2 dev macro-F1 (0.64-0.65) sits about 0.05 above their test macro-F1 (0.59), while L3's dev (0.595) matches its test (0.600): picking the best of 30 noisy dev evaluations over-reports dev without improving test.
+* **Plan expectation "L4 ≈ L3 within seed std" is NOT met.** L4 is below L3 by 0.013 at all three seeds (paired std 0.005; L3's seed std is 0.005). Decomposition: no single step is established on its own (all within about one paired std),
+  but the largest consistent contributor is the random-init DistilBERT (L4a → L4, -0.011, negative at 3/3 seeds); L3 → L4a (everything except the init) is -0.002. In other words, the deterministic transform + cache + AMP are net neutral, and v2's missing pre-training costs roughly 0.01 macro-F1.
+* All rungs L0-L3 evaluate dev and test under the random-crop transform (v1 behaviour, deliberately kept); L3b/L4a/L4 use the deterministic transform.
+
+## 3. Part A, Task 3 ladder (deterministic; HF CLIP + SBERT; v2 vote; 529 test queries, 3 real classes)
+
+| Rung | Index rows | Acc. | Macro-F1 | Weighted-F1 | Test queries with self in top-5 |
 |---|---|---|---|---|---|
 | L0 v1 index (incl. test, "Don't know" pollution) | 18,082 | 0.7221 | 0.6880 | 0.7630 | 529/529 (top-1: 528) |
 | L1 test rows removed | 17,553 | 0.5028 | 0.3777 | 0.5328 | 0 |
-| L2 "Don't know" rows removed (train+dev) | 2,997 | 0.6767 | 0.5037 | 0.6318 | 0 |
+| L2 "Don't know" rows removed (train + dev) | 2,997 | 0.6767 | 0.5037 | 0.6318 | 0 |
 | L3 dev removed (train only) | 2,468 | 0.6749 | 0.5091 | 0.6309 | 0 |
 | L4 tweet siblings removed (= v2) | 2,361 | 0.6673 | 0.4914 | 0.6202 | 0 |
 
-* The pollution removed at L2 is 14,556 rows: 14,455 images with no damage annotation (NaN, mapped to "Don't know" by v1) + 101 explicit "dont_know_or_cant_judge".
-* **L1 -> L2 (+0.126 macro-F1): expected effect** of removing the "Don't know" rows. With them in the index 786 of 2,645 neighbour votes (30%) went to a class that cannot occur in test, and 143 test queries were predicted "Don't know".
-* **L2 -> L3 (dev rows removed): no measurable effect** (macro-F1 0.5037 -> 0.5091, accuracy 0.6767 -> 0.6749; 529 test rows, differences are within noise).
-* L3 -> L4 (tweet siblings removed): macro-F1 0.5091 -> 0.4914. 67 test queries had a same-tweet sibling in their top-5 at L3; none at L4.
-* L0 is higher than L1-L4 mainly because every test query retrieves itself (529/529 in the top-5); L0 -> L1 removes that.
-* L4 reproduces v2's headline exactly (0.6673 / 0.4914 / 0.6202).
+* The pollution removed at L2 is 14,556 rows: **14,455 images with no damage annotation (NaN, mapped to "Don't know" by v1) + 101 explicit "dont_know_or_cant_judge"**.
+* **L0 → L1 (-0.31 macro-F1): expected effect** of removing the test images from the index; every one of the 529 test queries retrieved itself in L0 (one duplicate image tied at similarity 1.0 for top-1).
+* **L1 → L2 (+0.126): expected effect** of removing the "Don't know" rows: with them in the index 786 of 2,645 neighbour votes (30%) went to a class that cannot occur in test, and 143 test queries were predicted "Don't know".
+* **L2 → L3 (dev rows removed): no measurable effect** (macro-F1 0.5037 → 0.5091, accuracy 0.6767 → 0.6749 on 529 rows).
+* L3 → L4 (tweet siblings removed): macro-F1 0.5091 → 0.4914; 67 test queries had a same-tweet sibling in their top-5 at L3, none at L4. L4 reproduces v2's headline exactly (0.6673 / 0.4914 / 0.6202).
+* The plan's "scores decrease or stay flat from L0 → L3" does not hold literally (L1 → L2 rises), for the reason given above.
 
-## Determinism check (seed 42)
+## 4. Part B, Task 2 component ablation (on L4a's configuration; n = 3)
 
-* v2's own notebook cells re-run (`ablation/v2_t2_rerun.py`, writes redirected): T2 test acc 0.7975 / macro-F1 0.5865 / weighted-F1 0.7968, identical to the README and to the saved `results/task2_history.json` (bit-reproducible).
-* `t2_train.py --config L4` first gave test macro-F1 0.6022 (and reproduced that exactly on a second run). Cause, isolated step by step: same init weights, same class weights, same CUDA RNG state, same data, same eval-mode loss on a given batch,
-  but a different **batch order**. v2 iterates `tqdm(dl)` with `tqdm.auto`, whose `tqdm.asyncio` class calls `iter(dl)` twice (even with `disable=True`); the discarded iterator draws one base seed from the loader's generator,
-  so v2 trains on a shuffled order shifted by one draw per epoch. `t2_train.py` now draws that value too (`torch.empty((), dtype=torch.int64).random_(generator=...)` before each epoch).
-  With it, the first six step losses equal v2's to 6 decimals and the full L4 run gives test acc 0.7975 / macro-F1 0.5865 / weighted-F1 0.7968 (best dev macro-F1 0.5788 at epoch 8): an exact reproduction of v2.
-* Consequence for interpretation: the earlier 0.6022 vs 0.5865 gap (0.017 macro-F1) was a different shuffle order, not a code difference, i.e. it is one measure of order-induced run-to-run variation at this scale.
-  The 0.6022 rows are kept in `results/ablation/A/_superseded/`.
+| Variant | Params | Dev macro-F1 | Acc. | Test macro-F1 | Weighted-F1 |
+|---|---|---|---|---|---|
+| full (L4a) | 67,352,840 | 0.585 ± 0.008 | 0.799 ± 0.006 | 0.598 ± 0.010 | 0.800 ± 0.006 |
+| image only (CLIP vector + MLP) | 199,688 | 0.568 ± 0.008 | 0.788 ± 0.002 | **0.601 ± 0.005** | 0.793 ± 0.002 |
+| concat, no attention | 66,825,480 | 0.580 ± 0.012 | 0.796 ± 0.007 | 0.595 ± 0.009 | 0.796 ± 0.007 |
+| no text→image attention | 67,089,160 | 0.583 ± 0.015 | 0.795 ± 0.005 | 0.570 ± 0.014 | 0.795 ± 0.005 |
+| text only | 66,628,104 | 0.295 ± 0.005 | 0.486 ± 0.010 | **0.294 ± 0.014** | 0.499 ± 0.008 |
+
+(All values are in `summary.csv`.) Paired differences from the full model, test macro-F1: image_only +0.003 ± 0.009; concat -0.004 ± 0.012; no_t2i **-0.029 ± 0.024** (negative at 3/3 seeds: -0.049, -0.003, -0.033); text_only -0.305 ± 0.012.
+
+* **The image stream carries the model.** A 200k-parameter MLP on the cached CLIP vector matches the 67M-parameter full model (+0.003, within noise), and text alone is about 0.30 macro-F1 lower. Task 2's target is the *image* label (`label_image`), which the tweet text predicts poorly (text-only overfits: train loss 0.66, dev accuracy about 0.5).
+* The attention blocks do not help over simple concatenation (-0.004 ± 0.012). Removing the text→image block specifically scores lower at all three seeds (about -0.03 on average), but the spread is large for n = 3 and the block attends over a single key (it is effectively a projection), so I would call this suggestive, not established.
+* No variant fell below the majority-class baseline (0.0801).
+
+## 5. Part B, Task 3 component ablation (deterministic, v2's tweet-disjoint index; 529 test queries)
+
+Headline cell (fused, k = 5, majority) reproduces v2 (asserted): acc 0.6673, macro-F1 0.4914.
+
+| k (fused, majority) | 1 | 3 | **5** | 10 | 20 |
+|---|---|---|---|---|---|
+| Dev macro-F1 | 0.4627 | 0.4739 | **0.4832** | 0.4438 | 0.4334 |
+| Test macro-F1 | 0.4538 | 0.5150 | 0.4914 | 0.5006 | 0.4704 |
+| Test acc. | 0.6011 | 0.6749 | 0.6673 | 0.6843 | 0.6843 |
+
+| Voting (fused, k = 5) | Dev macro-F1 | Test acc. | Test macro-F1 |
+|---|---|---|---|
+| majority (v2) | 0.4832 | 0.6673 | 0.4914 |
+| similarity-weighted | 0.4832 | 0.6673 | 0.4914 |
+| class-balanced | 0.5198 | 0.5860 | 0.4954 |
+
+| Embedding | 5-NN majority: dev / test macro-F1 (test acc.) | Logistic regression: C, dev / test macro-F1 (test acc.) |
+|---|---|---|
+| image only | 0.5427 / 0.5074 (0.6749) | C = 1: 0.6208 / **0.5946** (0.6730) |
+| text only | 0.4021 / 0.4276 (0.6068) | C = 0.01: 0.4731 / 0.4632 (0.5085) |
+| fused | 0.4832 / 0.4914 (0.6673) | C = 1: 0.5926 / **0.6146** (0.6843) |
+
+* k = 5 is the dev-best k for the headline configuration (dev 0.4832); test differences across k are within the noise of 529 rows (13% minority class).
+* Similarity-weighted voting gives identical metrics to majority voting at every k and every embedding (15 of 15 cells), on dev and on test. Neighbours within a query have similar scores (fused test queries: mean top-5 similarity 0.695, best-to-fifth spread averaging 0.046), so weighting by similarity almost never changes the winner; class-balanced voting raises macro-F1 on dev (+0.037) but lowers accuracy (0.667 → 0.586) and moves test macro-F1 by only +0.004.
+* **Image-only 5-NN (0.507) is not worse than fused (0.491)**; text-only is clearly weaker (0.428). The logistic-regression probe on the same embeddings beats 5-NN: fused 0.615 vs 0.491 test macro-F1, image 0.595 vs 0.507.
+* Best dev-selected k-NN configuration in the grid: image, k = 5, class-balanced (dev 0.5727 → test 0.5705); best overall by dev: logistic regression on image (dev 0.6208 → test 0.5946).
+
+## 6. Part C
+
+**C1, missing modality at test time (no retraining; grey 224x224 image / empty text):**
+
+| Model | Full | Grey image | Empty text |
+|---|---|---|---|
+| T2 L4a (n = 3) | 0.598 ± 0.010 | **0.081 ± 0.001** (Δ -0.518) | 0.511 ± 0.034 (Δ -0.087) |
+| T2 L4, v2 (n = 3) | 0.587 ± 0.001 | **0.080 ± 0.000** (Δ -0.507) | 0.590 ± 0.013 (Δ +0.003) |
+| T3 5-NN fused (n = 1) | 0.4914 | 0.4520 (Δ -0.039) | 0.4399 (Δ -0.052) |
+
+* A grey image collapses both T2 models to the majority-class baseline (0.0801): the model predicts one class for everything.
+* **v2's text stream is ignored** (empty text changes its macro-F1 by +0.003), consistent with its random-init encoder; the pretrained-encoder model L4a does use its text (-0.087).
+
+**C2, leave-one-disaster-out** (train / index on the other six events' train split; held-out event contributes zero rows, asserted by event, tweet and image id for all 14 folds; T2 is future work):
+
+| | T1 LODO acc / macro-F1 | T1 in-distribution macro-F1 | T3 LODO acc / macro-F1 | T3 in-distribution macro-F1 |
+|---|---|---|---|---|
+| Macro average over 7 events | 0.754 / 0.680 | 0.714 | 0.687 / 0.354 | 0.381 |
+
+* T1 drops 0.034 macro-F1 on average; the largest drops are srilanka_floods (0.793 vs 0.932) and hurricane_maria (0.692 vs 0.742).
+* T3 drops 0.027 macro-F1; three events have only 13-23 test rows (srilanka_floods 13, mexico 21, iraq_iran 23), so per-event T3 numbers are very noisy. Per-event macro-F1 averages the classes present in that event (v2's per-event convention); the fixed-class-set variant is in the JSON rows.
+
+## 7. Stop-and-ask conditions in the plan
+
+* v1 config recovered unambiguously: yes, after verification (T3 CLIP, augmentation); residual unknowns (library versions, GPU) are listed in `docs/v1_config.md`.
+* **L4 vs L3 difference exceeds one seed std: yes (-0.013 vs 0.005).** Part B was run on L4a's configuration, which is within the L3 spread (L3 → L4a = -0.002), at the user's instruction; the cause is attributed above.
+* Any variant below the majority-class baseline: no.
+* Leakage assertion in leave-one-disaster-out: passed on all 14 folds.
+
+## 8. Limitations
+
+* n = 3 seeds per T2 configuration; T1/T3 are single deterministic runs (T3 differences of a few points on 529 rows are within noise). L0-L2 reproduce v1's configuration, not its exact numbers (library versions, CUDA non-determinism and random crops differ).
+* The Kaggle open_clip version is unrecorded; the v1 train transform is taken from open_clip 3.3.0 (the RandomResizedCrop(0.9-1.0) default has been the same since 2.x).
+* The Part B "full model" is L4a (pretrained encoder), not v2's L4, so Part B numbers do not directly compare with v2's headline.
+* Reported tables use the IEEEtran conventions (booktabs, caption above); no IEEE report template existed in the repo to copy.
