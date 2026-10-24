@@ -56,7 +56,7 @@ for name, mask in RUNGS.items():
     dk_votes = int((labs == DONT_KNOW).sum())
     per_class = f1_score(y_true, pred, labels=cc.T3_LABELS, average=None, zero_division=0)
     cm = confusion_matrix(y_true, pred, labels=T3_LABELS_V1)
-    row = dict(task="T3", config=f"t3_{name}", index_rows=int(mask.sum()), n_test=len(test_idx),
+    row = dict(task="T3", tier="cpu", config=f"t3_{name}", index_rows=int(mask.sum()), n_test=len(test_idx),
                test_acc=m["acc"], test_macro_f1=m["macro_f1"], test_weighted_f1=m["weighted_f1"],
                per_class_f1=dict(zip(cc.T3_LABELS, map(float, per_class))), confusion_matrix=cm.tolist(),
                confusion_labels=T3_LABELS_V1, predicted_dont_know=int((pred == DONT_KNOW).sum()),
