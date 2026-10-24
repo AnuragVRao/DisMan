@@ -29,3 +29,13 @@ Facts only; numbers come from `results/ablation/` (not committed yet). Status: P
 * L3 -> L4 (tweet siblings removed): macro-F1 0.5091 -> 0.4914. 67 test queries had a same-tweet sibling in their top-5 at L3; none at L4.
 * L0 is higher than L1-L4 mainly because every test query retrieves itself (529/529 in the top-5); L0 -> L1 removes that.
 * L4 reproduces v2's headline exactly (0.6673 / 0.4914 / 0.6202).
+
+## Determinism check (seed 42)
+
+* v2's own notebook cells re-run (`ablation/v2_t2_rerun.py`, writes redirected): T2 test acc 0.7975 / macro-F1 0.5865 / weighted-F1 0.7968, identical to the README and to the saved `results/task2_history.json` (bit-reproducible).
+* `t2_train.py --config L4` first gave test macro-F1 0.6022 (and reproduced that exactly on a second run). Cause, isolated step by step: same init weights, same class weights, same CUDA RNG state, same data, same eval-mode loss on a given batch,
+  but a different **batch order**. v2 iterates `tqdm(dl)` with `tqdm.auto`, whose `tqdm.asyncio` class calls `iter(dl)` twice (even with `disable=True`); the discarded iterator draws one base seed from the loader's generator,
+  so v2 trains on a shuffled order shifted by one draw per epoch. `t2_train.py` now draws that value too (`torch.empty((), dtype=torch.int64).random_(generator=...)` before each epoch).
+  With it, the first six step losses equal v2's to 6 decimals and the full L4 run gives test acc 0.7975 / macro-F1 0.5865 / weighted-F1 0.7968 (best dev macro-F1 0.5788 at epoch 8): an exact reproduction of v2.
+* Consequence for interpretation: the earlier 0.6022 vs 0.5865 gap (0.017 macro-F1) was a different shuffle order, not a code difference, i.e. it is one measure of order-induced run-to-run variation at this scale.
+  The 0.6022 rows are kept in `results/ablation/A/_superseded/`.

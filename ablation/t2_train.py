@@ -127,7 +127,8 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--epochs", type=int)               # override the preset (e.g. 1 for a smoke test)
     ap.add_argument("--max-minutes", type=float)        # abort and report if the run exceeds this
-    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--workers", type=int, default=6)   # train loader workers for the online-CLIP rungs (dev/test use 4)
+    ap.add_argument("--debug-steps", type=int, default=0)  # print the first N step losses and exit (determinism debugging)
     ap.add_argument("--tag", default="")                # suffix for smoke/timing runs so real rows are never overwritten
     a = ap.parse_args()
     cfg = dict(PRESETS[a.config]); E = a.epochs or cfg["epochs"]
@@ -163,7 +164,7 @@ def main():
         frozen = Frozen(cfg["clip"], device)
         tf = make_transform(cfg["tf"])
         # dev is evaluated every epoch, so its workers persist; test is read once, so its workers are not kept alive
-        nw = {"train": a.workers, "dev": max(2, a.workers // 2), "test": max(2, a.workers // 2)}
+        nw = {"train": a.workers, "dev": 4, "test": 4}
         loaders = {s: DataLoader(ImgDS(d, tf, *tokd[s], y[s]), batch_size=T2_BATCH, shuffle=(s == "train"),
                                  num_workers=nw[s], pin_memory=True, persistent_workers=(s != "test"),
                                  generator=torch.Generator().manual_seed(a.seed) if s == "train" else None)
@@ -206,8 +207,12 @@ def main():
                        weighted_f1=float(f1_score(t, p, labels=ALL, average="weighted", zero_division=0)))
 
     best_f1, best_state, best_epoch, hist, ep_times, aborted = -1.0, None, 0, [], [], False
+    dbg = []
     for epoch in range(1, E + 1):
         t0 = time.time(); model.train(); tot = 0.0
+        # v2 iterates `tqdm(dl)`; tqdm.auto calls iter(dl) twice, and the discarded iterator draws one base seed from the
+        # loader's generator. Draw it here too, so every rung shuffles in v2's order (verified: reproduces v2's step losses).
+        torch.empty((), dtype=torch.int64).random_(generator=loaders["train"].generator)
         for b in loaders["train"]:
             img, ids, mask, yy = batch_to_dev(b)
             opt.zero_grad(set_to_none=True)
@@ -216,6 +221,10 @@ def main():
             scaler.scale(loss).backward(); scaler.unscale_(opt)
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(opt); scaler.update(); tot += loss.item()
+            if a.debug_steps:
+                dbg.append(loss.item())
+                if len(dbg) >= a.debug_steps:
+                    print("DEBUG step losses:", [round(x, 6) for x in dbg]); return
         sched.step()
         _, dm = evaluate("dev")
         ep_times.append(time.time() - t0)
