@@ -5,6 +5,7 @@ Tables use IEEEtran conventions (booktabs, caption above, \\footnotesize); no IE
 """
 import glob
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -195,6 +196,9 @@ ax.set_ylabel("Test macro-F1"); ax.set_ylim(0, max(mean) * 1.25 if mean else 1)
 ax.set_title("Task 2: v1 $\\to$ v2 ladder (mean $\\pm$ std over seeds)", fontsize=9)
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
-fig.tight_layout(); fig.savefig(RES / "ladder_t2.pdf"); plt.close(fig)
+fig.tight_layout(); fig.savefig(RES / "ladder_t2.pdf")
+if os.environ.get("LADDER_PNG"):   # optional preview for checking the figure
+    fig.savefig(os.environ["LADDER_PNG"], dpi=130)
+plt.close(fig)
 print(summary.round(4).to_string(index=False))
 print("wrote summary.csv, tables.tex, ladder_t2.pdf")
