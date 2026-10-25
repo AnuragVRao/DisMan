@@ -102,5 +102,23 @@
   "t2_pred": "Infrastructure and utility damage",
   "t2_true": null,
   "selection_rule": "disagreement closest to the median calibrated confidence (0.563) among 184 disagreements"
+ },
+ {
+  "kind": "T2 non-infrastructure",
+  "image_id": "871251322279911429_0",
+  "event": "srilanka_floods",
+  "rel_image": "data_image/srilanka_floods/4_6_2017/871251322279911429_0.jpg",
+  "image_path": "C:\\Users\\anura\\Desktop\\Capstone\\DisMan\\data\\CrisisMMD_v2.0\\data_image\\srilanka_floods\\4_6_2017\\871251322279911429_0.jpg",
+  "tweet_text": "á½¤C YASSS It's time for #liveme's show MagaÃ±a á¼³9á¾”0á¼³9Moraá½ˆB : https://t.co/bt6m0QCuDv https://t.co/DycvH58B2d",
+  "t2_true": "Not humanitarian",
+  "t2_pred": "Not humanitarian",
+  "t2_confidence": 0.989,
+  "t1_pred": "not_informative",
+  "t1_pred_prob": 0.865,
+  "t1_true": "not_informative",
+  "t3_label": "Little or no damage",
+  "t3_neighbours_agree": true,
+  "t3_probe_confidence": 0.902,
+  "selection_rule": "highest temperature-scaled T2 confidence among correct L4a predictions whose true label is 'Not humanitarian' or 'Rescue, volunteering or donation effort' and that Task 1 flags as not_informative (475 candidates)"
  }
 ]

@@ -78,9 +78,10 @@ for label, (r, t), flag in (("agree", agr[0], None), ("disagree", dis[0], None),
     assert md, p.stderr[-800:]
     print(f"4. app.run [{label}]: {md[0][6:]}")
     if flag is None and label == "agree":
-        assert "Similar past cases agree." in md[0] and "Probe confidence (temperature-scaled)" in md[0]
+        assert "Similar past cases agree." in md[0] and "Confidence: " in md[0] and "Probe" not in md[0] and "temperature" not in md[0]
     if flag is None and label == "disagree":
         assert "(lower confidence)." in md[0] and "Similar past cases suggest" in md[0] and "Recommend human review." in md[0]
+        assert "Confidence: " in md[0] and "Probe" not in md[0] and "temperature" not in md[0]
     if flag == "0":
         assert md[0][6:].startswith("**Predicted damage severity:") and "Similar past cases" not in md[0]
 print("SMOKE TEST PASSED")

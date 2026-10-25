@@ -40,7 +40,7 @@ def run(image, text):
         else:
             t3_md = (f"**{r['t3']['label']} (lower confidence).** Similar past cases suggest {r['t3']['knn_label']}. "
                      "Recommend human review.")
-        t3_md += f"\n\nProbe confidence (temperature-scaled): {r['t3']['probe_confidence']:.2f}"
+        t3_md += f"\n\nConfidence: {r['t3']['probe_confidence']:.2f}"
     return (badge(r["t1"]), disagreement(r["t1"], r["t2"]), r["t2"]["probs"],
             t3_md, r["t3"]["vote_share"], gallery,
             f"{r['latency_s']:.2f} s on {PIPE.device}")
