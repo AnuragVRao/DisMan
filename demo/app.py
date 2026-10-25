@@ -33,8 +33,12 @@ def run(image, text):
         raise gr.Error("Please upload an image.")
     r = PIPE.predict(image, text)
     gallery = [(n["image_path"], f"{n['label']} | sim {n['score']:.2f}\n{n['tweet'][:140]}") for n in r["neighbours"]]
+    t3_md = f"**Predicted damage severity: {r['t3']['label']}**"
+    if "knn_label" in r["t3"]:      # hybrid mode (CAPSTONE_T3_HYBRID=1): show whether the retrieved cases agree with the probe
+        verdict = "agrees with" if r["t3"]["neighbours_agree"] else "**disagrees with**"
+        t3_md += f"\n\nNeighbour majority ({PIPE.k}-NN): {r['t3']['knn_label']}, which {verdict} the probe."
     return (badge(r["t1"]), disagreement(r["t1"], r["t2"]), r["t2"]["probs"],
-            f"**Predicted damage severity: {r['t3']['label']}**", r["t3"]["vote_share"], gallery,
+            t3_md, r["t3"]["vote_share"], gallery,
             f"{r['latency_s']:.2f} s on {PIPE.device}")
 
 

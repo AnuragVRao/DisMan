@@ -37,7 +37,7 @@ else:
 
 
 class Pipeline:
-    def __init__(self, device=None):
+    def __init__(self, device=None, hybrid_t3=None):
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
         self.cfg = json.load(open(ART / "config.json"))
         self.t1 = joblib.load(ART / "task1_pipeline.joblib")
@@ -53,6 +53,14 @@ class Pipeline:
         self.index = faiss.read_index(str(ART / "task3_index.faiss"))
         self.meta = pd.read_csv(ART / "task3_meta.csv", dtype=str, keep_default_na=False)
         self.k = self.cfg["t3_k"]
+        # Optional hybrid Task 3 (ablation E2): probe predicts, k-NN supplies the evidence. OFF unless asked for.
+        if hybrid_t3 is None:
+            hybrid_t3 = os.environ.get("CAPSTONE_T3_HYBRID", "0") == "1"
+        self.hybrid = None
+        if hybrid_t3:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from hybrid import HybridT3
+            self.hybrid = HybridT3(self.index, self.meta["label"])
 
     def predict(self, image, text):
         """image: PIL.Image or path; text: tweet string. Returns a dict with t1, t2, t3, neighbours, latency_s."""
@@ -83,6 +91,12 @@ class Pipeline:
         rows = self.meta.iloc[idx[0]]
         label, share = cc.knn_vote(list(rows["label"]), list(scores[0]))
         t3 = dict(label=label, vote_share=share, note="agreement among similar past cases (k=%d vote share); not a calibrated probability" % self.k)
+        if self.hybrid is not None:
+            h = self.hybrid.predict(q, rows["label"], scores[0])
+            t3 = dict(label=h["label"], vote_share=h["vote_share"], probe_probs=h["probs"], knn_label=h["knn_label"],
+                      neighbours_agree=h["agrees"],
+                      note="hybrid: a logistic probe predicts the label; the k=%d retrieved cases are the evidence (their majority is "
+                           "shown for comparison); probe probabilities are not calibrated" % self.k)
         neighbours = [dict(image_path=str(DATA / r.rel_image), tweet=r.tweet_text, label=r.label,
                            event=r.event_name, score=float(s))
                       for r, s in zip(rows.itertuples(), scores[0])]

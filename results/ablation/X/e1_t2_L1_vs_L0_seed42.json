@@ -1,0 +1,34 @@
+{
+ "task": "T2",
+ "tier": "cpu",
+ "comparison": "t2_L1_vs_L0",
+ "metric": "macro_f1",
+ "n_rows": 2237,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.6024737067497906,
+ "score_b": 0.49949905028763714,
+ "diff": 0.10297465646215348,
+ "ci95_low": 0.05131675895141092,
+ "ci95_high": 0.14944911752054765,
+ "ci_excludes_zero": true,
+ "boot_mean": 0.10243435556400748,
+ "frac_boot_diff_positive": 1.0,
+ "stored_macro_f1_L0": 0.4983259601908764,
+ "stored_macro_f1_L1": 0.6012429779518889,
+ "regen_macro_f1_L0_crop_seeds": [
+  0.49949905028763714,
+  0.49732227417309793,
+  0.4995047608439233
+ ],
+ "regen_macro_f1_L1_crop_seeds": [
+  0.6024737067497906,
+  0.5979792487425527,
+  0.6011198209750308
+ ],
+ "bootstrapped_crop_seed": 0,
+ "part": "X",
+ "config": "e1_t2_L1_vs_L0",
+ "seed": 42,
+ "git_commit": "422ba19"
+}

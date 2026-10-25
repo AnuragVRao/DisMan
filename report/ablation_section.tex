@@ -8,12 +8,14 @@
 We rebuilt the path from the original notebook to the final pipeline as a ladder of single changes and scored every rung on the same corrected test sets.
 Task~2 rungs are trained with three seeds (42, 43, 44) and reported as mean $\pm$ sample standard deviation; Task~1 and Task~3 involve no training and are single deterministic runs.
 Across the Task~2 rungs the seed standard deviation of test macro-F1 lies between 0.001 and 0.012, and the standard deviation of paired same-seed differences between 0.002 and 0.019, so we treat differences below about 0.01 as not established.
+This noise floor is seed variability; the test-sample uncertainty of a paired Task~2 macro-F1 difference is wider (the 95\% bootstrap interval for image-only against L4a at seed 42 has a half-width of 0.035), which strengthens the not-established readings.
 
 \paragraph{Task 2.}
 Table~\ref{tab:t2_ladder} lists the rungs; all are evaluated on the full corrected test set of 2237 images.
 The path fix is the only established accuracy gain.
 The original notebook's \texttt{lstrip('data\_image/')} strips a set of characters instead of a prefix and silently dropped both earthquake events from the training and development data (L0).
 Restoring them raises test macro-F1 from 0.494 $\pm$ 0.006 to 0.588 $\pm$ 0.012 (L1), a paired gain of $+0.095 \pm 0.011$ that is positive at all three seeds.
+At seed 42 the paired bootstrap 95\% interval of this gain is $+0.051$ to $+0.149$, which excludes zero (computed from predictions regenerated under the original random-crop evaluation, which differ from the stored scores by less than 0.002).
 Every later step moves test macro-F1 by less than the noise floor: the paired differences are $+0.004 \pm 0.002$ (QuickGELU CLIP, L2), $+0.008 \pm 0.007$ (10-epoch cap, L3), $-0.013 \pm 0.015$ (deterministic cached features, L3b), $+0.012 \pm 0.019$ (mixed precision, L4a) and $-0.011 \pm 0.010$ (randomly initialised text encoder, L4).
 The rest of v2 therefore delivers equal accuracy at a fraction of the compute: L1 reaches 0.588 $\pm$ 0.012 and v2 (L4) 0.587 $\pm$ 0.001 test macro-F1, at 9.8 instead of 66.4 minutes of wall-clock time per run, about one seventh, measured on a single laptop GPU.
 The whole bundle from L3 to L4 is consistently slightly lower ($-0.013 \pm 0.005$, negative at every seed), but no single step of it is established, including the effect of the random initialisation, which is no larger than the opposite-signed effect of mixed precision alone.

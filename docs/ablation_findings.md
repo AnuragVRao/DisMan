@@ -205,9 +205,26 @@ Predictions were regenerated exactly as in `t3_partb.py`, `t3_ladder.py` and `a1
 | `t3_L4_vs_L1` | T3 ladder L4 (v2) − L1 | macro-F1 | 529 | 0.4914 | 0.3777 | +0.1137 | [+0.0635, +0.1673] | yes |
 | `t2_imageonly_vs_L4a` | T2 image-only − L4a (seed 42) | macro-F1 | 2,237 | 0.6069 | 0.6080 | -0.0011 | [-0.0358, +0.0340] | no |
 | `t2_agreed_acc_L4a_vs_imageonly` | T2 L4a − image-only, agreed rows (seed 42) | accuracy | 955 | 0.8723 | 0.8482 | +0.0241 | [+0.0115, +0.0377] | yes |
+| `t2_L1_vs_L0` | T2 L1 − L0 (seed 42; regenerated predictions) | macro-F1 | 2,237 | 0.6025 | 0.4995 | +0.1030 | [+0.0513, +0.1494] | yes |
 
 * The probe beats 5-NN on both embeddings (fused +0.123, image +0.087); both intervals exclude zero.
 * The gap between v2's index (L4) and the original index with the test images removed (L1) is +0.114 macro-F1 and its interval excludes zero.
 * Image-only against L4a at seed 42 is -0.001 macro-F1, interval -0.036 to +0.034, which includes zero (consistent with §4).
 * The accuracy gain of L4a over image-only on the agreed rows is +0.024 at seed 42 with an interval that excludes zero; together with its positive sign at all three seeds (§9.1) this is regarded as established.
+* Test-sample uncertainty is wider than the seed noise floor: the 95% interval for image-only against L4a at seed 42 has a half-width of 0.035 macro-F1, against seed standard deviations of 0.001 to 0.012 across the ladder.
+* T2 L1 − L0 (the path fix): +0.103, interval +0.051 to +0.149, excludes zero. Per-row predictions of L0 and L1 were not saved, so they were regenerated from the checkpoints under their original random-crop evaluation; across crop seeds 0, 1, 2 the macro-F1 is 0.4995, 0.4973, 0.4995 (L0, stored 0.4983) and 0.6025, 0.5980, 0.6011 (L1, stored 0.6012); the bootstrap uses crop seed 0, so for these two rungs the predictions are regenerated, not the stored ones.
 * Scope: the bootstrap resamples test rows only. Each side is one trained model or one index (T2: seed 42 only), so variability from training is not covered; the T3 comparisons are therefore intervals for these particular index and probe fits.
+
+### 9.3 E2: hybrid Task 3 (probe predicts, 5-NN supplies the evidence)
+
+E2 was run because the E1 intervals for probe against 5-NN exclude zero (§9.2). The hybrid uses the logistic probe on the fused embedding (C = 1, chosen on dev; `class_weight="balanced"`, fitted on the 2,361 vectors stored in v2's index) to predict the label and the 5-NN search to supply the retrieved cases and their majority.
+Because the hybrid's label is the probe's label, its row is the probe row of Part B (asserted, together with the hybrid's bootstrap against v2's 5-NN, which equals the E1 `t3_probe_vs_knn_fused` row). Test split: 529 queries, leakage-free index.
+
+| Method | Accuracy | Macro-F1 | Weighted-F1 |
+|---|---|---|---|
+| Hybrid (probe label) | 0.6843 | 0.6146 | 0.6948 |
+| v2 5-NN (fused, k = 5) | 0.6673 | 0.4914 | 0.6202 |
+
+* Bootstrap, hybrid minus 5-NN macro-F1: +0.1231, 95% interval +0.0615 to +0.1861 (10,000 resamples), identical to the E1 probe row.
+* **The neighbour majority disagrees with the probe on 184 of 529 queries (34.8%).** Where they agree (345 queries) accuracy is 0.812; where they disagree the probe is right on 0.446 of the queries and the 5-NN majority on 0.397, so disagreement marks the hard cases for both.
+* Demo: behind `CAPSTONE_T3_HYBRID=1` (or `Pipeline(hybrid_t3=True)`), default off; the default Task 3 output is unchanged and v2's behaviour is not altered. One-off smoke test (`ablation/e2_demo_smoke.py`, not part of the number verifier): over the first 60 test images the flag-off labels are the k-NN majority and carry no hybrid keys; with the flag on the demo's 5-NN field equals the flag-off label on 60 of 60 rows and its hybrid label equals the offline probe on 60 of 60; the probe and the neighbour majority disagree on 21 of those 60; the Gradio handler shows the neighbour-majority note only when the flag is set.
