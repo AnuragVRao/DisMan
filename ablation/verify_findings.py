@@ -367,6 +367,24 @@ chk("Where the loss is", [f"Iraq–Iran {_dd['iraq_iran_earthquake']:+.3f}", f"M
 chk("Caveats: per-event macro-F1 over rare classes", [f"seed spread is {np.std([r['lodo']['macro_f1'] for r in _DR['california_wildfires']], ddof=1):.3f}", f"{_DR['iraq_iran_earthquake'][0]['n_test']} test rows"])
 chk("Run time:", [f"{_dov['total_wall_clock_s'] / 60:.1f} minutes"])
 
+# ── §9.5 per-class pooled F1 (seed 42), recomputed from results/ablation/X/d_lodo_t2_perclass_seed42.json ─────────────
+_pc2 = json.load(open(RES / "X" / "d_lodo_t2_perclass_seed42.json"))
+for _r in _pc2["classes"]:
+    chk(f"| {_r['cls']} | {_r['support']} | {_r['support_earthquake']} |",
+        [f"{_r['earthquake_fraction']:.3f}", f"{_r['f1_lodo']:.3f}", f"{_r['f1_indist']:.3f}", f"{_r['diff']:+.3f}", f"{100 * _r['share_of_total_drop']:.1f}%"])
+_t = max(_pc2["classes"], key=lambda r: -r["diff"])
+_pr = _pc2["macro_f1_lodo"] - _pc2["macro_f1_indist"]
+_sd42 = [r["lodo"]["macro_f1"] - r["indist"]["macro_f1"] for r in (next(x for x in _DR_ if x["seed"] == 42) for _DR_ in _DR.values())]
+chk("Per-class pooled F1 (seed 42", [f"{_pc2['earthquake_rows']} of the {_pc2['n_test']:,} test rows", f"{100 * _pc2['earthquake_rows'] / _pc2['n_test']:.1f}%"])
+chk("Pooled macro-F1 is the mean of these eight F1 values", [f"{_pc2['macro_f1_lodo']:.4f} (LODO) against {_pc2['macro_f1_indist']:.4f}", f"a difference of {_pr:+.4f}"])
+chk("The drop is concentrated in one class", [f"{_t['cls']} ({_t['support']} test rows, {_t['support_earthquake']} of them", f"from F1 {_t['f1_indist']:.3f} to {_t['f1_lodo']:.3f}",
+                                             f"{100 * _t['share_of_total_drop']:.1f}% of the summed per-class loss", f"{_t['diff'] / 8:+.3f} of {_pr:+.3f}",
+                                             f"would be {_pr - _t['diff'] / 8:+.3f}", f"({np.mean(_sd42):+.3f} at seed 42, {np.mean(_dm):+.3f} over three seeds)"])
+chk("It is a single class", [f"{_pc2['classes'][6]['diff']:+.3f} with {_pc2['classes'][6]['earthquake_fraction']:.2f}", f"{_pc2['classes'][7]['diff']:+.3f} with {_pc2['classes'][7]['earthquake_fraction']:.2f}",
+                             f"is {_pc2['pearson_eqfrac_vs_diff']:+.2f}"])
+chk("Caveat: Injured or dead people has only", [f"{_t['support']} test rows", f"{_pc2['classes'][3]['support']}, F1 0 in both settings"])
+assert _pc2["classes"][3]["f1_lodo"] == 0 == _pc2["classes"][3]["f1_indist"]
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
@@ -656,7 +674,20 @@ _mi = lambda e, k: np.mean([r[k]["macro_f1"] for r in _DR[e]])
 assert all(abs(_dd[e]) < 0.02 for e in ("hurricane_harvey", "hurricane_irma", "hurricane_maria", "srilanka_floods"))
 tchk("The loss is concentrated in the two earthquake events",
      [f"Iraq--Iran {_mi('iraq_iran_earthquake', 'indist'):.3f} to {_mi('iraq_iran_earthquake', 'lodo'):.3f}", f"Mexico {_mi('mexico_earthquake', 'indist'):.3f} to {_mi('mexico_earthquake', 'lodo'):.3f}",
-      "less than 0.02", f"by {abs(_dd['california_wildfires']):.3f}", f"deviation of about {np.std([r['lodo']['macro_f1'] for r in _DR['california_wildfires']], ddof=1):.1f}"])
+      "less than 0.02", f"wildfire change ({sg3(_dd['california_wildfires'])}) is within its seed spread (± {np.std([r['lodo']['macro_f1'] for r in _DR['california_wildfires']], ddof=1):.3f})"])
+assert abs(_dd["california_wildfires"]) < np.std([r["lodo"]["macro_f1"] for r in _DR["california_wildfires"]], ddof=1)      # "within its seed spread"
+# per-class analysis (seed 42, pooled rows) and the two sentences that rest on it
+_pc = json.load(open(RES / "X" / "d_lodo_t2_perclass_seed42.json"))
+_top = max(_pc["classes"], key=lambda r: -r["diff"])
+_rest = _pc["macro_f1_lodo"] - _pc["macro_f1_indist"] - _top["diff"] / 8
+assert _top["cls"] == "Injured or dead people" and _top["earthquake_fraction"] > 0.5 and _top["share_of_total_drop"] > 0.7
+assert abs(_pc["macro_f1_lodo"] - _bt["lodo_macro_f1"]) < 1e-12 and abs(_pc["macro_f1_indist"] - _bt["indist_macro_f1"]) < 1e-12
+assert abs(_rest) < abs(np.mean(_dm))                                          # "without it the pooled drop ... is smaller than the per-event average"
+tchk("The pooled drop is larger than the per-event average",
+     [f"({sg3(_dp.mean())} against {sg3(_dm.mean())} over three seeds)", f"({_top['support']} test rows, {_top['support_earthquake']} of them from the two earthquake events)",
+      f"falls from {_top['f1_indist']:.3f} to {_top['f1_lodo']:.3f} F1 at seed 42", f"{100 * _top['share_of_total_drop']:.0f}% of the summed per-class loss", f"at seed 42 would be {sg3(_rest)}"])
+assert abs(np.mean(_dp)) > abs(np.mean(_dm))                                    # the pooled drop exceeds the per-event average
+tchk("L0 was trained without both earthquake events", [f"the L0 to L1 gain ({sg3(np.mean(col('t2_L1', 'test_macro_f1') - col('t2_L0', 'test_macro_f1')))})"])
 tchk("No fold falls below its event's majority-class macro-F1", [f"({min(_bases):.3f} to {max(_bases):.3f})"])
 
 

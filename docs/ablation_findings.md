@@ -301,3 +301,21 @@ In-distribution reference: the existing 3-seed image-only checkpoints (all event
 * **Where the loss is:** the two earthquake events lose the most (Iraq–Iran -0.137, Mexico -0.092 macro-F1); the three hurricanes and the flood change by less than 0.02 (harvey -0.009, irma -0.002, maria -0.016, srilanka -0.011); the wildfire event changes by -0.026 with a seed standard deviation near 0.1.
 * **Caveats:** per-event macro-F1 over rare classes with one or two test rows is unstable (the wildfire event's seed spread is 0.099); the per-event numbers for the smallest events (Iraq–Iran, 73 test rows) are indicative only. The bootstrap resamples test rows of one LODO seed and one in-distribution checkpoint.
 * Run time: 10.7 minutes for all 21 training runs and the bootstrap.
+
+**Per-class pooled F1 (seed 42, the 2,237 pooled rows; CPU only, from the stored per-row predictions).** The earthquake events are Iraq–Iran and Mexico (249 of the 2,237 test rows, 11.1%).
+
+| Class | Test rows | Rows from the two earthquakes | Earthquake fraction | F1 LODO | F1 in-dist. | Difference | Share of the summed drop |
+|---|---|---|---|---|---|---|---|
+| Affected individuals | 88 | 16 | 0.182 | 0.573 | 0.592 | -0.020 | 3.4% |
+| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.792 | 0.818 | -0.026 | 4.4% |
+| Injured or dead people | 10 | 8 | 0.800 | 0.190 | 0.609 | -0.418 | 71.8% |
+| Missing or found people | 3 | 1 | 0.333 | 0.000 | 0.000 | +0.000 | 0.0% |
+| Not humanitarian | 1055 | 91 | 0.086 | 0.845 | 0.850 | -0.005 | 0.8% |
+| Other relevant information | 331 | 22 | 0.066 | 0.749 | 0.758 | -0.008 | 1.4% |
+| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.629 | 0.683 | -0.054 | 9.3% |
+| Vehicle damage | 36 | 3 | 0.083 | 0.494 | 0.545 | -0.052 | 8.9% |
+
+* Pooled macro-F1 is the mean of these eight F1 values: 0.5341 (LODO) against 0.6069 (in-distribution), a difference of -0.0728.
+* **The drop is concentrated in one class that comes mostly from the earthquakes:** Injured or dead people (10 test rows, 8 of them from the two earthquake events) falls from F1 0.609 to 0.190, 71.8% of the summed per-class loss; its share of the pooled macro-F1 drop is -0.052 of -0.073. Without it the pooled drop would be -0.020, smaller than the per-event average (-0.053 at seed 42, -0.042 over three seeds), which is why the pooled drop exceeds the per-event average: macro-F1 weights the eight classes equally and this class has 0.4% of the rows.
+* It is a single class: the other classes' losses do not track the earthquake share of their rows (Rescue, volunteering or donation effort -0.054 with 0.23 of its rows from the earthquakes; Vehicle damage -0.052 with 0.08). The correlation across the eight classes between earthquake fraction and F1 difference is -0.91, but it is produced by that one class and should not be read as a trend.
+* Caveat: Injured or dead people has only 10 test rows (and "Missing or found people" 3, F1 0 in both settings), so the class-level numbers are noisy.
