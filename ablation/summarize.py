@@ -126,7 +126,7 @@ for _, desc, key in names:
     body.append([desc, str(n_of(key)), f"{int(p):,}".replace(",", "\\,") if p is not None and not pd.isna(p) else "--",
                  pm(key, "dev_macro_f1"), pm(key, "test_acc"), pm(key, "test_macro_f1"), pm(key, "test_weighted_f1")])
 tex.append(table("Task 2 component ablation on L4a's configuration (10 epochs, cached CLIP, AMP, pretrained DistilBERT).",
-                 "tab:t2_partb", ["Variant", "$n$", "Params", "Dev macro-F1", "Acc.", "Macro-F1", "Weighted-F1"], body, "lcrllll"))
+                 "tab:t2_partb", ["Variant", "$n$", "Trainable params", "Dev macro-F1", "Acc.", "Macro-F1", "Weighted-F1"], body, "lcrllll"))
 
 # ── Part B, T3 ────────────────────────────────────────────────────────────────
 def t3(emb, k, how):

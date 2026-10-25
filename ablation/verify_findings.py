@@ -215,6 +215,30 @@ except Exception as e:
     bad.append(("attention probes", "computed", f"skipped: {e}"))
 
 
+# ── §9.1 A1 (agreed vs disagreed), recomputed from results/ablation/X ─────────────────────────────────────────────────
+X1 = {m: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"a1_{m}_seed*.json")))] for m in ("L4a", "image_only", "text_only")}
+assert all(len(v) == 3 for v in X1.values())
+x0 = X1["L4a"][0]
+xg = lambda m, s, k: np.array([r["subsets"][s][k] for r in X1[m]])
+xd = lambda a, b, s, k: xg(a, s, k) - xg(b, s, k)
+xpm = lambda x: f"{sg(x.mean())} ± {x.std(ddof=1):.3f}"
+mbx = x0["majority_baseline"]
+chk("The test set splits into", [f"{x0['n_agreed']} agreed rows", f"{x0['n_disagreed']:,} disagreed rows"])
+chk("Majority-class reference", [f"agreed acc {mbx['agreed']['acc']:.3f} / macro-F1 {mbx['agreed']['macro_f1']:.3f}",
+                                 f"disagreed {mbx['disagreed']['acc']:.3f} / {mbx['disagreed']['macro_f1']:.3f}"])
+for m, nm in (("L4a", "L4a (full)"), ("image_only", "image only"), ("text_only", "text only")):
+    for s in ("agreed", "disagreed", "all"):
+        chk(f"| {nm} | {s} |", [f"| {X1[m][0]['subsets'][s]['n']} | {len(X1[m])} |", ms(xg(m, s, "acc")), ms(xg(m, s, "macro_f1")), ms(xg(m, s, "weighted_f1"))])
+chk("On agreed rows the full model beats image-only", [xpm(xd("L4a", "image_only", "agreed", "macro_f1")), xpm(xd("L4a", "image_only", "agreed", "acc")),
+                                                       ", ".join(sg(x) for x in xd("L4a", "image_only", "agreed", "acc"))])
+assert (xd("L4a", "image_only", "agreed", "acc") > 0).all()
+chk("On disagreed rows it is", [xpm(xd("L4a", "image_only", "disagreed", "macro_f1")), xpm(xd("L4a", "image_only", "disagreed", "acc"))])
+chk("Text-only on disagreed rows", [ms(xg("text_only", "disagreed", "acc")), f"{mbx['disagreed']['acc']:.3f}", ms(xg("text_only", "disagreed", "macro_f1")), f"{mbx['disagreed']['macro_f1']:.3f}"])
+assert xg("text_only", "disagreed", "acc").mean() < mbx["disagreed"]["acc"]
+gapx = lambda m, k: xg(m, "agreed", k) - xg(m, "disagreed", k)
+chk("Agreed minus disagreed gap", [f"L4a {xpm(gapx('L4a', 'macro_f1'))} / {xpm(gapx('L4a', 'acc'))}", f"image only {xpm(gapx('image_only', 'macro_f1'))} / {xpm(gapx('image_only', 'acc'))}"])
+chk("Caveats: the two subsets differ in class mix", [f"{mbx['agreed']['acc'] * 100:.1f}%", f"{mbx['disagreed']['acc'] * 100:.1f}%", f"{max(xg('text_only', s, 'macro_f1').std(ddof=1) for s in ('agreed', 'disagreed', 'all')):.2f} for text-only"])
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
@@ -408,8 +432,21 @@ drops1 = {e: ev("t1", e)["in_dist_macro_f1"] - ev("t1", e)["test_macro_f1"] for 
 big = max(drops1, key=drops1.get)
 n3 = sorted(ev("t3", e)["n"] for e in EV)
 assert n3[3] > n3[2] and big == "srilanka_floods"
-tchk("The Task 1 drop appears in", [f"{lower('t1')} of {len(EV)}", f"{lower('t3')} of {len(EV)}",
-                                    f"{ev('t1', big)['in_dist_macro_f1']:.3f} to {ev('t1', big)['test_macro_f1']:.3f}", f"{n3[0]} to {n3[2]}"])
+# Task 1: the drop is concentrated in Sri Lanka floods; five of the other six events change by less than 0.03 (stated threshold)
+others = [e for e in EV if e != "srilanka_floods"]
+small = sum(abs(drops1[e]) < 0.03 for e in others)
+assert small == 5 and drops1["srilanka_floods"] > 0.1 and big == "srilanka_floods"
+word = {5: "five"}[small]
+drops3 = {e: ev("t3", e)["in_dist_macro_f1"] - ev("t3", e)["test_macro_f1"] for e in EV}
+big3 = max(drops3, key=drops3.get)
+assert min(drops3.values()) < 0 < max(drops3.values()) and big3 == "hurricane_irma"      # mixed signs; largest drop is Irma
+pooled = json.load(open(ROOT / "results" / "metrics.json"))
+tchk("The pooled headline scores are", [f"{pooled['T1_test']['macro_f1']:.3f}", f"{pooled['T3_test']['macro_f1']:.3f}"])
+tchk("We observe that the Task 1 drop", [f"{ev('t1', big)['in_dist_macro_f1']:.3f} to {ev('t1', big)['test_macro_f1']:.3f}", f"{word} of the other six", "less than 0.03"])
+tchk("For Task 3 the per-event changes", [f"{ev('t3', big3)['in_dist_macro_f1']:.3f} to {ev('t3', big3)['test_macro_f1']:.3f}", f"{n3[0]} to {n3[2]}"])
+gap = lambda r: col(f"t2_{r}", "dev_macro_f1").mean() - col(f"t2_{r}", "test_macro_f1").mean()
+tchk("Development macro-F1 for L0 to L2", [f"best of {rows('t2_L2')[0]['flags']['epochs']} epochs", f"{gap('L0'):.3f}", f"{gap('L1'):.3f}", f"{gap('L2'):.3f}",
+                                           f"{gap('L3'):+.3f}", f"{rows('t2_L3')[0]['flags']['epochs']}-epoch"])
 tchk("we regard only the following as established", [sg(col("t2_L1", "test_macro_f1").mean() - col("t2_L0", "test_macro_f1").mean()), "about 0.01"])
 tchk("Differences of about 0.01", "about 0.01")
 

@@ -68,7 +68,7 @@ Paired differences in test macro-F1 (per-seed values, then mean ± std):
 
 ## 4. Part B, Task 2 component ablation (on L4a's configuration; n = 3)
 
-| Variant | Params | Dev macro-F1 | Acc. | Test macro-F1 | Weighted-F1 |
+| Variant | Trainable params | Dev macro-F1 | Acc. | Test macro-F1 | Weighted-F1 |
 |---|---|---|---|---|---|
 | full (L4a) | 67,352,840 | 0.585 ± 0.008 | 0.799 ± 0.006 | 0.598 ± 0.010 | 0.800 ± 0.006 |
 | image only (CLIP vector + MLP) | 199,688 | 0.568 ± 0.008 | 0.788 ± 0.002 | **0.601 ± 0.005** | 0.793 ± 0.002 |
@@ -166,3 +166,29 @@ Headline cell (fused, k = 5, majority) reproduces v2 (asserted): acc 0.6673, mac
 * The Kaggle open_clip version is unrecorded; the v1 train transform is taken from open_clip 3.3.0 (the RandomResizedCrop(0.9-1.0) default has been the same since 2.x).
 * The Part B "full model" is L4a (pretrained encoder), not v2's L4, so Part B numbers do not directly compare with v2's headline.
 * Reported tables use the IEEEtran conventions (booktabs, caption above); no IEEE report template existed in the repo to copy.
+
+## 9. Extra analyses requested after the main batch
+
+### 9.1 A1: Task 2 on text/image-label agreed vs disagreed test rows (inference only)
+
+The test set splits into **955 agreed rows** (normalised `label_text == label_image`; identical to the official `label_text_image == Positive`) and **1,282 disagreed rows** (`Negative`); no test row lacks a text label.
+Existing checkpoints, 3 seeds (42-44), no tuning. Macro-F1 averages the classes present in the subset (true or predicted); fixed-8-class values are in the JSONs (`results/ablation/X/a1_*`).
+Majority-class reference (always "Not humanitarian"): agreed acc 0.528 / macro-F1 0.099; disagreed 0.430 / 0.075.
+
+| Model | Subset | Rows | Seeds | Acc. | Macro-F1 | Weighted-F1 |
+|---|---|---|---|---|---|---|
+| L4a (full) | agreed | 955 | 3 | 0.866 ± 0.008 | 0.745 ± 0.026 | 0.867 ± 0.008 |
+| L4a (full) | disagreed | 1282 | 3 | 0.750 ± 0.005 | 0.549 ± 0.009 | 0.753 ± 0.004 |
+| L4a (full) | all | 2237 | 3 | 0.799 ± 0.006 | 0.598 ± 0.010 | 0.800 ± 0.006 |
+| image only | agreed | 955 | 3 | 0.845 ± 0.004 | 0.696 ± 0.031 | 0.850 ± 0.003 |
+| image only | disagreed | 1282 | 3 | 0.745 ± 0.005 | 0.563 ± 0.004 | 0.753 ± 0.005 |
+| image only | all | 2237 | 3 | 0.788 ± 0.002 | 0.601 ± 0.005 | 0.793 ± 0.002 |
+| text only | agreed | 955 | 3 | 0.685 ± 0.019 | 0.482 ± 0.061 | 0.703 ± 0.017 |
+| text only | disagreed | 1282 | 3 | 0.338 ± 0.005 | 0.198 ± 0.010 | 0.359 ± 0.002 |
+| text only | all | 2237 | 3 | 0.486 ± 0.010 | 0.294 ± 0.014 | 0.499 ± 0.008 |
+
+* **On agreed rows the full model beats image-only:** macro-F1 +0.049 ± 0.026, accuracy +0.021 ± 0.004 (per-seed accuracy differences +0.024, +0.022, +0.016).
+  **On disagreed rows** it is -0.014 ± 0.006 in macro-F1 and +0.005 ± 0.010 in accuracy. The tie between L4a and image-only over the whole test set (§4) therefore hides a small text benefit when the two labels agree.
+* **Text-only on disagreed rows** scores accuracy 0.338 ± 0.005, below the majority-class accuracy of 0.430 there (macro-F1 0.198 ± 0.010 against 0.075); on these rows the text annotation differs from the image label by construction.
+* **Agreed minus disagreed gap** (macro-F1 / accuracy): L4a +0.196 ± 0.021 / +0.116 ± 0.004; image only +0.133 ± 0.033 / +0.100 ± 0.009.
+* Caveats: the two subsets differ in class mix ("Not humanitarian" is 52.8% of the agreed rows and 43.0% of the disagreed rows), and macro-F1 on 955 rows with rare classes is noisy (seed std up to 0.06 for text-only).
