@@ -22,6 +22,8 @@ import crisis_common as cc  # noqa: E402
 
 ART = ROOT / "artifacts"
 DATA = ROOT / "data" / "CrisisMMD_v2.0"
+# Task 2 weights: v2's checkpoint by default; set CAPSTONE_T2_CKPT to point the demo at another state dict of the same architecture
+T2_CKPT = Path(os.environ.get("CAPSTONE_T2_CKPT", ART / "task2_model.pt"))
 
 
 class Pipeline:
@@ -35,7 +37,7 @@ class Pipeline:
         self.t2_labels = self.cfg["t2_labels"]
         self.t2 = cc.DualStreamClassifier(len(self.t2_labels),
                                           bert_config=DistilBertConfig.from_pretrained(ART / "distilbert_config"))
-        self.t2.load_state_dict(torch.load(ART / "task2_model.pt", map_location="cpu"))
+        self.t2.load_state_dict(torch.load(T2_CKPT, map_location="cpu"))
         self.t2.to(self.device).eval()
         self.index = faiss.read_index(str(ART / "task3_index.faiss"))
         self.meta = pd.read_csv(ART / "task3_meta.csv", dtype=str, keep_default_na=False)
