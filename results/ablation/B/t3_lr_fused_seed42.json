@@ -1,0 +1,44 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "embedding": "fused",
+ "probe": "logistic_regression",
+ "C": 1,
+ "dev_macro_f1": 0.5926260049885997,
+ "test_acc": 0.6843100189035917,
+ "test_macro_f1": 0.6145824565925491,
+ "test_weighted_f1": 0.6948228746662479,
+ "per_class_f1": {
+  "Severe damage": 0.7993579454253612,
+  "Mild damage": 0.5095057034220533,
+  "Little or no damage": 0.5348837209302325
+ },
+ "confusion_matrix": [
+  [
+   249,
+   56,
+   27
+  ],
+  [
+   31,
+   67,
+   28
+  ],
+  [
+   11,
+   14,
+   46
+  ]
+ ],
+ "labels": [
+  "Severe damage",
+  "Mild damage",
+  "Little or no damage"
+ ],
+ "n_test": 529,
+ "index_rows_test": 2361,
+ "part": "B",
+ "config": "t3_lr_fused",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

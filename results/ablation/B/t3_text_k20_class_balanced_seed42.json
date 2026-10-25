@@ -1,0 +1,48 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "embedding": "text",
+ "k": 20,
+ "vote": "class_balanced",
+ "headline": false,
+ "index_rows_test": 2361,
+ "index_rows_dev": 2374,
+ "dev_macro_f1": 0.453337476558397,
+ "dev_acc": 0.5066162570888468,
+ "test_acc": 0.4782608695652174,
+ "test_macro_f1": 0.43512681178148194,
+ "test_weighted_f1": 0.5056600883138875,
+ "per_class_f1": {
+  "Severe damage": 0.5977859778597786,
+  "Mild damage": 0.3416370106761566,
+  "Little or no damage": 0.3659574468085106
+ },
+ "confusion_matrix": [
+  [
+   162,
+   93,
+   77
+  ],
+  [
+   34,
+   48,
+   44
+  ],
+  [
+   14,
+   14,
+   43
+  ]
+ ],
+ "labels": [
+  "Severe damage",
+  "Mild damage",
+  "Little or no damage"
+ ],
+ "n_test": 529,
+ "n_dev": 529,
+ "part": "B",
+ "config": "t3_text_k20_class_balanced",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

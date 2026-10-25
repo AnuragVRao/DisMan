@@ -1,0 +1,19 @@
+{
+ "task": "T1",
+ "tier": "cpu",
+ "held_out_event": "iraq_iran_earthquake",
+ "n_train_or_index": 13156,
+ "heldout_rows_in_training": 0,
+ "n": 73,
+ "test_acc": 0.7534246575342466,
+ "test_macro_f1": 0.6224137931034484,
+ "test_weighted_f1": 0.7717052432687767,
+ "test_macro_f1_fixed_labels": 0.6224137931034484,
+ "in_dist_acc": 0.8082191780821918,
+ "in_dist_macro_f1": 0.625366568914956,
+ "in_dist_weighted_f1": 0.8010484875266138,
+ "part": "C",
+ "config": "c2_t1_iraq_iran_earthquake",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

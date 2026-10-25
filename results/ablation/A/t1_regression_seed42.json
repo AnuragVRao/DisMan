@@ -1,0 +1,17 @@
+{
+ "task": "T1",
+ "tier": "cpu",
+ "test_acc": 0.7943674564148413,
+ "test_weighted_f1": 0.7969586580300447,
+ "test_macro_f1": 0.7512887295620834,
+ "n_test": 2237,
+ "identical_predictions": true,
+ "v1_acc": 0.7943674564148413,
+ "v2_acc": 0.7943674564148413,
+ "v1_weighted_f1": 0.7969586580300447,
+ "v2_weighted_f1": 0.7969586580300447,
+ "part": "A",
+ "config": "t1_regression",
+ "seed": 42,
+ "git_commit": "e57436e"
+}
