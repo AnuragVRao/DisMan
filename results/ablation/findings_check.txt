@@ -464,6 +464,61 @@ OK  [Where the loss is] changes by -0.026
 OK  [Caveats: per-event macro-F1 over rare classes] seed spread is 0.099
 OK  [Caveats: per-event macro-F1 over rare classes] 73 test rows
 OK  [Run time:] 10.7 minutes
+OK  [| Affected individuals | 88 | 16 |] 0.182
+OK  [| Affected individuals | 88 | 16 |] 0.573
+OK  [| Affected individuals | 88 | 16 |] 0.592
+OK  [| Affected individuals | 88 | 16 |] -0.020
+OK  [| Affected individuals | 88 | 16 |] 3.4%
+OK  [| Infrastructure and utility damage | 458 | 48 |] 0.105
+OK  [| Infrastructure and utility damage | 458 | 48 |] 0.792
+OK  [| Infrastructure and utility damage | 458 | 48 |] 0.818
+OK  [| Infrastructure and utility damage | 458 | 48 |] -0.026
+OK  [| Infrastructure and utility damage | 458 | 48 |] 4.4%
+OK  [| Injured or dead people | 10 | 8 |] 0.800
+OK  [| Injured or dead people | 10 | 8 |] 0.190
+OK  [| Injured or dead people | 10 | 8 |] 0.609
+OK  [| Injured or dead people | 10 | 8 |] -0.418
+OK  [| Injured or dead people | 10 | 8 |] 71.8%
+OK  [| Missing or found people | 3 | 1 |] 0.333
+OK  [| Missing or found people | 3 | 1 |] 0.000
+OK  [| Missing or found people | 3 | 1 |] 0.000
+OK  [| Missing or found people | 3 | 1 |] +0.000
+OK  [| Missing or found people | 3 | 1 |] 0.0%
+OK  [| Not humanitarian | 1055 | 91 |] 0.086
+OK  [| Not humanitarian | 1055 | 91 |] 0.845
+OK  [| Not humanitarian | 1055 | 91 |] 0.850
+OK  [| Not humanitarian | 1055 | 91 |] -0.005
+OK  [| Not humanitarian | 1055 | 91 |] 0.8%
+OK  [| Other relevant information | 331 | 22 |] 0.066
+OK  [| Other relevant information | 331 | 22 |] 0.749
+OK  [| Other relevant information | 331 | 22 |] 0.758
+OK  [| Other relevant information | 331 | 22 |] -0.008
+OK  [| Other relevant information | 331 | 22 |] 1.4%
+OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.234
+OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.629
+OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.683
+OK  [| Rescue, volunteering or donation effort | 256 | 60 |] -0.054
+OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 9.3%
+OK  [| Vehicle damage | 36 | 3 |] 0.083
+OK  [| Vehicle damage | 36 | 3 |] 0.494
+OK  [| Vehicle damage | 36 | 3 |] 0.545
+OK  [| Vehicle damage | 36 | 3 |] -0.052
+OK  [| Vehicle damage | 36 | 3 |] 8.9%
+OK  [Per-class pooled F1 (seed 42] 249 of the 2,237 test rows
+OK  [Per-class pooled F1 (seed 42] 11.1%
+OK  [Pooled macro-F1 is the mean of these eight F1 values] 0.5341 (LODO) against 0.6069
+OK  [Pooled macro-F1 is the mean of these eight F1 values] a difference of -0.0728
+OK  [The drop is concentrated in one class] Injured or dead people (10 test rows, 8 of them
+OK  [The drop is concentrated in one class] from F1 0.609 to 0.190
+OK  [The drop is concentrated in one class] 71.8% of the summed per-class loss
+OK  [The drop is concentrated in one class] -0.052 of -0.073
+OK  [The drop is concentrated in one class] would be -0.020
+OK  [The drop is concentrated in one class] (-0.053 at seed 42, -0.042 over three seeds)
+OK  [It is a single class] -0.054 with 0.23
+OK  [It is a single class] -0.052 with 0.08
+OK  [It is a single class] is -0.91
+OK  [Caveat: Injured or dead people has only] 10 test rows
+OK  [Caveat: Injured or dead people has only] 3, F1 0 in both settings
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
@@ -809,6 +864,11 @@ OK  [report/ablation_section.tex: Averaged over the seven events the macro-F1 fa
 OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] Iraq--Iran 0.558 to 0.421
 OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] Mexico 0.660 to 0.568
 OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] less than 0.02
-OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] by 0.026
-OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] deviation of about 0.1
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] wildfire change (-0.026) is within its seed spread (± 0.099)
+OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] (-0.072 against -0.042 over three seeds)
+OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] (10 test rows, 8 of them from the two earthquake events)
+OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] falls from 0.609 to 0.190 F1 at seed 42
+OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] 72% of the summed per-class loss
+OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] at seed 42 would be -0.020
+OK  [report/ablation_section.tex: L0 was trained without both earthquake events] the L0 to L1 gain (+0.095)
 OK  [report/ablation_section.tex: No fold falls below its event's majority-class macro-F1] (0.064 to 0.174)

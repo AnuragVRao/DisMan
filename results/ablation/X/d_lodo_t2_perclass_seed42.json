@@ -1,0 +1,104 @@
+{
+ "task": "T2",
+ "tier": "cpu",
+ "n_test": 2237,
+ "earthquake_events": [
+  "iraq_iran_earthquake",
+  "mexico_earthquake"
+ ],
+ "earthquake_rows": 249,
+ "classes": [
+  {
+   "cls": "Affected individuals",
+   "support": 88,
+   "support_earthquake": 16,
+   "earthquake_fraction": 0.18181818181818182,
+   "f1_lodo": 0.5726872246696035,
+   "f1_indist": 0.592274678111588,
+   "diff": -0.019587453441984426,
+   "share_of_total_drop": 0.03364805172833207
+  },
+  {
+   "cls": "Infrastructure and utility damage",
+   "support": 458,
+   "support_earthquake": 48,
+   "earthquake_fraction": 0.10480349344978165,
+   "f1_lodo": 0.7922497308934338,
+   "f1_indist": 0.8177874186550976,
+   "diff": -0.025537687761663874,
+   "share_of_total_drop": 0.04386958424031883
+  },
+  {
+   "cls": "Injured or dead people",
+   "support": 10,
+   "support_earthquake": 8,
+   "earthquake_fraction": 0.8,
+   "f1_lodo": 0.19047619047619047,
+   "f1_indist": 0.6086956521739131,
+   "diff": -0.4182194616977226,
+   "share_of_total_drop": 0.7184328541063522
+  },
+  {
+   "cls": "Missing or found people",
+   "support": 3,
+   "support_earthquake": 1,
+   "earthquake_fraction": 0.3333333333333333,
+   "f1_lodo": 0.0,
+   "f1_indist": 0.0,
+   "diff": 0.0,
+   "share_of_total_drop": 0.0
+  },
+  {
+   "cls": "Not humanitarian",
+   "support": 1055,
+   "support_earthquake": 91,
+   "earthquake_fraction": 0.08625592417061612,
+   "f1_lodo": 0.8454227113556778,
+   "f1_indist": 0.8502754131196795,
+   "diff": -0.0048527017640016545,
+   "share_of_total_drop": 0.008336150508840902
+  },
+  {
+   "cls": "Other relevant information",
+   "support": 331,
+   "support_earthquake": 22,
+   "earthquake_fraction": 0.06646525679758308,
+   "f1_lodo": 0.7493036211699164,
+   "f1_indist": 0.7576197387518142,
+   "diff": -0.008316117581897764,
+   "share_of_total_drop": 0.014285734253479291
+  },
+  {
+   "cls": "Rescue, volunteering or donation effort",
+   "support": 256,
+   "support_earthquake": 60,
+   "earthquake_fraction": 0.234375,
+   "f1_lodo": 0.6290322580645161,
+   "f1_indist": 0.6830188679245283,
+   "diff": -0.053986609860012136,
+   "share_of_total_drop": 0.09274019446107919
+  },
+  {
+   "cls": "Vehicle damage",
+   "support": 36,
+   "support_earthquake": 3,
+   "earthquake_fraction": 0.08333333333333333,
+   "f1_lodo": 0.49382716049382713,
+   "f1_indist": 0.5454545454545454,
+   "diff": -0.05162738496071828,
+   "share_of_total_drop": 0.08868743070159753
+  }
+ ],
+ "macro_f1_lodo": 0.5341248621403957,
+ "macro_f1_indist": 0.6068907892738957,
+ "sum_of_class_drops": 0.5821274170680008,
+ "classes_mostly_earthquake": [
+  "Injured or dead people"
+ ],
+ "share_of_drop_mostly_earthquake": 0.7184328541063522,
+ "pearson_eqfrac_vs_diff": -0.9122020001801145,
+ "part": "X",
+ "config": "d_lodo_t2_perclass",
+ "seed": 42,
+ "git_commit": "001c322"
+}

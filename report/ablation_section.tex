@@ -233,7 +233,9 @@ For Task~3 the per-event changes have mixed signs (the largest drop is Hurricane
 Task~2 is evaluated the same way (Table~\ref{tab:d_t2}) with the image-only model on cached CLIP features as a proxy for L4a, because the two tie over the whole test set (image-only minus L4a $+0.003 \pm 0.009$ macro-F1 over three seeds, with a paired bootstrap interval at seed 42 of $-0.036$ to $+0.034$); the full model was not run leave-one-event-out.
 Each fold is run with seeds 42, 43 and 44, the checkpoint is selected on the development rows of the other six events only, and the code asserts that the held-out event contributes no train and no development rows.
 Averaged over the seven events the macro-F1 falls from 0.614 to 0.572, and scoring all 2237 test rows at once gives 0.534 against 0.607 at seed 42, a difference of $-0.073$ with a paired bootstrap 95\% interval of $-0.108$ to $-0.036$, which excludes zero.
-The loss is concentrated in the two earthquake events (Iraq--Iran 0.558 to 0.421, Mexico 0.660 to 0.568); the three hurricanes and the flood change by less than 0.02, and the wildfire event by 0.026 with a seed standard deviation of about 0.1.
+The loss is concentrated in the two earthquake events (Iraq--Iran 0.558 to 0.421, Mexico 0.660 to 0.568); the three hurricanes and the flood change by less than 0.02, and the wildfire change ($-0.026$) is within its seed spread ($\pm 0.099$) and is not interpretable.
+The pooled drop is larger than the per-event average ($-0.072$ against $-0.042$ over three seeds) because macro-F1 weights the eight classes equally and one class carries most of it: Injured or dead people (10 test rows, 8 of them from the two earthquake events) falls from 0.609 to 0.190 F1 at seed 42, which is 72\% of the summed per-class loss, and without it the pooled drop at seed 42 would be $-0.020$.
+L0 was trained without both earthquake events, so the L0 to L1 gain ($+0.095$) and the earthquake-fold losses above are two measurements of the same dependence on earthquake data.
 No fold falls below its event's majority-class macro-F1 (0.064 to 0.174).
 
 \begin{table}[t]
