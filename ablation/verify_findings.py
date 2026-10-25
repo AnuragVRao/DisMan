@@ -324,6 +324,49 @@ chk("The signals are partly independent", [f"{_x2['agree_low_conf']['accuracy']:
 _e2b = json.load(open(RES / "X" / "e2_hybrid_t3_seed42.json"))
 assert _ag["disagree"]["n"] == _e2b["n_disagree"] and abs(_ag["agree"]["accuracy"] - _e2b["probe_acc_where_agree"]) < 1e-12
 
+# ── §9.5 D: Task 2 leave-one-disaster-out (image-only proxy), recomputed from results/ablation/X/d_lodo_t2_* ──────────────
+_DE = ["california_wildfires", "hurricane_harvey", "hurricane_irma", "hurricane_maria", "iraq_iran_earthquake", "mexico_earthquake", "srilanka_floods"]
+_DR = {e: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"d_lodo_t2_{e}_seed*.json")))] for e in _DE}
+_dov = json.load(open(RES / "X" / "d_lodo_t2_overall_seed42.json"))
+_bt = _dov["bootstrap_lodo_minus_indist_seed42"]
+assert all(len(v) == 3 for v in _DR.values()) and sum(v[0]["n_test"] for v in _DR.values()) == _dov["n_test"] == 2237
+# design assertions recorded in every row: zero held-out rows in train and dev; no class without training rows; stop rule never fired
+assert all(r["heldout_rows_in_train"] == 0 and r["heldout_rows_in_dev"] == 0 and min(r["train_class_counts"].values()) > 0 for v in _DR.values() for r in v)
+assert all(r["lodo"]["macro_f1"] >= r["majority_event"]["macro_f1"] for v in _DR.values() for r in v)
+_dms = lambda a: f"{np.mean(a):.3f} ± {np.std(a, ddof=1):.3f}"
+_dd = {e: np.mean([r["lodo"]["macro_f1"] for r in _DR[e]]) - np.mean([r["indist"]["macro_f1"] for r in _DR[e]]) for e in _DE}
+_ie2 = json.load(open(RES / "X" / "e1_t2_imageonly_vs_L4a_seed42.json"))
+_pair = col("t2_image_only", "test_macro_f1", "B") - col("t2_L4a", "test_macro_f1", "A")
+chk("The image-only model is a proxy for L4a", [f"{sg(_pair.mean())} ± {_pair.std(ddof=1):.3f}", f"{_ie2['ci95_low']:+.3f} to {_ie2['ci95_high']:+.3f}"])
+_mc = {e: min(_DR[e][0]["train_class_counts"].items(), key=lambda kv: kv[1]) for e in _DE}
+_emin = min(_DE, key=lambda e: _mc[e][1])
+assert _emin == "mexico_earthquake" and _mc[_emin][0] == "Missing or found people"
+chk("Asserted before training every fold", [f"in any fold's train rows is {_mc[_emin][1]}"])
+_bases = [_DR[e][0]["majority_event"]["macro_f1"] for e in _DE]
+chk("No fold-seed run fell below", [f"range {min(_bases):.3f} to {max(_bases):.3f}"])
+for e in _DE:
+    rs = _DR[e]; dl = np.array([r["lodo"]["macro_f1"] - r["indist"]["macro_f1"] for r in rs])
+    chk(f"| {e} | {rs[0]['n_test']} | {len(rs)} |",
+        [_dms([r["lodo"]["acc"] for r in rs]), _dms([r["lodo"]["macro_f1"] for r in rs]), _dms([r["indist"]["macro_f1"] for r in rs]),
+         f"{dl.mean():+.3f} ± {dl.std(ddof=1):.3f}", f"| {rs[0]['majority_event']['macro_f1']:.3f} | {min(rs[0]['train_class_counts'].values())} |"])
+_sd = [42, 43, 44]
+_avg = lambda k, m: [np.mean([[r[k][m] for r in _DR[e] if r["seed"] == s_][0] for e in _DE]) for s_ in _sd]
+_dm = np.array(_avg("lodo", "macro_f1")) - np.array(_avg("indist", "macro_f1"))
+chk("| macro average |", [f"| {_dov['n_test']} | 3 |", _dms(_avg("lodo", "acc")), _dms(_avg("lodo", "macro_f1")), _dms(_avg("indist", "macro_f1")),
+                          f"{_dm.mean():+.3f} ± {_dm.std(ddof=1):.3f}", f"{np.mean(_bases):.3f}"])
+_pl = lambda k, m: [_dov["pooled_by_seed"][str(s_)][k][m] for s_ in _sd]
+_dp = np.array(_pl("lodo", "macro_f1")) - np.array(_pl("indist", "macro_f1"))
+chk("| pooled (all rows at once) |", [f"| {_dov['n_test']} | 3 |", _dms(_pl("lodo", "acc")), _dms(_pl("lodo", "macro_f1")), _dms(_pl("indist", "macro_f1")), f"{_dp.mean():+.3f} ± {_dp.std(ddof=1):.3f}"])
+assert _bt["excludes_zero"] and _bt["n_boot"] == 10000
+chk("Pooled comparison (seed 42)", [f"{_dov['n_test']:,}-row set", f"{_bt['lodo_macro_f1']:.4f} for LODO against {_bt['indist_macro_f1']:.4f}", f"{_bt['n_boot']:,} resamples",
+                                    f"{_bt['diff']:+.4f}, 95% interval {_bt['ci95_low']:+.4f} to {_bt['ci95_high']:+.4f}"])
+assert max(_dd, key=lambda e: -_dd[e]) == "iraq_iran_earthquake" and sorted(_dd, key=lambda e: _dd[e])[1] == "mexico_earthquake"       # the two earthquakes lose the most
+assert all(abs(_dd[e]) < 0.02 for e in ("hurricane_harvey", "hurricane_irma", "hurricane_maria", "srilanka_floods"))
+chk("Where the loss is", [f"Iraq–Iran {_dd['iraq_iran_earthquake']:+.3f}", f"Mexico {_dd['mexico_earthquake']:+.3f}", f"harvey {_dd['hurricane_harvey']:+.3f}", f"irma {_dd['hurricane_irma']:+.3f}",
+                          f"maria {_dd['hurricane_maria']:+.3f}", f"srilanka {_dd['srilanka_floods']:+.3f}", f"changes by {_dd['california_wildfires']:+.3f}"])
+chk("Caveats: per-event macro-F1 over rare classes", [f"seed spread is {np.std([r['lodo']['macro_f1'] for r in _DR['california_wildfires']], ddof=1):.3f}", f"{_DR['iraq_iran_earthquake'][0]['n_test']} test rows"])
+chk("Run time:", [f"{_dov['total_wall_clock_s'] / 60:.1f} minutes"])
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
@@ -516,7 +559,7 @@ tchk("We read this as redundancy", [f"{col('t2_text_only', 'test_macro_f1', 'B')
 tchk("For Task 3 a grey image costs", [f"{t3c['full_macro_f1'] - t3c['image_grey_macro_f1']:.3f}", f"{t3c['full_macro_f1'] - t3c['text_empty_macro_f1']:.3f}"])
 nfold = len(glob.glob(str(RES / "C" / "c2_t[13]_*_seed42.json"))) - 2
 tchk("which the code asserts for all", f"all {nfold} folds")
-tchk("Averaged over the seven events", [f"{a_['t1']['in_dist_macro_f1']:.3f}", f"{a_['t1']['test_macro_f1']:.3f}",
+tchk("Averaged over the seven events, Task 1", [f"{a_['t1']['in_dist_macro_f1']:.3f}", f"{a_['t1']['test_macro_f1']:.3f}",
                                         f"{a_['t3']['in_dist_macro_f1']:.3f}", f"{a_['t3']['test_macro_f1']:.3f}"])
 lower = lambda t: sum(ev(t, e)["test_macro_f1"] < ev(t, e)["in_dist_macro_f1"] for e in EV)
 drops1 = {e: ev("t1", e)["in_dist_macro_f1"] - ev("t1", e)["test_macro_f1"] for e in EV}
@@ -593,6 +636,29 @@ tchk("Both signals available to the hybrid track correctness",
 tchk("As predictors of a correct answer",
      [f"AUROC of {_t3c['auroc_confidence']:.3f} (95% bootstrap interval {_t3c['auroc_confidence_ci95'][0]:.3f} to {_t3c['auroc_confidence_ci95'][1]:.3f})",
       f"{_t3c['auroc_agreement']:.3f} ({_t3c['auroc_agreement_ci95'][0]:.3f} to {_t3c['auroc_agreement_ci95'][1]:.3f})"])
+
+# 4e. Task 2 leave-one-disaster-out: table rows, caption and prose (recomputed from results/ablation/X/d_lodo_t2_*)
+_bs = chr(92) + "textbf{macro average}"
+for e in _DE:
+    rs = _DR[e]
+    tchk(f"{e} & {rs[0]['n_test']} & {len(rs)} & {_dms([r['lodo']['acc'] for r in rs])}",
+         [_dms([r["lodo"]["macro_f1"] for r in rs]), _dms([r["indist"]["macro_f1"] for r in rs]), f"{rs[0]['majority_event']['macro_f1']:.3f}"], cover_anchor=True)
+tchk(f"{_bs} & {_dov['n_test']} & 3 & {_dms(_avg('lodo', 'acc'))}", [_dms(_avg("lodo", "macro_f1")), _dms(_avg("indist", "macro_f1")), f"{np.mean(_bases):.3f}"], cover_anchor=True)
+tchk(f"pooled & {_dov['n_test']} & 3 & {_dms(_pl('lodo', 'acc'))}", [_dms(_pl("lodo", "macro_f1")), _dms(_pl("indist", "macro_f1"))], cover_anchor=True)
+tchk("Leave-one-disaster-out, Task 2, with the image-only model", [f"all {_dov['n_test']} test rows", "the 8 classes"])
+_ap = _pair
+tchk("Task 2 is evaluated the same way", [f"{sg3(_ap.mean())} ± {_ap.std(ddof=1):.3f}", f"{sg3(_ie2['ci95_low'])} to {sg3(_ie2['ci95_high'])}", "at seed 42"])
+tchk("Each fold is run with seeds", ["seeds 42, 43 and 44"])
+tchk("Averaged over the seven events the macro-F1 falls", [f"from {np.mean(_avg('indist', 'macro_f1')):.3f} to {np.mean(_avg('lodo', 'macro_f1')):.3f}",
+                                                          f"all {_dov['n_test']} test rows at once gives {_bt['lodo_macro_f1']:.3f} against {_bt['indist_macro_f1']:.3f} at seed 42",
+                                                          f"a difference of {sg3(_bt['diff'])}", f"95% interval of {sg3(_bt['ci95_low'])} to {sg3(_bt['ci95_high'])}"])
+_mi = lambda e, k: np.mean([r[k]["macro_f1"] for r in _DR[e]])
+assert all(abs(_dd[e]) < 0.02 for e in ("hurricane_harvey", "hurricane_irma", "hurricane_maria", "srilanka_floods"))
+tchk("The loss is concentrated in the two earthquake events",
+     [f"Iraq--Iran {_mi('iraq_iran_earthquake', 'indist'):.3f} to {_mi('iraq_iran_earthquake', 'lodo'):.3f}", f"Mexico {_mi('mexico_earthquake', 'indist'):.3f} to {_mi('mexico_earthquake', 'lodo'):.3f}",
+      "less than 0.02", f"by {abs(_dd['california_wildfires']):.3f}", f"deviation of about {np.std([r['lodo']['macro_f1'] for r in _DR['california_wildfires']], ddof=1):.1f}"])
+tchk("No fold falls below its event's majority-class macro-F1", [f"({min(_bases):.3f} to {max(_bases):.3f})"])
+
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]

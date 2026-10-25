@@ -230,7 +230,11 @@ Averaged over the seven events, Task~1 macro-F1 falls from 0.714 (all events see
 The pooled headline scores are 0.751 for Task~1 and 0.491 for Task~3; the per-event averages above differ from them because each event is scored separately, on its own class mix and size.
 We observe that the Task~1 drop is concentrated in Sri Lanka floods, the only flood event (0.932 to 0.793), while five of the other six events change by less than 0.03.
 For Task~3 the per-event changes have mixed signs (the largest drop is Hurricane Irma, 0.483 to 0.271), and three events have only 13 to 23 test images, so we regard the Task~3 figures as indicative only.
-Task~2 was not evaluated this way and is left as future work.
+Task~2 is evaluated the same way (Table~\ref{tab:d_t2}) with the image-only model on cached CLIP features as a proxy for L4a, because the two tie over the whole test set (image-only minus L4a $+0.003 \pm 0.009$ macro-F1 over three seeds, with a paired bootstrap interval at seed 42 of $-0.036$ to $+0.034$); the full model was not run leave-one-event-out.
+Each fold is run with seeds 42, 43 and 44, the checkpoint is selected on the development rows of the other six events only, and the code asserts that the held-out event contributes no train and no development rows.
+Averaged over the seven events the macro-F1 falls from 0.614 to 0.572, and scoring all 2237 test rows at once gives 0.534 against 0.607 at seed 42, a difference of $-0.073$ with a paired bootstrap 95\% interval of $-0.108$ to $-0.036$, which excludes zero.
+The loss is concentrated in the two earthquake events (Iraq--Iran 0.558 to 0.421, Mexico 0.660 to 0.568); the three hurricanes and the flood change by less than 0.02, and the wildfire event by 0.026 with a seed standard deviation of about 0.1.
+No fold falls below its event's majority-class macro-F1 (0.064 to 0.174).
 
 \begin{table}[t]
 \centering
@@ -271,6 +275,28 @@ iraq\_iran\_earthquake & 23 & 0.783 & 0.293 & 0.302 \\
 mexico\_earthquake & 21 & 0.857 & 0.462 & 0.417 \\
 srilanka\_floods & 13 & 0.692 & 0.273 & 0.316 \\
 \textbf{macro average} & 529 & 0.687 & 0.354 & 0.381 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Leave-one-disaster-out, Task 2, with the image-only model on cached CLIP features (a proxy for L4a): train and select the checkpoint on the other six events' train and dev rows, test on the held-out event; mean $\pm$ std over three seeds. Per-event macro-F1 averages the classes present in that event. In-dist.\ = the existing image-only models (all events seen) on the same rows; Majority = always predicting the event's most frequent label. The pooled row scores all 2237 test rows at once (macro-F1 over the 8 classes).}
+\label{tab:d_t2}
+\begin{tabular}{lrcrrrr}
+\toprule
+Held-out event & Test rows & $n$ & LODO acc. & LODO macro-F1 & In-dist. macro-F1 & Majority macro-F1 \\
+\midrule
+california\_wildfires & 216 & 3 & 0.718 $\pm$ 0.017 & 0.664 $\pm$ 0.099 & 0.691 $\pm$ 0.090 & 0.081 \\
+hurricane\_harvey & 572 & 3 & 0.773 $\pm$ 0.016 & 0.590 $\pm$ 0.011 & 0.599 $\pm$ 0.010 & 0.103 \\
+hurricane\_irma & 559 & 3 & 0.795 $\pm$ 0.002 & 0.534 $\pm$ 0.005 & 0.536 $\pm$ 0.004 & 0.110 \\
+hurricane\_maria & 518 & 3 & 0.788 $\pm$ 0.005 & 0.526 $\pm$ 0.007 & 0.542 $\pm$ 0.016 & 0.082 \\
+iraq\_iran\_earthquake & 73 & 3 & 0.571 $\pm$ 0.029 & 0.421 $\pm$ 0.047 & 0.558 $\pm$ 0.016 & 0.064 \\
+mexico\_earthquake & 176 & 3 & 0.695 $\pm$ 0.020 & 0.568 $\pm$ 0.013 & 0.660 $\pm$ 0.064 & 0.079 \\
+srilanka\_floods & 123 & 3 & 0.873 $\pm$ 0.017 & 0.700 $\pm$ 0.042 & 0.711 $\pm$ 0.004 & 0.174 \\
+\textbf{macro average} & 2237 & 3 & 0.744 $\pm$ 0.004 & 0.572 $\pm$ 0.013 & 0.614 $\pm$ 0.004 & 0.099 \\
+pooled & 2237 & 3 & 0.769 $\pm$ 0.005 & 0.529 $\pm$ 0.004 & 0.601 $\pm$ 0.005 & -- \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -400,6 +400,70 @@ OK  [AUROC for predicting a correct answer] 0.650 to 0.735
 OK  [AUROC for predicting a correct answer] 10,000 resamples
 OK  [The signals are partly independent] 0.672 (low confidence) to 0.894 (high)
 OK  [The signals are partly independent] from 0.419 to 0.521
+OK  [The image-only model is a proxy for L4a] +0.003 ± 0.009
+OK  [The image-only model is a proxy for L4a] -0.036 to +0.034
+OK  [Asserted before training every fold] in any fold's train rows is 4
+OK  [No fold-seed run fell below] range 0.064 to 0.174
+OK  [| california_wildfires | 216 | 3 |] 0.718 ± 0.017
+OK  [| california_wildfires | 216 | 3 |] 0.664 ± 0.099
+OK  [| california_wildfires | 216 | 3 |] 0.691 ± 0.090
+OK  [| california_wildfires | 216 | 3 |] -0.026 ± 0.010
+OK  [| california_wildfires | 216 | 3 |] | 0.081 | 8 |
+OK  [| hurricane_harvey | 572 | 3 |] 0.773 ± 0.016
+OK  [| hurricane_harvey | 572 | 3 |] 0.590 ± 0.011
+OK  [| hurricane_harvey | 572 | 3 |] 0.599 ± 0.010
+OK  [| hurricane_harvey | 572 | 3 |] -0.009 ± 0.013
+OK  [| hurricane_harvey | 572 | 3 |] | 0.103 | 8 |
+OK  [| hurricane_irma | 559 | 3 |] 0.795 ± 0.002
+OK  [| hurricane_irma | 559 | 3 |] 0.534 ± 0.005
+OK  [| hurricane_irma | 559 | 3 |] 0.536 ± 0.004
+OK  [| hurricane_irma | 559 | 3 |] -0.002 ± 0.007
+OK  [| hurricane_irma | 559 | 3 |] | 0.110 | 9 |
+OK  [| hurricane_maria | 518 | 3 |] 0.788 ± 0.005
+OK  [| hurricane_maria | 518 | 3 |] 0.526 ± 0.007
+OK  [| hurricane_maria | 518 | 3 |] 0.542 ± 0.016
+OK  [| hurricane_maria | 518 | 3 |] -0.016 ± 0.014
+OK  [| hurricane_maria | 518 | 3 |] | 0.082 | 7 |
+OK  [| iraq_iran_earthquake | 73 | 3 |] 0.571 ± 0.029
+OK  [| iraq_iran_earthquake | 73 | 3 |] 0.421 ± 0.047
+OK  [| iraq_iran_earthquake | 73 | 3 |] 0.558 ± 0.016
+OK  [| iraq_iran_earthquake | 73 | 3 |] -0.137 ± 0.040
+OK  [| iraq_iran_earthquake | 73 | 3 |] | 0.064 | 9 |
+OK  [| mexico_earthquake | 176 | 3 |] 0.695 ± 0.020
+OK  [| mexico_earthquake | 176 | 3 |] 0.568 ± 0.013
+OK  [| mexico_earthquake | 176 | 3 |] 0.660 ± 0.064
+OK  [| mexico_earthquake | 176 | 3 |] -0.092 ± 0.052
+OK  [| mexico_earthquake | 176 | 3 |] | 0.079 | 4 |
+OK  [| srilanka_floods | 123 | 3 |] 0.873 ± 0.017
+OK  [| srilanka_floods | 123 | 3 |] 0.700 ± 0.042
+OK  [| srilanka_floods | 123 | 3 |] 0.711 ± 0.004
+OK  [| srilanka_floods | 123 | 3 |] -0.011 ± 0.046
+OK  [| srilanka_floods | 123 | 3 |] | 0.174 | 9 |
+OK  [| macro average |] | 2237 | 3 |
+OK  [| macro average |] 0.744 ± 0.004
+OK  [| macro average |] 0.572 ± 0.013
+OK  [| macro average |] 0.614 ± 0.004
+OK  [| macro average |] -0.042 ± 0.010
+OK  [| macro average |] 0.099
+OK  [| pooled (all rows at once) |] | 2237 | 3 |
+OK  [| pooled (all rows at once) |] 0.769 ± 0.005
+OK  [| pooled (all rows at once) |] 0.529 ± 0.004
+OK  [| pooled (all rows at once) |] 0.601 ± 0.005
+OK  [| pooled (all rows at once) |] -0.072 ± 0.002
+OK  [Pooled comparison (seed 42)] 2,237-row set
+OK  [Pooled comparison (seed 42)] 0.5341 for LODO against 0.6069
+OK  [Pooled comparison (seed 42)] 10,000 resamples
+OK  [Pooled comparison (seed 42)] -0.0728, 95% interval -0.1085 to -0.0361
+OK  [Where the loss is] Iraq–Iran -0.137
+OK  [Where the loss is] Mexico -0.092
+OK  [Where the loss is] harvey -0.009
+OK  [Where the loss is] irma -0.002
+OK  [Where the loss is] maria -0.016
+OK  [Where the loss is] srilanka -0.011
+OK  [Where the loss is] changes by -0.026
+OK  [Caveats: per-event macro-F1 over rare classes] seed spread is 0.099
+OK  [Caveats: per-event macro-F1 over rare classes] 73 test rows
+OK  [Run time:] 10.7 minutes
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
@@ -647,10 +711,10 @@ OK  [report/ablation_section.tex: We read this as redundancy] 0.294
 OK  [report/ablation_section.tex: For Task 3 a grey image costs] 0.039
 OK  [report/ablation_section.tex: For Task 3 a grey image costs] 0.052
 OK  [report/ablation_section.tex: which the code asserts for all] all 14 folds
-OK  [report/ablation_section.tex: Averaged over the seven events] 0.714
-OK  [report/ablation_section.tex: Averaged over the seven events] 0.680
-OK  [report/ablation_section.tex: Averaged over the seven events] 0.381
-OK  [report/ablation_section.tex: Averaged over the seven events] 0.354
+OK  [report/ablation_section.tex: Averaged over the seven events, Task 1] 0.714
+OK  [report/ablation_section.tex: Averaged over the seven events, Task 1] 0.680
+OK  [report/ablation_section.tex: Averaged over the seven events, Task 1] 0.381
+OK  [report/ablation_section.tex: Averaged over the seven events, Task 1] 0.354
 OK  [report/ablation_section.tex: The pooled headline scores are] 0.751
 OK  [report/ablation_section.tex: The pooled headline scores are] 0.491
 OK  [report/ablation_section.tex: We observe that the Task 1 drop] 0.932 to 0.793
@@ -706,3 +770,45 @@ OK  [report/ablation_section.tex: Both signals available to the hybrid track cor
 OK  [report/ablation_section.tex: Both signals available to the hybrid track correctness] from 0.500 to 0.914
 OK  [report/ablation_section.tex: As predictors of a correct answer] AUROC of 0.718 (95% bootstrap interval 0.672 to 0.762)
 OK  [report/ablation_section.tex: As predictors of a correct answer] 0.692 (0.650 to 0.735)
+OK  [report/ablation_section.tex: california_wildfires & 216 & 3 & 0.718 ± 0.017] 0.664 ± 0.099
+OK  [report/ablation_section.tex: california_wildfires & 216 & 3 & 0.718 ± 0.017] 0.691 ± 0.090
+OK  [report/ablation_section.tex: california_wildfires & 216 & 3 & 0.718 ± 0.017] 0.081
+OK  [report/ablation_section.tex: hurricane_harvey & 572 & 3 & 0.773 ± 0.016] 0.590 ± 0.011
+OK  [report/ablation_section.tex: hurricane_harvey & 572 & 3 & 0.773 ± 0.016] 0.599 ± 0.010
+OK  [report/ablation_section.tex: hurricane_harvey & 572 & 3 & 0.773 ± 0.016] 0.103
+OK  [report/ablation_section.tex: hurricane_irma & 559 & 3 & 0.795 ± 0.002] 0.534 ± 0.005
+OK  [report/ablation_section.tex: hurricane_irma & 559 & 3 & 0.795 ± 0.002] 0.536 ± 0.004
+OK  [report/ablation_section.tex: hurricane_irma & 559 & 3 & 0.795 ± 0.002] 0.110
+OK  [report/ablation_section.tex: hurricane_maria & 518 & 3 & 0.788 ± 0.005] 0.526 ± 0.007
+OK  [report/ablation_section.tex: hurricane_maria & 518 & 3 & 0.788 ± 0.005] 0.542 ± 0.016
+OK  [report/ablation_section.tex: hurricane_maria & 518 & 3 & 0.788 ± 0.005] 0.082
+OK  [report/ablation_section.tex: iraq_iran_earthquake & 73 & 3 & 0.571 ± 0.029] 0.421 ± 0.047
+OK  [report/ablation_section.tex: iraq_iran_earthquake & 73 & 3 & 0.571 ± 0.029] 0.558 ± 0.016
+OK  [report/ablation_section.tex: iraq_iran_earthquake & 73 & 3 & 0.571 ± 0.029] 0.064
+OK  [report/ablation_section.tex: mexico_earthquake & 176 & 3 & 0.695 ± 0.020] 0.568 ± 0.013
+OK  [report/ablation_section.tex: mexico_earthquake & 176 & 3 & 0.695 ± 0.020] 0.660 ± 0.064
+OK  [report/ablation_section.tex: mexico_earthquake & 176 & 3 & 0.695 ± 0.020] 0.079
+OK  [report/ablation_section.tex: srilanka_floods & 123 & 3 & 0.873 ± 0.017] 0.700 ± 0.042
+OK  [report/ablation_section.tex: srilanka_floods & 123 & 3 & 0.873 ± 0.017] 0.711 ± 0.004
+OK  [report/ablation_section.tex: srilanka_floods & 123 & 3 & 0.873 ± 0.017] 0.174
+OK  [report/ablation_section.tex: \textbf{macro average} & 2237 & 3 & 0.744 ± 0.004] 0.572 ± 0.013
+OK  [report/ablation_section.tex: \textbf{macro average} & 2237 & 3 & 0.744 ± 0.004] 0.614 ± 0.004
+OK  [report/ablation_section.tex: \textbf{macro average} & 2237 & 3 & 0.744 ± 0.004] 0.099
+OK  [report/ablation_section.tex: pooled & 2237 & 3 & 0.769 ± 0.005] 0.529 ± 0.004
+OK  [report/ablation_section.tex: pooled & 2237 & 3 & 0.769 ± 0.005] 0.601 ± 0.005
+OK  [report/ablation_section.tex: Leave-one-disaster-out, Task 2, with the image-only model] all 2237 test rows
+OK  [report/ablation_section.tex: Leave-one-disaster-out, Task 2, with the image-only model] the 8 classes
+OK  [report/ablation_section.tex: Task 2 is evaluated the same way] +0.003 ± 0.009
+OK  [report/ablation_section.tex: Task 2 is evaluated the same way] -0.036 to +0.034
+OK  [report/ablation_section.tex: Task 2 is evaluated the same way] at seed 42
+OK  [report/ablation_section.tex: Each fold is run with seeds] seeds 42, 43 and 44
+OK  [report/ablation_section.tex: Averaged over the seven events the macro-F1 falls] from 0.614 to 0.572
+OK  [report/ablation_section.tex: Averaged over the seven events the macro-F1 falls] all 2237 test rows at once gives 0.534 against 0.607 at seed 42
+OK  [report/ablation_section.tex: Averaged over the seven events the macro-F1 falls] a difference of -0.073
+OK  [report/ablation_section.tex: Averaged over the seven events the macro-F1 falls] 95% interval of -0.108 to -0.036
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] Iraq--Iran 0.558 to 0.421
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] Mexico 0.660 to 0.568
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] less than 0.02
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] by 0.026
+OK  [report/ablation_section.tex: The loss is concentrated in the two earthquake events] deviation of about 0.1
+OK  [report/ablation_section.tex: No fold falls below its event's majority-class macro-F1] (0.064 to 0.174)

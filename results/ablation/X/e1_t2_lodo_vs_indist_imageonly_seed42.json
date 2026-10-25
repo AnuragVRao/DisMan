@@ -1,0 +1,21 @@
+{
+ "task": "T2",
+ "tier": "cpu",
+ "comparison": "t2_lodo_vs_indist_imageonly",
+ "metric": "macro_f1",
+ "n_rows": 2237,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.5341248621403957,
+ "score_b": 0.6068907892738957,
+ "diff": -0.07276592713350005,
+ "ci95_low": -0.10848125602767109,
+ "ci95_high": -0.03612397561485818,
+ "ci_excludes_zero": true,
+ "boot_mean": -0.07206835838746342,
+ "frac_boot_diff_positive": 0.0001,
+ "part": "X",
+ "config": "e1_t2_lodo_vs_indist_imageonly",
+ "seed": 42,
+ "git_commit": "d76cb75"
+}

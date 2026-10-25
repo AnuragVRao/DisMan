@@ -277,3 +277,27 @@ T3 calibrates the **probe's** probabilities, not the 5-NN vote fractions. The de
 * Both signals track correctness. Accuracy rises monotonically with confidence from 0.500 (Q1) to 0.914 (Q5), and is 0.812 where the probe and the neighbours agree against 0.446 where they disagree.
 * AUROC for predicting a correct answer: probe confidence 0.718 (95% bootstrap interval 0.672 to 0.762); agreement 0.692 (0.650 to 0.735). Both intervals exclude 0.5 (10,000 resamples).
 * The signals are partly independent: among agreeing queries accuracy rises from 0.672 (low confidence) to 0.894 (high), and among disagreeing queries from 0.419 to 0.521.
+
+### 9.5 D: Task 2 leave-one-disaster-out (image-only proxy)
+
+**Design.** Seven folds × seeds 42, 43, 44 with the image-only model on cached CLIP features (same recipe as the existing image-only runs: 10 epochs, lr 1e-4, 3 warm-up epochs, cosine, AdamW, batch 32, inverse-frequency class weights computed on the fold's train rows, fp16 autocast, strict `>` best dev macro-F1 over all 8 classes). Per fold: train on the other six events' train rows, select the checkpoint on the other six events' **dev** rows only, test on the held-out event's test rows.
+The image-only model is a **proxy for L4a**, justified by their tie over the whole test set (§4: image-only minus L4a +0.003 ± 0.009 over three seeds; E1 interval at seed 42 -0.036 to +0.034); L4a itself was not run leave-one-event-out.
+Asserted before training every fold: the held-out event contributes zero train rows and zero dev rows (by event, tweet and image id), and no class has zero training rows. The smallest class count in any fold's train rows is 4 ("Missing or found people", Mexico held out).
+In-distribution reference: the existing 3-seed image-only checkpoints (all events seen) on the same per-event rows. Per-event macro-F1 averages the classes present in that event's labels or predictions (as in the C2 tables). Majority = always predicting the event's most frequent test label. No fold-seed run fell below its event's majority-class macro-F1 (range 0.064 to 0.174), so the stop rule never fired.
+
+| Held-out event | Test rows | Seeds | LODO acc. | LODO macro-F1 | In-dist. macro-F1 | LODO − in-dist. (macro-F1) | Majority macro-F1 | Smallest train class count |
+|---|---|---|---|---|---|---|---|---|
+| california_wildfires | 216 | 3 | 0.718 ± 0.017 | 0.664 ± 0.099 | 0.691 ± 0.090 | -0.026 ± 0.010 | 0.081 | 8 |
+| hurricane_harvey | 572 | 3 | 0.773 ± 0.016 | 0.590 ± 0.011 | 0.599 ± 0.010 | -0.009 ± 0.013 | 0.103 | 8 |
+| hurricane_irma | 559 | 3 | 0.795 ± 0.002 | 0.534 ± 0.005 | 0.536 ± 0.004 | -0.002 ± 0.007 | 0.110 | 9 |
+| hurricane_maria | 518 | 3 | 0.788 ± 0.005 | 0.526 ± 0.007 | 0.542 ± 0.016 | -0.016 ± 0.014 | 0.082 | 7 |
+| iraq_iran_earthquake | 73 | 3 | 0.571 ± 0.029 | 0.421 ± 0.047 | 0.558 ± 0.016 | -0.137 ± 0.040 | 0.064 | 9 |
+| mexico_earthquake | 176 | 3 | 0.695 ± 0.020 | 0.568 ± 0.013 | 0.660 ± 0.064 | -0.092 ± 0.052 | 0.079 | 4 |
+| srilanka_floods | 123 | 3 | 0.873 ± 0.017 | 0.700 ± 0.042 | 0.711 ± 0.004 | -0.011 ± 0.046 | 0.174 | 9 |
+| macro average | 2237 | 3 | 0.744 ± 0.004 | 0.572 ± 0.013 | 0.614 ± 0.004 | -0.042 ± 0.010 | 0.099 | |
+| pooled (all rows at once) | 2237 | 3 | 0.769 ± 0.005 | 0.529 ± 0.004 | 0.601 ± 0.005 | -0.072 ± 0.002 | | |
+
+* **Pooled comparison (seed 42):** concatenating the seven folds' test predictions into one 2,237-row set gives macro-F1 0.5341 for LODO against 0.6069 in-distribution; paired bootstrap (10,000 resamples) of LODO minus in-distribution: **-0.0728, 95% interval -0.1085 to -0.0361**, which excludes zero.
+* **Where the loss is:** the two earthquake events lose the most (Iraq–Iran -0.137, Mexico -0.092 macro-F1); the three hurricanes and the flood change by less than 0.02 (harvey -0.009, irma -0.002, maria -0.016, srilanka -0.011); the wildfire event changes by -0.026 with a seed standard deviation near 0.1.
+* **Caveats:** per-event macro-F1 over rare classes with one or two test rows is unstable (the wildfire event's seed spread is 0.099); the per-event numbers for the smallest events (Iraq–Iran, 73 test rows) are indicative only. The bootstrap resamples test rows of one LODO seed and one in-distribution checkpoint.
+* Run time: 10.7 minutes for all 21 training runs and the bootstrap.

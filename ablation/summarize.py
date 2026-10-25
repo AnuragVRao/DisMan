@@ -65,6 +65,23 @@ for m, rs_ in x1.items():
             rows.append({"part": "X", "task": "T2", "config": f"a1_{m}_{sub}", "n_test": rs_[0]["subsets"][sub]["n"],
                          **agg([{"test_acc": r["subsets"][sub]["acc"], "test_macro_f1": r["subsets"][sub]["macro_f1"],
                                  "test_weighted_f1": r["subsets"][sub]["weighted_f1"]} for r in rs_], METRICS)})
+# D (results/ablation/X/d_lodo_t2_*): Task 2 leave-one-disaster-out with the image-only proxy; per-seed macro averages over the 7 events and the pooled 2,237-row scores
+D_EV = sorted({Path(f).name.split("_seed")[0].removeprefix("d_lodo_t2_") for f in glob.glob(str(RES / "X" / "d_lodo_t2_*_seed*.json"))} - {"overall"})
+dres = {e: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"d_lodo_t2_{e}_seed*.json")))] for e in D_EV}
+dov = json.load(open(RES / "X" / "d_lodo_t2_overall_seed42.json")) if (RES / "X" / "d_lodo_t2_overall_seed42.json").exists() else None
+if dres and dov:
+    dseeds = sorted({r["seed"] for rs_ in dres.values() for r in rs_})
+    for e, rs_ in dres.items():
+        for kind in ("lodo", "indist"):
+            rows.append({"part": "X", "task": "T2", "config": f"d_t2_{kind}_{e}", "n_test": rs_[0]["n_test"],
+                         **agg([{"test_acc": r[kind]["acc"], "test_macro_f1": r[kind]["macro_f1"], "test_weighted_f1": r[kind]["weighted_f1"]} for r in rs_], METRICS)})
+    for kind in ("lodo", "indist"):
+        per_seed = [{k: np.mean([[r[kind][m] for r in rs_ if r["seed"] == sd][0] for rs_ in dres.values()])
+                     for k, m in (("test_acc", "acc"), ("test_macro_f1", "macro_f1"), ("test_weighted_f1", "weighted_f1"))} for sd in dseeds]
+        rows.append({"part": "X", "task": "T2", "config": f"d_t2_{kind}_macro_avg", "n_test": sum(rs_[0]["n_test"] for rs_ in dres.values()), **agg(per_seed, METRICS)})
+        rows.append({"part": "X", "task": "T2", "config": f"d_t2_{kind}_pooled", "n_test": dov["n_test"],
+                     **agg([{"test_acc": v[kind]["acc"], "test_macro_f1": v[kind]["macro_f1"], "test_weighted_f1": v[kind]["weighted_f1"]}
+                            for v in dov["pooled_by_seed"].values()], METRICS)})
 summary = pd.DataFrame(rows)
 cols =["part", "task", "config", "n"] + [f"{m}_{s}" for m in METRICS for s in ("mean", "std")] + ["n_params", "n_test", "index_rows", "tier"]
 summary = summary[[c for c in cols if c in summary.columns]]
@@ -189,6 +206,24 @@ for task, t in (("T1", "t1"), ("T3", "t3")):
     tex.append(table(f"Leave-one-disaster-out, {task} (train/index on the other six events' train split; deterministic, $n=1$ per fold). "
                      "Per-event macro-F1 averages the classes present in that event. In-dist.\\ = standard model on the same rows.",
                      f"tab:c2_{t}", ["Held-out event", "Test rows", "Acc.", "LODO macro-F1", "In-dist. macro-F1"], body, "lrrrr"))
+# ── D: Task 2 leave-one-disaster-out (image-only proxy) ───────────────────────
+if dres and dov:
+    pmx = lambda a: f"{np.mean(a):.3f} $\\pm$ {np.std(a, ddof=1):.3f}"
+    body = []
+    for e in EV:
+        rs_ = dres[e]
+        body.append([esc(e), str(rs_[0]["n_test"]), str(len(rs_)), pmx([r["lodo"]["acc"] for r in rs_]), pmx([r["lodo"]["macro_f1"] for r in rs_]),
+                     pmx([r["indist"]["macro_f1"] for r in rs_]), f"{rs_[0]['majority_event']['macro_f1']:.3f}"])
+    for kind_row, lab in (("macro_avg", "\\textbf{macro average}"), ("pooled", "pooled")):
+        g = lambda k, m: [json.load(open(RES / "X" / "d_lodo_t2_overall_seed42.json"))["pooled_by_seed"][str(sd)][k][m] for sd in dseeds] if kind_row == "pooled" else \
+            [np.mean([[r[k][m] for r in rs_ if r["seed"] == sd][0] for rs_ in dres.values()]) for sd in dseeds]
+        body.append([lab, str(dov["n_test"]), str(len(dseeds)), pmx(g("lodo", "acc")), pmx(g("lodo", "macro_f1")), pmx(g("indist", "macro_f1")),
+                     f"{np.mean([dres[e][0]['majority_event']['macro_f1'] for e in EV]):.3f}" if kind_row == "macro_avg" else "--"])
+    tex.append(table("Leave-one-disaster-out, Task 2, with the image-only model on cached CLIP features (a proxy for L4a): train and select the checkpoint on the other six events' "
+                     "train and dev rows, test on the held-out event; mean $\\pm$ std over three seeds. Per-event macro-F1 averages the classes present in that event. "
+                     "In-dist.\\ = the existing image-only models (all events seen) on the same rows; Majority = always predicting the event's most frequent label. "
+                     "The pooled row scores all 2237 test rows at once (macro-F1 over the 8 classes).",
+                     "tab:d_t2", ["Held-out event", "Test rows", "$n$", "LODO acc.", "LODO macro-F1", "In-dist. macro-F1", "Majority macro-F1"], body, "lrcrrrr"))
 # ── A1: agreed vs disagreed subsets ───────────────────────────────────────────
 if all(x1.values()):
     A1N = {"L4a": "L4a (full)", "image_only": "image only", "text_only": "text only"}
