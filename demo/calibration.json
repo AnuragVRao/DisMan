@@ -1,0 +1,17 @@
+{
+ "description": "Temperature scaling for the confidences shown in the demo (fitted on the dev split; argmax unchanged). Regenerate with ablation/make_demo_calibration.py.",
+ "t2": {
+  "checkpoint": "t2_L4a_seed42.pt",
+  "temperature": 1.185139263406382,
+  "ece_before": 0.04588997578706457,
+  "ece_after": 0.023915385440929422,
+  "source": "results/ablation/X/c_calibration_t2_L4a_seed42.json",
+  "note": "applies only to this checkpoint; any other T2 checkpoint is shown unscaled"
+ },
+ "t3_probe": {
+  "temperature": 0.6926024779062401,
+  "ece_before": 0.07699999548999892,
+  "ece_after": 0.03809758695417854,
+  "source": "results/ablation/X/c_calibration_t3_probe_seed42.json"
+ }
+}

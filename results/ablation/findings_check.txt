@@ -339,9 +339,9 @@ OK  [The neighbour majority disagrees with the probe on] the probe is right on 0
 OK  [The neighbour majority disagrees with the probe on] majority on 0.397
 OK  [Task 3, logistic probe (fused, C = 1;] 529 test queries
 OK  [| 0.6843 | 0.6073 |] | 0.0770 | 0.693 | 0.0381 | 0.7757 | 0.7723 | 0.4482 | 0.4404 |
-OK  [| 42 | 0.8033 | 0.8431 |] | 0.0459 | no | 1.185 | 0.0239 | 0.5465 | 0.5423 |
-OK  [| 43 | 0.8029 | 0.8793 |] | 0.0770 | yes | 1.467 | 0.0216 | 0.5970 | 0.5564 |
-OK  [| 44 | 0.7921 | 0.8782 |] | 0.0867 | yes | 1.472 | 0.0246 | 0.6181 | 0.5706 |
+OK  [| 42 | 0.8033 | 0.8431 |] | 0.0459 | 1.185 | 0.0239 | 0.5465 | 0.5423 |
+OK  [| 43 | 0.8029 | 0.8793 |] | 0.0770 | 1.467 | 0.0216 | 0.5970 | 0.5564 |
+OK  [| 44 | 0.7921 | 0.8782 |] | 0.0867 | 1.472 | 0.0246 | 0.6181 | 0.5706 |
 OK  [| mean ± std (3 seeds) |] 0.7994 ± 0.0063
 OK  [| mean ± std (3 seeds) |] 0.8669 ± 0.0206
 OK  [| mean ± std (3 seeds) |] 0.0698 ± 0.0213
@@ -387,6 +387,8 @@ OK  [| disagree, high confidence |] 48
 OK  [| disagree, high confidence |] 0.521
 OK  [| disagree, low confidence |] 136
 OK  [| disagree, low confidence |] 0.419
+OK  [The demo shows temperature-scaled confidences] T = 1.185 for the L4a seed-42
+OK  [The demo shows temperature-scaled confidences] T = 0.693 for the Task 3 probe
 OK  [Both signals track correctness] 0.500 (Q1)
 OK  [Both signals track correctness] 0.914 (Q5)
 OK  [Both signals track correctness] is 0.812
@@ -692,3 +694,15 @@ OK  [report/ablation_section.tex: At seed 42 the paired bootstrap 95% interval o
 OK  [report/ablation_section.tex: This noise floor is seed variability] 95% bootstrap interval
 OK  [report/ablation_section.tex: This noise floor is seed variability] at seed 42
 OK  [report/ablation_section.tex: This noise floor is seed variability] half-width of 0.035
+OK  [report/ablation_section.tex: We measure top-label expected calibration error] 15 equal-width bins
+OK  [report/ablation_section.tex: Task 2 is over-confident] 0.867 against an accuracy of 0.799
+OK  [report/ablation_section.tex: Task 2 is over-confident] T between 1.19 and 1.47
+OK  [report/ablation_section.tex: Task 2 is over-confident] from 0.070 to 0.023
+OK  [report/ablation_section.tex: The Task 3 probe is under-confident] 0.607 against an accuracy of 0.684
+OK  [report/ablation_section.tex: The Task 3 probe is under-confident] T = 0.69
+OK  [report/ablation_section.tex: The Task 3 probe is under-confident] from 0.077 to 0.038
+OK  [report/ablation_section.tex: Both signals available to the hybrid track correctness] 0.812 of the 345 test queries
+OK  [report/ablation_section.tex: Both signals available to the hybrid track correctness] 0.446 of the 184
+OK  [report/ablation_section.tex: Both signals available to the hybrid track correctness] from 0.500 to 0.914
+OK  [report/ablation_section.tex: As predictors of a correct answer] AUROC of 0.718 (95% bootstrap interval 0.672 to 0.762)
+OK  [report/ablation_section.tex: As predictors of a correct answer] 0.692 (0.650 to 0.735)

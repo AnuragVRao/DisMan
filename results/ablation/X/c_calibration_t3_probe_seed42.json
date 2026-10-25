@@ -115,8 +115,6 @@
    "acc": 1.0
   }
  ],
- "temperature_scaled": true,
- "exceeds_threshold": true,
  "temperature": 0.6926024779062401,
  "ece_after": 0.03809758695417854,
  "nll_after": 0.7723228414863772,
@@ -318,5 +316,5 @@
  "part": "X",
  "config": "c_calibration_t3_probe",
  "seed": 42,
- "git_commit": "b5dd689"
+ "git_commit": "57467b3"
 }
