@@ -213,3 +213,268 @@ OK  [L4a with empty text:] 0.550
 OK  [L4a with empty text:] 0.485
 OK  [L4a with empty text:] 0.499
 OK  [zeroed with probability] 0.208
+OK  [Similarity-weighted voting gives identical] 0.695
+OK  [Similarity-weighted voting gives identical] 0.046
+OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
+OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
+OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
+OK  [report/ablation_section.tex: L0 & v1 buggy] 0.494 ± 0.006
+OK  [report/ablation_section.tex: L0 & v1 buggy] 0.760 ± 0.002
+OK  [report/ablation_section.tex: L0 & v1 buggy] 30 ep
+OK  [report/ablation_section.tex: L1 & + full] & 3 &
+OK  [report/ablation_section.tex: L1 & + full] 0.643 ± 0.044
+OK  [report/ablation_section.tex: L1 & + full] 0.788 ± 0.008
+OK  [report/ablation_section.tex: L1 & + full] 0.588 ± 0.012
+OK  [report/ablation_section.tex: L1 & + full] 0.788 ± 0.011
+OK  [report/ablation_section.tex: L2 & + QuickGELU] & 3 &
+OK  [report/ablation_section.tex: L2 & + QuickGELU] 0.648 ± 0.043
+OK  [report/ablation_section.tex: L2 & + QuickGELU] 0.786 ± 0.012
+OK  [report/ablation_section.tex: L2 & + QuickGELU] 0.592 ± 0.012
+OK  [report/ablation_section.tex: L2 & + QuickGELU] 0.787 ± 0.013
+OK  [report/ablation_section.tex: L3 & + epoch] & 3 &
+OK  [report/ablation_section.tex: L3 & + epoch] 0.595 ± 0.008
+OK  [report/ablation_section.tex: L3 & + epoch] 0.797 ± 0.005
+OK  [report/ablation_section.tex: L3 & + epoch] 0.600 ± 0.005
+OK  [report/ablation_section.tex: L3 & + epoch] 0.799 ± 0.004
+OK  [report/ablation_section.tex: L3 & + epoch] 30 → 10
+OK  [report/ablation_section.tex: L3b & + determ] & 3 &
+OK  [report/ablation_section.tex: L3b & + determ] 0.581 ± 0.011
+OK  [report/ablation_section.tex: L3b & + determ] 0.792 ± 0.008
+OK  [report/ablation_section.tex: L3b & + determ] 0.587 ± 0.011
+OK  [report/ablation_section.tex: L3b & + determ] 0.793 ± 0.007
+OK  [report/ablation_section.tex: L4a & + AMP] & 3 &
+OK  [report/ablation_section.tex: L4a & + AMP] 0.585 ± 0.008
+OK  [report/ablation_section.tex: L4a & + AMP] 0.799 ± 0.006
+OK  [report/ablation_section.tex: L4a & + AMP] 0.598 ± 0.010
+OK  [report/ablation_section.tex: L4a & + AMP] 0.800 ± 0.006
+OK  [report/ablation_section.tex: L4 & v2:] & 3 &
+OK  [report/ablation_section.tex: L4 & v2:] 0.581 ± 0.003
+OK  [report/ablation_section.tex: L4 & v2:] 0.793 ± 0.005
+OK  [report/ablation_section.tex: L4 & v2:] 0.587 ± 0.001
+OK  [report/ablation_section.tex: L4 & v2:] 0.795 ± 0.002
+OK  [report/ablation_section.tex: L0 & v1 index] & 18082 &
+OK  [report/ablation_section.tex: L0 & v1 index] 0.7221
+OK  [report/ablation_section.tex: L0 & v1 index] 0.6880
+OK  [report/ablation_section.tex: L0 & v1 index] 0.7630
+OK  [report/ablation_section.tex: L1 & test rows] & 17553 &
+OK  [report/ablation_section.tex: L1 & test rows] 0.5028
+OK  [report/ablation_section.tex: L1 & test rows] 0.3777
+OK  [report/ablation_section.tex: L1 & test rows] 0.5328
+OK  [report/ablation_section.tex: L2 & pollution] & 2997 &
+OK  [report/ablation_section.tex: L2 & pollution] 0.6767
+OK  [report/ablation_section.tex: L2 & pollution] 0.5037
+OK  [report/ablation_section.tex: L2 & pollution] 0.6318
+OK  [report/ablation_section.tex: L3 & dev removed] & 2468 &
+OK  [report/ablation_section.tex: L3 & dev removed] 0.6749
+OK  [report/ablation_section.tex: L3 & dev removed] 0.5091
+OK  [report/ablation_section.tex: L3 & dev removed] 0.6309
+OK  [report/ablation_section.tex: L4 & tweet siblings] & 2361 &
+OK  [report/ablation_section.tex: L4 & tweet siblings] 0.6673
+OK  [report/ablation_section.tex: L4 & tweet siblings] 0.4914
+OK  [report/ablation_section.tex: L4 & tweet siblings] 0.6202
+OK  [report/ablation_section.tex: full model (L4a) &] & 3 &
+OK  [report/ablation_section.tex: full model (L4a) &] 67,352,840
+OK  [report/ablation_section.tex: full model (L4a) &] 0.585 ± 0.008
+OK  [report/ablation_section.tex: full model (L4a) &] 0.799 ± 0.006
+OK  [report/ablation_section.tex: full model (L4a) &] 0.598 ± 0.010
+OK  [report/ablation_section.tex: full model (L4a) &] 0.800 ± 0.006
+OK  [report/ablation_section.tex: image only &] & 3 &
+OK  [report/ablation_section.tex: image only &] 199,688
+OK  [report/ablation_section.tex: image only &] 0.568 ± 0.008
+OK  [report/ablation_section.tex: image only &] 0.788 ± 0.002
+OK  [report/ablation_section.tex: image only &] 0.601 ± 0.005
+OK  [report/ablation_section.tex: image only &] 0.793 ± 0.002
+OK  [report/ablation_section.tex: concat, no attention &] & 3 &
+OK  [report/ablation_section.tex: concat, no attention &] 66,825,480
+OK  [report/ablation_section.tex: concat, no attention &] 0.580 ± 0.012
+OK  [report/ablation_section.tex: concat, no attention &] 0.796 ± 0.007
+OK  [report/ablation_section.tex: concat, no attention &] 0.595 ± 0.009
+OK  [report/ablation_section.tex: concat, no attention &] 0.795 ± 0.007
+OK  [report/ablation_section.tex: no text→image attention &] & 3 &
+OK  [report/ablation_section.tex: no text→image attention &] 67,089,160
+OK  [report/ablation_section.tex: no text→image attention &] 0.583 ± 0.015
+OK  [report/ablation_section.tex: no text→image attention &] 0.795 ± 0.005
+OK  [report/ablation_section.tex: no text→image attention &] 0.570 ± 0.014
+OK  [report/ablation_section.tex: no text→image attention &] 0.795 ± 0.005
+OK  [report/ablation_section.tex: text only & 3] & 3 &
+OK  [report/ablation_section.tex: text only & 3] 66,628,104
+OK  [report/ablation_section.tex: text only & 3] 0.295 ± 0.005
+OK  [report/ablation_section.tex: text only & 3] 0.486 ± 0.010
+OK  [report/ablation_section.tex: text only & 3] 0.294 ± 0.014
+OK  [report/ablation_section.tex: text only & 3] 0.499 ± 0.008
+OK  [report/ablation_section.tex: 1 & 0.4627] 0.6011
+OK  [report/ablation_section.tex: 1 & 0.4627] 0.4538
+OK  [report/ablation_section.tex: 3 & 0.4739] 0.6749
+OK  [report/ablation_section.tex: 3 & 0.4739] 0.5150
+OK  [report/ablation_section.tex: 5 & 0.4832] 0.6673
+OK  [report/ablation_section.tex: 5 & 0.4832] 0.4914
+OK  [report/ablation_section.tex: 10 & 0.4438] 0.6843
+OK  [report/ablation_section.tex: 10 & 0.4438] 0.5006
+OK  [report/ablation_section.tex: 20 & 0.4334] 0.6843
+OK  [report/ablation_section.tex: 20 & 0.4334] 0.4704
+OK  [report/ablation_section.tex: majority (v2) &] 0.4832
+OK  [report/ablation_section.tex: majority (v2) &] 0.6673
+OK  [report/ablation_section.tex: majority (v2) &] 0.4914
+OK  [report/ablation_section.tex: similarity-weighted &] 0.4832
+OK  [report/ablation_section.tex: similarity-weighted &] 0.6673
+OK  [report/ablation_section.tex: similarity-weighted &] 0.4914
+OK  [report/ablation_section.tex: class-balanced &] 0.5198
+OK  [report/ablation_section.tex: class-balanced &] 0.5860
+OK  [report/ablation_section.tex: class-balanced &] 0.4954
+OK  [report/ablation_section.tex: image & 5-NN majority &] 5-NN
+OK  [report/ablation_section.tex: image & 5-NN majority &] 0.5427
+OK  [report/ablation_section.tex: image & 5-NN majority &] 0.6749
+OK  [report/ablation_section.tex: image & 5-NN majority &] 0.5074
+OK  [report/ablation_section.tex: image & logistic regression &] 0.6208
+OK  [report/ablation_section.tex: image & logistic regression &] 0.6730
+OK  [report/ablation_section.tex: image & logistic regression &] 0.5946
+OK  [report/ablation_section.tex: text & 5-NN majority &] 5-NN
+OK  [report/ablation_section.tex: text & 5-NN majority &] 0.4021
+OK  [report/ablation_section.tex: text & 5-NN majority &] 0.6068
+OK  [report/ablation_section.tex: text & 5-NN majority &] 0.4276
+OK  [report/ablation_section.tex: text & logistic regression &] 0.4731
+OK  [report/ablation_section.tex: text & logistic regression &] 0.5085
+OK  [report/ablation_section.tex: text & logistic regression &] 0.4632
+OK  [report/ablation_section.tex: fused & 5-NN majority &] 5-NN
+OK  [report/ablation_section.tex: fused & 5-NN majority &] 0.4832
+OK  [report/ablation_section.tex: fused & 5-NN majority &] 0.6673
+OK  [report/ablation_section.tex: fused & 5-NN majority &] 0.4914
+OK  [report/ablation_section.tex: fused & logistic regression &] 0.5926
+OK  [report/ablation_section.tex: fused & logistic regression &] 0.6843
+OK  [report/ablation_section.tex: fused & logistic regression &] 0.6146
+OK  [report/ablation_section.tex: T2 L4a & full input] & 3 &
+OK  [report/ablation_section.tex: T2 L4a & full input] 0.799 ± 0.006
+OK  [report/ablation_section.tex: T2 L4a & full input] 0.598 ± 0.010
+OK  [report/ablation_section.tex: & grey image & 3 & 0.472 ± 0.001] 0.081 ± 0.001
+OK  [report/ablation_section.tex: & grey image & 3 & 0.472 ± 0.001] -0.518
+OK  [report/ablation_section.tex: & empty text & 3 & 0.774 ± 0.005] 0.511 ± 0.034
+OK  [report/ablation_section.tex: & empty text & 3 & 0.774 ± 0.005] -0.087
+OK  [report/ablation_section.tex: T2 L4 (v2) & full input] & 3 &
+OK  [report/ablation_section.tex: T2 L4 (v2) & full input] 0.793 ± 0.005
+OK  [report/ablation_section.tex: T2 L4 (v2) & full input] 0.587 ± 0.001
+OK  [report/ablation_section.tex: & grey image & 3 & 0.472 ± 0.000] 0.080 ± 0.000
+OK  [report/ablation_section.tex: & grey image & 3 & 0.472 ± 0.000] -0.507
+OK  [report/ablation_section.tex: & empty text & 3 & 0.796 ± 0.003] 0.590 ± 0.013
+OK  [report/ablation_section.tex: & empty text & 3 & 0.796 ± 0.003] +0.003
+OK  [report/ablation_section.tex: T3 5-NN & full input] 5-NN
+OK  [report/ablation_section.tex: T3 5-NN & full input] & 1 &
+OK  [report/ablation_section.tex: T3 5-NN & full input] 0.667
+OK  [report/ablation_section.tex: T3 5-NN & full input] 0.491
+OK  [report/ablation_section.tex: & grey image & 1 & 0.565] 0.452
+OK  [report/ablation_section.tex: & grey image & 1 & 0.565] -0.039
+OK  [report/ablation_section.tex: & empty text & 1 & 0.665] 0.440
+OK  [report/ablation_section.tex: & empty text & 1 & 0.665] -0.052
+OK  [report/ablation_section.tex: california_wildfires & 240 & 0.708 & 0.615] 0.606
+OK  [report/ablation_section.tex: hurricane_harvey & 568 & 0.805 & 0.735] 0.758
+OK  [report/ablation_section.tex: hurricane_irma & 548 & 0.776 & 0.675] 0.697
+OK  [report/ablation_section.tex: hurricane_maria & 542 & 0.723 & 0.692] 0.742
+OK  [report/ablation_section.tex: iraq_iran_earthquake & 73 & 0.753 & 0.622] 0.625
+OK  [report/ablation_section.tex: mexico_earthquake & 159 & 0.711 & 0.628] 0.638
+OK  [report/ablation_section.tex: srilanka_floods & 107 & 0.804 & 0.793] 0.932
+OK  [report/ablation_section.tex: california_wildfires & 87 & 0.862 & 0.309] 0.315
+OK  [report/ablation_section.tex: hurricane_harvey & 132 & 0.629 & 0.481] 0.494
+OK  [report/ablation_section.tex: hurricane_irma & 120 & 0.408 & 0.271] 0.483
+OK  [report/ablation_section.tex: hurricane_maria & 133 & 0.579 & 0.389] 0.343
+OK  [report/ablation_section.tex: iraq_iran_earthquake & 23 & 0.783 & 0.293] 0.302
+OK  [report/ablation_section.tex: mexico_earthquake & 21 & 0.857 & 0.462] 0.417
+OK  [report/ablation_section.tex: srilanka_floods & 13 & 0.692 & 0.273] 0.316
+OK  [report/ablation_section.tex: \textbf{macro average} & 2237 & 0.754 & 0.680 & 0.714 \\] 0.714
+OK  [report/ablation_section.tex: \textbf{macro average} & 529 & 0.687 & 0.354 & 0.381 \\] 0.381
+OK  [report/ablation_section.tex: Task 2 ladder from the original notebook] (2237 rows)
+OK  [report/ablation_section.tex: Task 3 ladder (deterministic] n=1
+OK  [report/ablation_section.tex: Task 3 ladder (deterministic] 529 test queries
+OK  [report/ablation_section.tex: Task 3 ladder (deterministic] (3 real classes
+OK  [report/ablation_section.tex: Task 2 component ablation] 10 epochs
+OK  [report/ablation_section.tex: vary one factor of the nearest-neighbour] 529 test queries
+OK  [report/ablation_section.tex: effect of k] k=5
+OK  [report/ablation_section.tex: effect of k] n=1
+OK  [report/ablation_section.tex: voting rule] k=5
+OK  [report/ablation_section.tex: voting rule] n=1
+OK  [report/ablation_section.tex: embedding and classifier] n=1
+OK  [report/ablation_section.tex: Leave-one-disaster-out, T1] n=1
+OK  [report/ablation_section.tex: Leave-one-disaster-out, T3] n=1
+OK  [report/ablation_section.tex: Task 2 rungs are trained with three seeds] (42, 43, 44)
+OK  [report/ablation_section.tex: Across the Task 2 rungs] 0.001
+OK  [report/ablation_section.tex: Across the Task 2 rungs] 0.012
+OK  [report/ablation_section.tex: Across the Task 2 rungs] 0.002
+OK  [report/ablation_section.tex: Across the Task 2 rungs] 0.019
+OK  [report/ablation_section.tex: Across the Task 2 rungs] below about 0.01
+OK  [report/ablation_section.tex: lists the rungs] 2237 images
+OK  [report/ablation_section.tex: Restoring them raises] 0.494 ± 0.006
+OK  [report/ablation_section.tex: Restoring them raises] 0.588 ± 0.012
+OK  [report/ablation_section.tex: Restoring them raises] +0.095 ± 0.011
+OK  [report/ablation_section.tex: Every later step moves] +0.004 ± 0.002
+OK  [report/ablation_section.tex: Every later step moves] +0.008 ± 0.007
+OK  [report/ablation_section.tex: Every later step moves] -0.013 ± 0.015
+OK  [report/ablation_section.tex: Every later step moves] +0.012 ± 0.019
+OK  [report/ablation_section.tex: Every later step moves] -0.011 ± 0.010
+OK  [report/ablation_section.tex: Every later step moves] 10-epoch
+OK  [report/ablation_section.tex: The rest of v2 therefore] 0.588 ± 0.012
+OK  [report/ablation_section.tex: The rest of v2 therefore] 0.587 ± 0.001
+OK  [report/ablation_section.tex: The rest of v2 therefore] 9.8 instead of 66.4 minutes
+OK  [report/ablation_section.tex: The rest of v2 therefore] one seventh
+OK  [report/ablation_section.tex: The whole bundle from L3 to L4] -0.013 ± 0.005
+OK  [report/ablation_section.tex: v2's text encoder starts from random] -0.0002
+OK  [report/ablation_section.tex: follows the nearest-neighbour index] 529 test queries
+OK  [report/ablation_section.tex: The original index held all] 18082
+OK  [report/ablation_section.tex: The original index held all] 14556
+OK  [report/ablation_section.tex: The original index held all] 80.5%
+OK  [report/ablation_section.tex: The original notebook's score is not] all 529 test queries
+OK  [report/ablation_section.tex: The original notebook's score is not] 0.688
+OK  [report/ablation_section.tex: The original notebook's score is not] 0.722
+OK  [report/ablation_section.tex: The original notebook's score is not] 0.378
+OK  [report/ablation_section.tex: The original notebook's score is not] 0.503
+OK  [report/ablation_section.tex: L1 is therefore the fair measure] 0.504
+OK  [report/ablation_section.tex: L1 is therefore the fair measure] 0.509
+OK  [report/ablation_section.tex: L1 is therefore the fair measure] 0.491
+OK  [report/ablation_section.tex: L1 is therefore the fair measure] noise of 529 queries
+OK  [report/ablation_section.tex: A 200k-parameter MLP] 200k-parameter
+OK  [report/ablation_section.tex: A 200k-parameter MLP] 67M-parameter
+OK  [report/ablation_section.tex: A 200k-parameter MLP] 0.601 ± 0.005
+OK  [report/ablation_section.tex: A 200k-parameter MLP] 0.598 ± 0.010
+OK  [report/ablation_section.tex: A 200k-parameter MLP] +0.003 ± 0.009
+OK  [report/ablation_section.tex: A 200k-parameter MLP] -0.003 ± 0.012
+OK  [report/ablation_section.tex: The text stream alone reaches only] 0.294 ± 0.014
+OK  [report/ablation_section.tex: The text stream alone reaches only] -0.305 ± 0.012
+OK  [report/ablation_section.tex: Removing the text-to-image attention] -0.029 ± 0.024
+OK  [report/ablation_section.tex: The value k=5 is the best] k=5
+OK  [report/ablation_section.tex: The value k=5 is the best] 0.483
+OK  [report/ablation_section.tex: The value k=5 is the best] 0.454
+OK  [report/ablation_section.tex: The value k=5 is the best] 0.515
+OK  [report/ablation_section.tex: The value k=5 is the best] \{1, 3, 5, 10, 20\}
+OK  [report/ablation_section.tex: Similarity-weighted voting gives metrics identical] 15 combinations
+OK  [report/ablation_section.tex: Similarity-weighted voting gives metrics identical] 0.046
+OK  [report/ablation_section.tex: Class-balanced voting raises] 0.037
+OK  [report/ablation_section.tex: Class-balanced voting raises] 0.004
+OK  [report/ablation_section.tex: Class-balanced voting raises] 0.667
+OK  [report/ablation_section.tex: Class-balanced voting raises] 0.586
+OK  [report/ablation_section.tex: Image-only retrieval] 0.507
+OK  [report/ablation_section.tex: Image-only retrieval] 0.491
+OK  [report/ablation_section.tex: Image-only retrieval] 0.428
+OK  [report/ablation_section.tex: A logistic-regression probe] 0.615
+OK  [report/ablation_section.tex: A logistic-regression probe] 0.491
+OK  [report/ablation_section.tex: A logistic-regression probe] 0.595
+OK  [report/ablation_section.tex: A logistic-regression probe] 0.507
+OK  [report/ablation_section.tex: A grey image collapses] 0.080
+OK  [report/ablation_section.tex: A grey image collapses] 0.081
+OK  [report/ablation_section.tex: A grey image collapses] within 0.002
+OK  [report/ablation_section.tex: A grey image collapses] 0.0801
+OK  [report/ablation_section.tex: Removing the text has a model-dependent effect] +0.003
+OK  [report/ablation_section.tex: Removing the text has a model-dependent effect] 0.587 to 0.590
+OK  [report/ablation_section.tex: Removing the text has a model-dependent effect] 0.058 and 0.103
+OK  [report/ablation_section.tex: Removing the text has a model-dependent effect] -0.087
+OK  [report/ablation_section.tex: We read this as redundancy] 0.294
+OK  [report/ablation_section.tex: For Task 3 a grey image costs] 0.039
+OK  [report/ablation_section.tex: For Task 3 a grey image costs] 0.052
+OK  [report/ablation_section.tex: which the code asserts for all] all 14 folds
+OK  [report/ablation_section.tex: Averaged over the seven events] 0.714
+OK  [report/ablation_section.tex: Averaged over the seven events] 0.680
+OK  [report/ablation_section.tex: Averaged over the seven events] 0.381
+OK  [report/ablation_section.tex: Averaged over the seven events] 0.354
+OK  [report/ablation_section.tex: The Task 1 drop appears in] 6 of 7
+OK  [report/ablation_section.tex: The Task 1 drop appears in] 5 of 7
+OK  [report/ablation_section.tex: The Task 1 drop appears in] 0.932 to 0.793
+OK  [report/ablation_section.tex: The Task 1 drop appears in] 13 to 23
+OK  [report/ablation_section.tex: we regard only the following as established] +0.095
+OK  [report/ablation_section.tex: we regard only the following as established] about 0.01
+OK  [report/ablation_section.tex: Differences of about 0.01] about 0.01

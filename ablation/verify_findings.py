@@ -185,6 +185,7 @@ try:  # embedding statistics from the v2 artifact (float64 to avoid cosine round
     cc.seed_all(42)
     init = cc.DualStreamClassifier(8, bert_config=DistilBertConfig.from_pretrained(ROOT / "artifacts" / "distilbert_config")).text_encoder.embeddings.word_embeddings.weight.detach().double()
     cos = lambda a, b: float((a.flatten() @ b.flatten()) / (a.norm() * b.norm()))
+    COS_PRE = cos(w, pre)
     chk("Evidence: saved word-embedding std", [f"{w.std():.4f}", f"{pre.std():.4f}", f"{cos(w, pre):.4f}"])
     chk("cosine with the model's own seed-42 random init", [f"{cos(w, init):.3f}", f"{float((w - init).norm() / init.norm()):.3f}"])
 except Exception as e:  # keep the rest of the check usable without the artifact
@@ -213,10 +214,230 @@ try:
 except Exception as e:
     bad.append(("attention probes", "computed", f"skipped: {e}"))
 
+
+# ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
+import os
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
+import faiss
+sys.path.insert(0, str(ROOT / "ablation"))
+from common import ART as _ART, DATA as _DATA, SPLIT_DIR as _SPLIT, cc as _cc
+
+
+def _nm():
+    raise RuntimeError("cache miss")
+
+
+_S = {x: _cc.load_split("damage", x, _DATA, _SPLIT, verbose=False)[0] for x in ("train", "test")}
+_V = {x: _cc.t3_vectors(_cc.cached(_ART / "emb" / f"clip_damage_{x}.npy", _S[x].image_id.tolist(), _nm),
+                        _cc.cached(_ART / "emb" / f"sbert_damage_{x}.npy", _S[x].image_id.tolist(), _nm)) for x in _S}
+_keep = ~_S["train"].tweet_id.isin(set(_S["test"].tweet_id)).to_numpy()
+_ix = faiss.IndexFlatIP(896); _ix.add(_V["train"][_keep]); _sims, _ = _ix.search(_V["test"], 5)
+SPREAD, MEANSIM = float((_sims[:, 0] - _sims[:, 4]).mean()), float(_sims.mean())
+chk("Similarity-weighted voting gives identical", [f"{MEANSIM:.3f}", f"{SPREAD:.3f}"])
+
+# ══ report/ablation_section.tex ═══════════════════════════════════════════════════════════════════════════════════════
+TEX_PATH = ROOT / "report" / "ablation_section.tex"
+TEX_RAW = TEX_PATH.read_text(encoding="utf8")
+
+
+def norm(l):
+    l = l.replace("\\,", ",").replace("\\pm", "±").replace("\\to", "→").replace("\\%", "%").replace("\\_", "_")
+    l = l.replace("$", "").replace("~", " ")
+    return re.sub(r"\s+", " ", l).strip()
+
+
+TEX = [(i, norm(l)) for i, l in enumerate(TEX_RAW.splitlines()) if l.strip() and not l.lstrip().startswith("%")]
+tex_spans = {i: [] for i, _ in TEX}          # character spans per line that a check has verified
+tex_bad = []
+tex_log = []
+tex_nchecks = 0
+
+
+def tchk(anchor, expected, cover_anchor=False):
+    """The unique normalised .tex line containing `anchor` must contain every expected string; matched spans count as covered.
+    cover_anchor=True also marks the anchor itself as verified (only for row anchors built from JSON-derived numbers)."""
+    global tex_nchecks
+    hits = [(i, l) for i, l in TEX if anchor in l]
+    if len(hits) != 1:
+        tex_bad.append((anchor, f"anchor matched {len(hits)} lines", ""))
+        return
+    i, l = hits[0]
+    if cover_anchor:
+        q = l.find(anchor)
+        tex_spans[i].append((q, q + len(anchor)))
+    for e in ([expected] if isinstance(expected, str) else expected):
+        tex_nchecks += 1
+        pos = [m.start() for m in re.finditer(re.escape(e), l)]
+        tex_log.append((anchor, e, bool(pos)))
+        if not pos:
+            tex_bad.append((anchor, e, l[:230]))
+        for q in pos:
+            tex_spans[i].append((q, q + len(e)))
+
+
+cc_T3_LABELS = LABELS_T3 = ["Severe damage", "Mild damage", "Little or no damage"]   # the 3 real classes (v2)
+# 1. every embedded table must be identical to the generated tables.tex block; its numbers are re-derived from the JSONs below
+GEN = (RES / "tables.tex").read_text(encoding="utf8")
+for blk in re.findall(r"\\begin\{table\}.*?\\end\{table\}", TEX_RAW, re.S):
+    tex_nchecks += 1
+    if blk.strip() not in GEN:
+        tex_bad.append(("embedded table", "identical to results/ablation/tables.tex", blk.splitlines()[3][:100]))
+
+# 2. table rows, recomputed from the JSONs
+nseed = lambda c, part=None: len(rows(c, part))
+for rung, key, extra in [("L0", "L0 & v1 buggy", ["30 ep"]), ("L1", "L1 & + full", []), ("L2", "L2 & + QuickGELU", []),
+                         ("L3", "L3 & + epoch", ["30 → 10"]), ("L3b", "L3b & + determ", []), ("L4a", "L4a & + AMP", []), ("L4", "L4 & v2:", [])]:
+    c = f"t2_{rung}"
+    tchk(key, [f"& {nseed(c)} &"] + [ms(col(c, k)) for k in ("dev_macro_f1", "test_acc", "test_macro_f1", "test_weighted_f1")] + extra)
+for rung, key in [("L0", "L0 & v1 index"), ("L1", "L1 & test rows"), ("L2", "L2 & pollution"), ("L3", "L3 & dev removed"), ("L4", "L4 & tweet siblings")]:
+    d = T3[rung]
+    tchk(key, [f"& {d['index_rows']} &", f"{d['test_acc']:.4f}", f"{d['test_macro_f1']:.4f}", f"{d['test_weighted_f1']:.4f}"])
+for key, c, part in [("full model (L4a) &", "t2_L4a", "A"), ("image only &", "t2_image_only", "B"), ("concat, no attention &", "t2_concat", "B"),
+                     ("no text→image attention &", "t2_no_t2i", "B"), ("text only & 3", "t2_text_only", "B")]:
+    tchk(key, [f"& {nseed(c, part)} &", f"{int(rows(c, part)[0]['n_params']):,}"] +
+         [ms(col(c, k, part)) for k in ("dev_macro_f1", "test_acc", "test_macro_f1", "test_weighted_f1")])
+for k in KS:
+    tchk(f"{k} & {b3('fused', k, 'majority', 'dev_macro_f1'):.4f}", [f"{b3('fused', k, 'majority', 'test_acc'):.4f}", f"{b3('fused', k, 'majority', 'test_macro_f1'):.4f}"], cover_anchor=True)
+for key, v in [("majority (v2) &", "majority"), ("similarity-weighted &", "sim_weighted"), ("class-balanced &", "class_balanced")]:
+    tchk(key, [f"{b3('fused', 5, v, 'dev_macro_f1'):.4f}", f"{b3('fused', 5, v, 'test_acc'):.4f}", f"{b3('fused', 5, v, 'test_macro_f1'):.4f}"])
+for e in ("image", "text", "fused"):
+    tchk(f"{e} & 5-NN majority &", ["5-NN", f"{b3(e,5,'majority','dev_macro_f1'):.4f}", f"{b3(e,5,'majority','test_acc'):.4f}", f"{b3(e,5,'majority','test_macro_f1'):.4f}"])
+    tchk(f"{e} & logistic regression &", [f"{lr(e,'dev_macro_f1'):.4f}", f"{lr(e,'test_acc'):.4f}", f"{lr(e,'test_macro_f1'):.4f}"])
+for key, cfg in [("T2 L4a & full input", "c1_t2_L4a"), ("T2 L4 (v2) & full input", "c1_t2_L4")]:
+    f_ = c1(cfg, "full")
+    tchk(key, [f"& {len(f_)} &", ms(c1(cfg, "full", "acc")), ms(f_)])
+    for cond, word in (("image_grey", "grey image"), ("text_empty", "empty text")):
+        x = c1(cfg, cond)
+        tchk(f"& {word} & {len(x)} & {ms(c1(cfg, cond, 'acc'))}", [ms(x), sg((x - f_).mean())], cover_anchor=True)
+tchk("T3 5-NN & full input", ["5-NN", "& 1 &", f"{t3c['full_acc']:.3f}", f"{t3c['full_macro_f1']:.3f}"])
+tchk(f"& grey image & 1 & {t3c['image_grey_acc']:.3f}", [f"{t3c['image_grey_macro_f1']:.3f}", sg(t3c['image_grey_macro_f1'] - t3c['full_macro_f1'])], cover_anchor=True)
+tchk(f"& empty text & 1 & {t3c['text_empty_acc']:.3f}", [f"{t3c['text_empty_macro_f1']:.3f}", sg(t3c['text_empty_macro_f1'] - t3c['full_macro_f1'])], cover_anchor=True)
+EV = ["california_wildfires", "hurricane_harvey", "hurricane_irma", "hurricane_maria", "iraq_iran_earthquake", "mexico_earthquake", "srilanka_floods"]
+for t in ("t1", "t3"):
+    for e in EV:
+        d = ev(t, e)
+        tchk(f"{e} & {d['n']} & {d['test_acc']:.3f} & {d['test_macro_f1']:.3f}", [f"{d['in_dist_macro_f1']:.3f}"], cover_anchor=True)
+a_ = {t: c2(t) for t in ("t1", "t3")}
+for t in ("t1", "t3"):
+    hits = [(i, l) for i, l in TEX if l.startswith(chr(92) + f"textbf{{macro average}} & {a_[t]['n']} & {a_[t]['test_acc']:.3f} & {a_[t]['test_macro_f1']:.3f}")]
+    tex_nchecks += 1
+    if len(hits) != 1:
+        tex_bad.append((f"macro average row ({t})", "found once", str(len(hits))))
+    else:
+        tchk(hits[0][1], [f"{a_[t]['in_dist_macro_f1']:.3f}"], cover_anchor=True)
+
+# 3. captions
+tchk("Task 2 ladder from the original notebook", f"({int(rows('t2_L4')[0]['n_test'])} rows)")
+tchk("Task 3 ladder (deterministic", ["n=1", f"{T3['L4']['n_test']} test queries", f"({len(cc_T3_LABELS)} real classes"])
+tchk("Task 2 component ablation", f"{rows('t2_L4a', 'A')[0]['flags']['epochs']} epochs")
+tchk("vary one factor of the nearest-neighbour", f"{T3['L4']['n_test']} test queries")
+tchk("effect of k", ["k=5", "n=1"])
+tchk("voting rule", ["k=5", "n=1"])
+tchk("embedding and classifier", "n=1")
+tchk("Leave-one-disaster-out, T1", "n=1")
+tchk("Leave-one-disaster-out, T3", "n=1")
+
+# 4. prose claims
+LAD = ["t2_L0", "t2_L1", "t2_L2", "t2_L3", "t2_L3b", "t2_L4a", "t2_L4"]
+seedstd = [col(c, "test_macro_f1").std(ddof=1) for c in LAD]
+pstd = [(col(b, "test_macro_f1") - col(a, "test_macro_f1")).std(ddof=1) for _, a, b in STEPS[:6]] + \
+       [(col("t2_L4", "test_macro_f1") - col("t2_L3", "test_macro_f1")).std(ddof=1)]
+pm_ = lambda a, b: (lambda d: f"{sg(d.mean())} ± {d.std(ddof=1):.3f}")(col(b, "test_macro_f1") - col(a, "test_macro_f1"))
+tchk("Task 2 rungs are trained with three seeds", "(" + ", ".join(str(r["seed"]) for r in rows("t2_L4")) + ")")
+tchk("Across the Task 2 rungs", [f"{min(seedstd):.3f}", f"{max(seedstd):.3f}", f"{min(pstd):.3f}", f"{max(pstd):.3f}", "below about 0.01"])  # last = stated convention
+tchk("lists the rungs", f"{int(rows('t2_L4')[0]['n_test'])} images")
+tchk("Restoring them raises", [ms(col("t2_L0", "test_macro_f1")), ms(col("t2_L1", "test_macro_f1")), pm_("t2_L0", "t2_L1")])
+assert (col("t2_L1", "test_macro_f1") - col("t2_L0", "test_macro_f1") > 0).all()
+tchk("Every later step moves", [pm_("t2_L1", "t2_L2"), pm_("t2_L2", "t2_L3"), pm_("t2_L3", "t2_L3b"), pm_("t2_L3b", "t2_L4a"),
+                                pm_("t2_L4a", "t2_L4"), f"{rows('t2_L3')[0]['flags']['epochs']}-epoch"])
+wall = lambda c: np.array([r["wall_clock_s"] for r in rows(c)]) / 60
+ratio = wall("t2_L1").mean() / wall("t2_L4").mean()
+assert 6.5 <= ratio < 7.5, ratio                                  # "about one seventh"
+tchk("The rest of v2 therefore", [ms(col("t2_L1", "test_macro_f1")), ms(col("t2_L4", "test_macro_f1")),
+                                  f"{wall('t2_L4').mean():.1f} instead of {wall('t2_L1').mean():.1f} minutes", "one seventh"])
+assert ((col("t2_L4", "test_macro_f1") - col("t2_L3", "test_macro_f1")) < 0).all()
+tchk("The whole bundle from L3 to L4", [pm_("t2_L3", "t2_L4")])
+if "COS_PRE" in globals():
+    tchk("v2's text encoder starts from random", f"{COS_PRE:.4f}")
+else:
+    tex_bad.append(("embedding cosine", "computed", "pretrained weights unavailable"))
+tchk("follows the nearest-neighbour index", f"{T3['L4']['n_test']} test queries")
+dk_rows = T3["L0"]["index_rows"] - (T3["L2"]["index_rows"] + T3["L4"]["n_test"])
+tchk("The original index held all", [str(T3["L0"]["index_rows"]), str(dk_rows), f"{100 * dk_rows / T3['L0']['index_rows']:.1f}%"])
+assert T3["L0"]["test_queries_with_self_in_top5"] == T3["L0"]["n_test"]
+tchk("The original notebook's score is not", [f"all {T3['L0']['n_test']} test queries", f"{T3['L0']['test_macro_f1']:.3f}", f"{T3['L0']['test_acc']:.3f}",
+                                              f"{T3['L1']['test_macro_f1']:.3f}", f"{T3['L1']['test_acc']:.3f}"])
+tchk("L1 is therefore the fair measure", [f"{T3['L2']['test_macro_f1']:.3f}", f"{T3['L3']['test_macro_f1']:.3f}", f"{T3['L4']['test_macro_f1']:.3f}",
+                                          f"noise of {T3['L4']['n_test']} queries"])
+Pn = rows("t2_L4a", "A")[0]["n_params"]
+pairB = lambda c: col(c, "test_macro_f1", "B") - col("t2_L4a", "test_macro_f1", "A")
+tchk("A 200k-parameter MLP", [f"{round(rows('t2_image_only', 'B')[0]['n_params'] / 1000)}k-parameter", f"{round(Pn / 1e6)}M-parameter",
+                              ms(col("t2_image_only", "test_macro_f1", "B")), ms(col("t2_L4a", "test_macro_f1", "A")),
+                              f"{sg(pairB('t2_image_only').mean())} ± {pairB('t2_image_only').std(ddof=1):.3f}",
+                              f"{sg(pairB('t2_concat').mean())} ± {pairB('t2_concat').std(ddof=1):.3f}"])
+tchk("The text stream alone reaches only", [ms(col("t2_text_only", "test_macro_f1", "B")), f"{sg(pairB('t2_text_only').mean())} ± {pairB('t2_text_only').std(ddof=1):.3f}"])
+assert (pairB("t2_no_t2i") < 0).all()
+tchk("Removing the text-to-image attention", f"{sg(pairB('t2_no_t2i').mean())} ± {pairB('t2_no_t2i').std(ddof=1):.3f}")
+devk = [b3("fused", k, "majority", "dev_macro_f1") for k in KS]
+testk = [b3("fused", k, "majority", "test_macro_f1") for k in KS]
+assert KS[int(np.argmax(devk))] == 5
+tchk("The value k=5 is the best", ["k=5", f"{max(devk):.3f}", f"{min(testk):.3f}", f"{max(testk):.3f}", "\{" + ", ".join(map(str, KS)) + "\}"])
+tchk("Similarity-weighted voting gives metrics identical", ["15 combinations", f"{SPREAD:.3f}"])
+tchk("Class-balanced voting raises", [f"{b3('fused',5,'class_balanced','dev_macro_f1') - b3('fused',5,'majority','dev_macro_f1'):.3f}",
+                                      f"{b3('fused',5,'class_balanced','test_macro_f1') - b3('fused',5,'majority','test_macro_f1'):.3f}",
+                                      f"{b3('fused',5,'majority','test_acc'):.3f}", f"{b3('fused',5,'class_balanced','test_acc'):.3f}"])
+tchk("Image-only retrieval", [f"{b3('image',5,'majority','test_macro_f1'):.3f}", f"{b3('fused',5,'majority','test_macro_f1'):.3f}",
+                              f"{b3('text',5,'majority','test_macro_f1'):.3f}"])
+tchk("A logistic-regression probe", [f"{lr('fused','test_macro_f1'):.3f}", f"{b3('fused',5,'majority','test_macro_f1'):.3f}",
+                                     f"{lr('image','test_macro_f1'):.3f}", f"{b3('image',5,'majority','test_macro_f1'):.3f}"])
+g4, g4a = c1("c1_t2_L4", "image_grey"), c1("c1_t2_L4a", "image_grey")
+assert max(np.abs(np.concatenate([g4, g4a]) - maj)) <= 0.002
+tchk("A grey image collapses", [f"{g4.mean():.3f}", f"{g4a.mean():.3f}", "within 0.002", f"{maj:.4f}"])
+dl4 = c1("c1_t2_L4", "text_empty") - c1("c1_t2_L4", "full")
+dl4a = c1("c1_t2_L4a", "full") - c1("c1_t2_L4a", "text_empty")
+tchk("Removing the text has a model-dependent effect", [sg(dl4.mean()), f"{c1('c1_t2_L4','full').mean():.3f} to {c1('c1_t2_L4','text_empty').mean():.3f}",
+                                                         f"{dl4a.min():.3f} and {dl4a.max():.3f}", f"-{dl4a.mean():.3f}"])
+tchk("We read this as redundancy", [f"{col('t2_text_only', 'test_macro_f1', 'B').mean():.3f}"])
+tchk("For Task 3 a grey image costs", [f"{t3c['full_macro_f1'] - t3c['image_grey_macro_f1']:.3f}", f"{t3c['full_macro_f1'] - t3c['text_empty_macro_f1']:.3f}"])
+nfold = len(glob.glob(str(RES / "C" / "c2_t[13]_*_seed42.json"))) - 2
+tchk("which the code asserts for all", f"all {nfold} folds")
+tchk("Averaged over the seven events", [f"{a_['t1']['in_dist_macro_f1']:.3f}", f"{a_['t1']['test_macro_f1']:.3f}",
+                                        f"{a_['t3']['in_dist_macro_f1']:.3f}", f"{a_['t3']['test_macro_f1']:.3f}"])
+lower = lambda t: sum(ev(t, e)["test_macro_f1"] < ev(t, e)["in_dist_macro_f1"] for e in EV)
+drops1 = {e: ev("t1", e)["in_dist_macro_f1"] - ev("t1", e)["test_macro_f1"] for e in EV}
+big = max(drops1, key=drops1.get)
+n3 = sorted(ev("t3", e)["n"] for e in EV)
+assert n3[3] > n3[2] and big == "srilanka_floods"
+tchk("The Task 1 drop appears in", [f"{lower('t1')} of {len(EV)}", f"{lower('t3')} of {len(EV)}",
+                                    f"{ev('t1', big)['in_dist_macro_f1']:.3f} to {ev('t1', big)['test_macro_f1']:.3f}", f"{n3[0]} to {n3[2]}"])
+tchk("we regard only the following as established", [sg(col("t2_L1", "test_macro_f1").mean() - col("t2_L0", "test_macro_f1").mean()), "about 0.01"])
+tchk("Differences of about 0.01", "about 0.01")
+
+# 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
+STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
+uncovered = []
+for i, l in TEX:
+    masked = l
+    for pat in STRUCT:
+        masked = re.sub(pat, lambda m: " " * len(m.group(0)), masked)
+    for m in re.finditer(r"(?<![A-Za-z\d.\\])[-+]?\d[\d,.]*\d|(?<![A-Za-z\d.\\])\d", masked):
+        a, b = m.span()
+        if not any(sa <= a and b <= sb for sa, sb in tex_spans[i]):
+            uncovered.append((i + 1, m.group(0), l[:110]))
+print(f"report/ablation_section.tex: {tex_nchecks} numeric checks, {len(tex_bad)} mismatches, {len(uncovered)} numeric tokens not covered by any check")
+for a1, e1, f1 in tex_bad:
+    print(f"  TEX MISMATCH [{a1}] expected {e1!r} | line: {f1}")
+for ln, tok, ctx in uncovered:
+    print(f"  UNCOVERED line {ln}: {tok!r} in: {ctx}")
+bad.extend(("tex:" + a1, e1, f1) for a1, e1, f1 in tex_bad)
+bad.extend(("tex-uncovered", tok, ctx) for _, tok, ctx in uncovered)
+
 # ── report ────────────────────────────────────────────────────────────────────
 print(f"{len(checks)} numeric checks against docs/ablation_findings.md; {len(bad)} mismatches")
 for k, e, found in bad:
     print(f"  MISMATCH [{k}] expected {e!r} | line: {found}")
 if "--write-log" in sys.argv:
-    (RES / "findings_check.txt").write_text("\n".join(f"{'OK ' if ok else 'BAD'} [{k}] {e}" for k, e, ok in checks) + "\n", encoding="utf8")
+    lines = [f"{'OK ' if ok else 'BAD'} [{k}] {e}" for k, e, ok in checks]
+    lines += [f"{'OK ' if ok else 'BAD'} [report/ablation_section.tex: {k}] {e}" for k, e, ok in tex_log]
+    (RES / "findings_check.txt").write_text("\n".join(lines) + "\n", encoding="utf8")
 sys.exit(1 if bad else 0)
