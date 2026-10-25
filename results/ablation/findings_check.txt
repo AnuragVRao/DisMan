@@ -305,6 +305,38 @@ OK  [The gap between v2's index (L4)] +0.114
 OK  [Image-only against L4a at seed 42] -0.001
 OK  [Image-only against L4a at seed 42] -0.036 to +0.034
 OK  [The accuracy gain of L4a over image-only on the agreed rows] +0.024
+OK  [| `t2_L1_vs_L0` |] 2,237
+OK  [| `t2_L1_vs_L0` |] 0.6025
+OK  [| `t2_L1_vs_L0` |] 0.4995
+OK  [| `t2_L1_vs_L0` |] +0.1030
+OK  [| `t2_L1_vs_L0` |] [+0.0513, +0.1494]
+OK  [| `t2_L1_vs_L0` |] yes
+OK  [T2 L1 − L0 (the path fix)] +0.103
+OK  [T2 L1 − L0 (the path fix)] +0.051 to +0.149
+OK  [T2 L1 − L0 (the path fix)] 0.4995, 0.4973, 0.4995
+OK  [T2 L1 − L0 (the path fix)] stored 0.4983
+OK  [T2 L1 − L0 (the path fix)] 0.6025, 0.5980, 0.6011
+OK  [T2 L1 − L0 (the path fix)] stored 0.6012
+OK  [T2 L1 − L0 (the path fix)] crop seed 0
+OK  [Test-sample uncertainty is wider than the seed noise floor] half-width of 0.035
+OK  [Test-sample uncertainty is wider than the seed noise floor] 0.001 to 0.012
+OK  [E2 was run because] C = 1
+OK  [E2 was run because] 2,361 vectors
+OK  [E2 was run because] 5-NN
+OK  [Because the hybrid's label is the probe's label] 529 queries
+OK  [| Hybrid (probe label) |] 0.6843
+OK  [| Hybrid (probe label) |] 0.6146
+OK  [| Hybrid (probe label) |] 0.6948
+OK  [| v2 5-NN (fused, k = 5) |] 0.6673
+OK  [| v2 5-NN (fused, k = 5) |] 0.4914
+OK  [| v2 5-NN (fused, k = 5) |] 0.6202
+OK  [Bootstrap, hybrid minus 5-NN macro-F1] +0.1231
+OK  [Bootstrap, hybrid minus 5-NN macro-F1] +0.0615 to +0.1861
+OK  [Bootstrap, hybrid minus 5-NN macro-F1] 10,000 resamples
+OK  [The neighbour majority disagrees with the probe on] 184 of 529 queries (34.8%)
+OK  [The neighbour majority disagrees with the probe on] (345 queries) accuracy is 0.812
+OK  [The neighbour majority disagrees with the probe on] the probe is right on 0.446
+OK  [The neighbour majority disagrees with the probe on] majority on 0.397
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
@@ -592,3 +624,10 @@ OK  [report/ablation_section.tex: The effect depends on whether the two labels a
 OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] paired bootstrap 95% interval of +0.012 to +0.038
 OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] at seed 42
 OK  [report/ablation_section.tex: The bootstrap resamples the] 529 test queries
+OK  [report/ablation_section.tex: At seed 42 the paired bootstrap 95% interval of this gain] At seed 42
+OK  [report/ablation_section.tex: At seed 42 the paired bootstrap 95% interval of this gain] 95% interval
+OK  [report/ablation_section.tex: At seed 42 the paired bootstrap 95% interval of this gain] +0.051 to +0.149
+OK  [report/ablation_section.tex: At seed 42 the paired bootstrap 95% interval of this gain] less than 0.002
+OK  [report/ablation_section.tex: This noise floor is seed variability] 95% bootstrap interval
+OK  [report/ablation_section.tex: This noise floor is seed variability] at seed 42
+OK  [report/ablation_section.tex: This noise floor is seed variability] half-width of 0.035

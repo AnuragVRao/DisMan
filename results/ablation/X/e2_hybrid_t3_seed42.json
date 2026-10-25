@@ -1,0 +1,53 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "n_test": 529,
+ "index_rows": 2361,
+ "probe_C": 1.0,
+ "k": 5,
+ "test_acc": 0.6843100189035917,
+ "test_macro_f1": 0.6145824565925491,
+ "test_weighted_f1": 0.6948228746662479,
+ "per_class_f1": {
+  "Severe damage": 0.7993579454253612,
+  "Mild damage": 0.5095057034220533,
+  "Little or no damage": 0.5348837209302325
+ },
+ "confusion_matrix": [
+  [
+   249,
+   56,
+   27
+  ],
+  [
+   31,
+   67,
+   28
+  ],
+  [
+   11,
+   14,
+   46
+  ]
+ ],
+ "knn_test_acc": 0.667296786389414,
+ "knn_test_macro_f1": 0.4914439729128235,
+ "knn_test_weighted_f1": 0.6202453429276462,
+ "disagreement_rate": 0.34782608695652173,
+ "n_disagree": 184,
+ "probe_acc_where_agree": 0.8115942028985508,
+ "probe_acc_where_disagree": 0.44565217391304346,
+ "knn_acc_where_disagree": 0.3967391304347826,
+ "bootstrap_hybrid_minus_knn": {
+  "diff": 0.12313848367972557,
+  "ci95_low": 0.06150825032781127,
+  "ci95_high": 0.18611545383310385,
+  "n_boot": 10000,
+  "excludes_zero": true
+ },
+ "equals_probe_row": true,
+ "part": "X",
+ "config": "e2_hybrid_t3",
+ "seed": 42,
+ "git_commit": "422ba19"
+}

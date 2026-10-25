@@ -252,6 +252,35 @@ chk("Image-only against L4a at seed 42", [f"{_E1['t2_imageonly_vs_L4a']['diff']:
 chk("The accuracy gain of L4a over image-only on the agreed rows", [f"{_E1['t2_agreed_acc_L4a_vs_imageonly']['diff']:+.3f}"])
 assert not _E1["t2_imageonly_vs_L4a"]["ci_excludes_zero"] and all(_E1[n]["ci_excludes_zero"] for n in _E1N if n != "t2_imageonly_vs_L4a")
 
+# ── §9.2 L1 - L0 row and §9.3 E2, recomputed from results/ablation/X ──────────────────────────────────────────────────
+_e1b = json.load(open(RES / "X" / "e1_t2_L1_vs_L0_seed42.json"))
+assert _e1b["ci_excludes_zero"] and _e1b["n_boot"] == 10000
+chk("| `t2_L1_vs_L0` |", [f"{_e1b['n_rows']:,}", f"{_e1b['score_a']:.4f}", f"{_e1b['score_b']:.4f}", f"{_e1b['diff']:+.4f}",
+                          f"[{_e1b['ci95_low']:+.4f}, {_e1b['ci95_high']:+.4f}]", "yes"])
+chk("T2 L1 − L0 (the path fix)",
+    [f"{_e1b['diff']:+.3f}", f"{_e1b['ci95_low']:+.3f} to {_e1b['ci95_high']:+.3f}",
+     ", ".join(f"{v:.4f}" for v in _e1b["regen_macro_f1_L0_crop_seeds"]), f"stored {_e1b['stored_macro_f1_L0']:.4f}",
+     ", ".join(f"{v:.4f}" for v in _e1b["regen_macro_f1_L1_crop_seeds"]), f"stored {_e1b['stored_macro_f1_L1']:.4f}",
+     f"crop seed {_e1b['bootstrapped_crop_seed']}"])
+_io = json.load(open(RES / "X" / "e1_t2_imageonly_vs_L4a_seed42.json"))
+_sd = [col(c, "test_macro_f1").std(ddof=1) for c in ("t2_L0", "t2_L1", "t2_L2", "t2_L3", "t2_L3b", "t2_L4a", "t2_L4")]
+chk("Test-sample uncertainty is wider than the seed noise floor",
+    [f"half-width of {(_io['ci95_high'] - _io['ci95_low']) / 2:.3f}", f"{min(_sd):.3f} to {max(_sd):.3f}"])
+
+_e2 = json.load(open(RES / "X" / "e2_hybrid_t3_seed42.json"))
+_pr, _kn = json.load(open(RES / "B" / "t3_lr_fused_seed42.json")), json.load(open(RES / "B" / "t3_fused_k5_majority_seed42.json"))
+assert _e2["equals_probe_row"] and abs(_e2["test_macro_f1"] - _pr["test_macro_f1"]) < 1e-12 and abs(_e2["knn_test_macro_f1"] - _kn["test_macro_f1"]) < 1e-12
+_bb = _e2["bootstrap_hybrid_minus_knn"]
+assert abs(_bb["diff"] - _E1["t3_probe_vs_knn_fused"]["diff"]) < 1e-12 and abs(_bb["ci95_low"] - _E1["t3_probe_vs_knn_fused"]["ci95_low"]) < 1e-12
+chk("E2 was run because", [f"C = {_e2['probe_C']:g}", f"{_e2['index_rows']:,} vectors", f"{_e2['k']}-NN"])
+chk("Because the hybrid's label is the probe's label", [f"{_e2['n_test']} queries"])
+chk("| Hybrid (probe label) |", [f"{_e2['test_acc']:.4f}", f"{_e2['test_macro_f1']:.4f}", f"{_e2['test_weighted_f1']:.4f}"])
+chk("| v2 5-NN (fused, k = 5) |", [f"{_e2['knn_test_acc']:.4f}", f"{_e2['knn_test_macro_f1']:.4f}", f"{_e2['knn_test_weighted_f1']:.4f}"])
+chk("Bootstrap, hybrid minus 5-NN macro-F1", [f"{_bb['diff']:+.4f}", f"{_bb['ci95_low']:+.4f} to {_bb['ci95_high']:+.4f}", f"{_bb['n_boot']:,} resamples"])
+chk("The neighbour majority disagrees with the probe on",
+    [f"{_e2['n_disagree']} of {_e2['n_test']} queries ({100 * _e2['disagreement_rate']:.1f}%)", f"({_e2['n_test'] - _e2['n_disagree']} queries) accuracy is {_e2['probe_acc_where_agree']:.3f}",
+     f"the probe is right on {_e2['probe_acc_where_disagree']:.3f}", f"majority on {_e2['knn_acc_where_disagree']:.3f}"])
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
@@ -491,6 +520,15 @@ tchk("The effect depends on whether the two labels agree",
       f"at seed {E1['t2_agreed_acc_L4a_vs_imageonly']['seed']}"])
 f1b, imb = E1["t3_probe_vs_knn_fused"], E1["t3_probe_vs_knn_image"]
 tchk("The bootstrap resamples the", [f"{f1b['n_rows']} test queries"])
+
+# 4c. the L1 - L0 bootstrap sentence and the noise-floor / test-sample-uncertainty sentence
+_l = json.load(open(RES / "X" / "e1_t2_L1_vs_L0_seed42.json"))
+assert _l["ci_excludes_zero"]
+assert abs(_l["regen_macro_f1_L0_crop_seeds"][0] - _l["stored_macro_f1_L0"]) < 0.002 and abs(_l["regen_macro_f1_L1_crop_seeds"][0] - _l["stored_macro_f1_L1"]) < 0.002
+tchk("At seed 42 the paired bootstrap 95% interval of this gain", ["At seed 42", "95% interval", f"{sg3(_l['ci95_low'])} to {sg3(_l['ci95_high'])}", "less than 0.002"])
+_iv2 = json.load(open(RES / "X" / "e1_t2_imageonly_vs_L4a_seed42.json"))
+assert not _iv2["ci_excludes_zero"]
+tchk("This noise floor is seed variability", ["95% bootstrap interval", "at seed 42", f"half-width of {(_iv2['ci95_high'] - _iv2['ci95_low']) / 2:.3f}"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
