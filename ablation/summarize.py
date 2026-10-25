@@ -57,8 +57,16 @@ for (part, task, cfg), rs in sorted(groups.items()):
     rows.append({"part": part, "task": task, "config": cfg, **extra, **agg(rs, METRICS)})
 for (part, task, cfg), rs in sorted(c1_groups.items()):
     rows.append({"part": part, "task": task, "config": cfg, **agg(rs, METRICS)})
+# A1 (results/ablation/X/a1_*): one summary config per (model, subset)
+x1 = {m: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"a1_{m}_seed*.json")))] for m in ("L4a", "image_only", "text_only")}
+for m, rs_ in x1.items():
+    for sub in ("agreed", "disagreed", "all"):
+        if rs_:
+            rows.append({"part": "X", "task": "T2", "config": f"a1_{m}_{sub}", "n_test": rs_[0]["subsets"][sub]["n"],
+                         **agg([{"test_acc": r["subsets"][sub]["acc"], "test_macro_f1": r["subsets"][sub]["macro_f1"],
+                                 "test_weighted_f1": r["subsets"][sub]["weighted_f1"]} for r in rs_], METRICS)})
 summary = pd.DataFrame(rows)
-cols = ["part", "task", "config", "n"] + [f"{m}_{s}" for m in METRICS for s in ("mean", "std")] + ["n_params", "n_test", "index_rows", "tier"]
+cols =["part", "task", "config", "n"] + [f"{m}_{s}" for m in METRICS for s in ("mean", "std")] + ["n_params", "n_test", "index_rows", "tier"]
 summary = summary[[c for c in cols if c in summary.columns]]
 summary.to_csv(RES / "summary.csv", index=False, float_format="%.4f")
 S = summary.set_index(["part", "config"])
@@ -181,6 +189,20 @@ for task, t in (("T1", "t1"), ("T3", "t3")):
     tex.append(table(f"Leave-one-disaster-out, {task} (train/index on the other six events' train split; deterministic, $n=1$ per fold). "
                      "Per-event macro-F1 averages the classes present in that event. In-dist.\\ = standard model on the same rows.",
                      f"tab:c2_{t}", ["Held-out event", "Test rows", "Acc.", "LODO macro-F1", "In-dist. macro-F1"], body, "lrrrr"))
+# ── A1: agreed vs disagreed subsets ───────────────────────────────────────────
+if all(x1.values()):
+    A1N = {"L4a": "L4a (full)", "image_only": "image only", "text_only": "text only"}
+    mb = x1["L4a"][0]["majority_baseline"]
+    body = []
+    for sub, lab in (("agreed", "agreed"), ("disagreed", "disagreed"), ("all", "all rows")):
+        body.append([lab, str(x1["L4a"][0]["subsets"][sub]["n"]), "majority class", "--", f"{mb[sub]['acc']:.3f}", f"{mb[sub]['macro_f1']:.3f}"])
+        for m in ("L4a", "image_only", "text_only"):
+            a_ = np.array([r["subsets"][sub]["acc"] for r in x1[m]])
+            f_ = np.array([r["subsets"][sub]["macro_f1"] for r in x1[m]])
+            body.append(["", "", A1N[m], str(len(a_)), f"{a_.mean():.3f} $\\pm$ {a_.std(ddof=1):.3f}", f"{f_.mean():.3f} $\\pm$ {f_.std(ddof=1):.3f}"])
+    tex.append(table("Task 2 on test rows where the text and image labels agree or disagree (existing checkpoints, mean $\\pm$ std over seeds). "
+                     "Macro-F1 averages the classes present in the subset; the majority-class row always predicts ``Not humanitarian''.",
+                     "tab:a1", ["Subset", "Rows", "Model", "$n$", "Acc.", "Macro-F1"], body, "lrlcrr"))
 (RES / "tables.tex").write_text("\n".join(tex), encoding="utf8")
 
 # ── figure: T2 ladder ─────────────────────────────────────────────────────────

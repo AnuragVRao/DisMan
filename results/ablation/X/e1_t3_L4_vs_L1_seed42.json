@@ -1,0 +1,21 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "comparison": "t3_L4_vs_L1",
+ "metric": "macro_f1",
+ "n_rows": 529,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.4914439729128235,
+ "score_b": 0.3777318682925937,
+ "diff": 0.11371210462022979,
+ "ci95_low": 0.06348056975143505,
+ "ci95_high": 0.1673238894991006,
+ "ci_excludes_zero": true,
+ "boot_mean": 0.11429560113648779,
+ "frac_boot_diff_positive": 1.0,
+ "part": "X",
+ "config": "e1_t3_L4_vs_L1",
+ "seed": 42,
+ "git_commit": "e348b69"
+}

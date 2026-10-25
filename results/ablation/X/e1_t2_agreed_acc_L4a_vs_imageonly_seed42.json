@@ -1,0 +1,21 @@
+{
+ "task": "T2",
+ "tier": "cpu",
+ "comparison": "t2_agreed_acc_L4a_vs_imageonly",
+ "metric": "accuracy",
+ "n_rows": 955,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.8722513089005236,
+ "score_b": 0.8481675392670157,
+ "diff": 0.02408376963350789,
+ "ci95_low": 0.011518324607329822,
+ "ci95_high": 0.03769633507853398,
+ "ci_excludes_zero": true,
+ "boot_mean": 0.024058219895287957,
+ "frac_boot_diff_positive": 0.9999,
+ "part": "X",
+ "config": "e1_t2_agreed_acc_L4a_vs_imageonly",
+ "seed": 42,
+ "git_commit": "e348b69"
+}

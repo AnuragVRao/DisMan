@@ -267,6 +267,44 @@ OK  [Agreed minus disagreed gap] image only +0.133 ± 0.033 / +0.100 ± 0.009
 OK  [Caveats: the two subsets differ in class mix] 52.8%
 OK  [Caveats: the two subsets differ in class mix] 43.0%
 OK  [Caveats: the two subsets differ in class mix] 0.06 for text-only
+OK  [| `t3_probe_vs_knn_fused` |] 529
+OK  [| `t3_probe_vs_knn_fused` |] 0.6146
+OK  [| `t3_probe_vs_knn_fused` |] 0.4914
+OK  [| `t3_probe_vs_knn_fused` |] +0.1231
+OK  [| `t3_probe_vs_knn_fused` |] [+0.0615, +0.1861]
+OK  [| `t3_probe_vs_knn_fused` |] yes
+OK  [| `t3_probe_vs_knn_image` |] 529
+OK  [| `t3_probe_vs_knn_image` |] 0.5946
+OK  [| `t3_probe_vs_knn_image` |] 0.5074
+OK  [| `t3_probe_vs_knn_image` |] +0.0873
+OK  [| `t3_probe_vs_knn_image` |] [+0.0277, +0.1479]
+OK  [| `t3_probe_vs_knn_image` |] yes
+OK  [| `t3_L4_vs_L1` |] 529
+OK  [| `t3_L4_vs_L1` |] 0.4914
+OK  [| `t3_L4_vs_L1` |] 0.3777
+OK  [| `t3_L4_vs_L1` |] +0.1137
+OK  [| `t3_L4_vs_L1` |] [+0.0635, +0.1673]
+OK  [| `t3_L4_vs_L1` |] yes
+OK  [| `t2_imageonly_vs_L4a` |] 2,237
+OK  [| `t2_imageonly_vs_L4a` |] 0.6069
+OK  [| `t2_imageonly_vs_L4a` |] 0.6080
+OK  [| `t2_imageonly_vs_L4a` |] -0.0011
+OK  [| `t2_imageonly_vs_L4a` |] [-0.0358, +0.0340]
+OK  [| `t2_imageonly_vs_L4a` |] no
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] 955
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] 0.8723
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] 0.8482
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] +0.0241
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] [+0.0115, +0.0377]
+OK  [| `t2_agreed_acc_L4a_vs_imageonly` |] yes
+OK  [Paired percentile bootstrap:] 10,000 resamples
+OK  [Paired percentile bootstrap:] seed 20241025
+OK  [The probe beats 5-NN on both embeddings] fused +0.123
+OK  [The probe beats 5-NN on both embeddings] image +0.087
+OK  [The gap between v2's index (L4)] +0.114
+OK  [Image-only against L4a at seed 42] -0.001
+OK  [Image-only against L4a at seed 42] -0.036 to +0.034
+OK  [The accuracy gain of L4a over image-only on the agreed rows] +0.024
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
@@ -326,36 +364,26 @@ OK  [report/ablation_section.tex: L4 & tweet siblings] & 2361 &
 OK  [report/ablation_section.tex: L4 & tweet siblings] 0.6673
 OK  [report/ablation_section.tex: L4 & tweet siblings] 0.4914
 OK  [report/ablation_section.tex: L4 & tweet siblings] 0.6202
-OK  [report/ablation_section.tex: full model (L4a) &] & 3 &
-OK  [report/ablation_section.tex: full model (L4a) &] 67,352,840
-OK  [report/ablation_section.tex: full model (L4a) &] 0.585 ± 0.008
-OK  [report/ablation_section.tex: full model (L4a) &] 0.799 ± 0.006
-OK  [report/ablation_section.tex: full model (L4a) &] 0.598 ± 0.010
-OK  [report/ablation_section.tex: full model (L4a) &] 0.800 ± 0.006
-OK  [report/ablation_section.tex: image only &] & 3 &
-OK  [report/ablation_section.tex: image only &] 199,688
-OK  [report/ablation_section.tex: image only &] 0.568 ± 0.008
-OK  [report/ablation_section.tex: image only &] 0.788 ± 0.002
-OK  [report/ablation_section.tex: image only &] 0.601 ± 0.005
-OK  [report/ablation_section.tex: image only &] 0.793 ± 0.002
-OK  [report/ablation_section.tex: concat, no attention &] & 3 &
-OK  [report/ablation_section.tex: concat, no attention &] 66,825,480
-OK  [report/ablation_section.tex: concat, no attention &] 0.580 ± 0.012
-OK  [report/ablation_section.tex: concat, no attention &] 0.796 ± 0.007
-OK  [report/ablation_section.tex: concat, no attention &] 0.595 ± 0.009
-OK  [report/ablation_section.tex: concat, no attention &] 0.795 ± 0.007
-OK  [report/ablation_section.tex: no text→image attention &] & 3 &
-OK  [report/ablation_section.tex: no text→image attention &] 67,089,160
-OK  [report/ablation_section.tex: no text→image attention &] 0.583 ± 0.015
-OK  [report/ablation_section.tex: no text→image attention &] 0.795 ± 0.005
-OK  [report/ablation_section.tex: no text→image attention &] 0.570 ± 0.014
-OK  [report/ablation_section.tex: no text→image attention &] 0.795 ± 0.005
-OK  [report/ablation_section.tex: text only & 3] & 3 &
-OK  [report/ablation_section.tex: text only & 3] 66,628,104
-OK  [report/ablation_section.tex: text only & 3] 0.295 ± 0.005
-OK  [report/ablation_section.tex: text only & 3] 0.486 ± 0.010
-OK  [report/ablation_section.tex: text only & 3] 0.294 ± 0.014
-OK  [report/ablation_section.tex: text only & 3] 0.499 ± 0.008
+OK  [report/ablation_section.tex: full model (L4a) & 3 & 67,352,840] 0.585 ± 0.008
+OK  [report/ablation_section.tex: full model (L4a) & 3 & 67,352,840] 0.799 ± 0.006
+OK  [report/ablation_section.tex: full model (L4a) & 3 & 67,352,840] 0.598 ± 0.010
+OK  [report/ablation_section.tex: full model (L4a) & 3 & 67,352,840] 0.800 ± 0.006
+OK  [report/ablation_section.tex: image only & 3 & 199,688] 0.568 ± 0.008
+OK  [report/ablation_section.tex: image only & 3 & 199,688] 0.788 ± 0.002
+OK  [report/ablation_section.tex: image only & 3 & 199,688] 0.601 ± 0.005
+OK  [report/ablation_section.tex: image only & 3 & 199,688] 0.793 ± 0.002
+OK  [report/ablation_section.tex: concat, no attention & 3 & 66,825,480] 0.580 ± 0.012
+OK  [report/ablation_section.tex: concat, no attention & 3 & 66,825,480] 0.796 ± 0.007
+OK  [report/ablation_section.tex: concat, no attention & 3 & 66,825,480] 0.595 ± 0.009
+OK  [report/ablation_section.tex: concat, no attention & 3 & 66,825,480] 0.795 ± 0.007
+OK  [report/ablation_section.tex: no text→image attention & 3 & 67,089,160] 0.583 ± 0.015
+OK  [report/ablation_section.tex: no text→image attention & 3 & 67,089,160] 0.795 ± 0.005
+OK  [report/ablation_section.tex: no text→image attention & 3 & 67,089,160] 0.570 ± 0.014
+OK  [report/ablation_section.tex: no text→image attention & 3 & 67,089,160] 0.795 ± 0.005
+OK  [report/ablation_section.tex: text only & 3 & 66,628,104] 0.295 ± 0.005
+OK  [report/ablation_section.tex: text only & 3 & 66,628,104] 0.486 ± 0.010
+OK  [report/ablation_section.tex: text only & 3 & 66,628,104] 0.294 ± 0.014
+OK  [report/ablation_section.tex: text only & 3 & 66,628,104] 0.499 ± 0.008
 OK  [report/ablation_section.tex: 1 & 0.4627] 0.6011
 OK  [report/ablation_section.tex: 1 & 0.4627] 0.4538
 OK  [report/ablation_section.tex: 3 & 0.4739] 0.6749
@@ -509,6 +537,9 @@ OK  [report/ablation_section.tex: A logistic-regression probe] 0.615
 OK  [report/ablation_section.tex: A logistic-regression probe] 0.491
 OK  [report/ablation_section.tex: A logistic-regression probe] 0.595
 OK  [report/ablation_section.tex: A logistic-regression probe] 0.507
+OK  [report/ablation_section.tex: A logistic-regression probe] bootstrap 95%
+OK  [report/ablation_section.tex: A logistic-regression probe] +0.123 (+0.062 to +0.186)
+OK  [report/ablation_section.tex: A logistic-regression probe] +0.087 (+0.028 to +0.148)
 OK  [report/ablation_section.tex: A grey image collapses] 0.080
 OK  [report/ablation_section.tex: A grey image collapses] 0.081
 OK  [report/ablation_section.tex: A grey image collapses] within 0.002
@@ -541,3 +572,23 @@ OK  [report/ablation_section.tex: Development macro-F1 for L0 to L2] 10-epoch
 OK  [report/ablation_section.tex: we regard only the following as established] +0.095
 OK  [report/ablation_section.tex: we regard only the following as established] about 0.01
 OK  [report/ablation_section.tex: Differences of about 0.01] about 0.01
+OK  [report/ablation_section.tex: agreed & 955 & majority class & -- & 0.528] 0.099
+OK  [report/ablation_section.tex: & & L4a (full) & 3 & 0.866 ± 0.008] 0.745 ± 0.026
+OK  [report/ablation_section.tex: & & image only & 3 & 0.845 ± 0.004] 0.696 ± 0.031
+OK  [report/ablation_section.tex: & & text only & 3 & 0.685 ± 0.019] 0.482 ± 0.061
+OK  [report/ablation_section.tex: disagreed & 1282 & majority class & -- & 0.430] 0.075
+OK  [report/ablation_section.tex: & & L4a (full) & 3 & 0.750 ± 0.005] 0.549 ± 0.009
+OK  [report/ablation_section.tex: & & image only & 3 & 0.745 ± 0.005] 0.563 ± 0.004
+OK  [report/ablation_section.tex: & & text only & 3 & 0.338 ± 0.005] 0.198 ± 0.010
+OK  [report/ablation_section.tex: all rows & 2237 & majority class & -- & 0.472] 0.080
+OK  [report/ablation_section.tex: & & L4a (full) & 3 & 0.799 ± 0.006] 0.598 ± 0.010
+OK  [report/ablation_section.tex: & & image only & 3 & 0.788 ± 0.002] 0.601 ± 0.005
+OK  [report/ablation_section.tex: & & text only & 3 & 0.486 ± 0.010] 0.294 ± 0.014
+OK  [report/ablation_section.tex: Over the whole test set the text adds] +0.003
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] 955 rows
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] +0.021
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] 1,282 disagreed rows
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] -0.014
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] paired bootstrap 95% interval of +0.012 to +0.038
+OK  [report/ablation_section.tex: The effect depends on whether the two labels agree] at seed 42
+OK  [report/ablation_section.tex: The bootstrap resamples the] 529 test queries
