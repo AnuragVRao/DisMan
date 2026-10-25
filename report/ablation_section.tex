@@ -17,6 +17,7 @@ Restoring them raises test macro-F1 from 0.494 $\pm$ 0.006 to 0.588 $\pm$ 0.012 
 Every later step moves test macro-F1 by less than the noise floor: the paired differences are $+0.004 \pm 0.002$ (QuickGELU CLIP, L2), $+0.008 \pm 0.007$ (10-epoch cap, L3), $-0.013 \pm 0.015$ (deterministic cached features, L3b), $+0.012 \pm 0.019$ (mixed precision, L4a) and $-0.011 \pm 0.010$ (randomly initialised text encoder, L4).
 The rest of v2 therefore delivers equal accuracy at a fraction of the compute: L1 reaches 0.588 $\pm$ 0.012 and v2 (L4) 0.587 $\pm$ 0.001 test macro-F1, at 9.8 instead of 66.4 minutes of wall-clock time per run, about one seventh, measured on a single laptop GPU.
 The whole bundle from L3 to L4 is consistently slightly lower ($-0.013 \pm 0.005$, negative at every seed), but no single step of it is established, including the effect of the random initialisation, which is no larger than the opposite-signed effect of mixed precision alone.
+Development macro-F1 for L0 to L2 is inflated by selecting the best of 30 epochs on randomly cropped development images: it exceeds test macro-F1 by 0.063, 0.055 and 0.055 at L0, L1 and L2, against $-0.006$ at the 10-epoch rung L3.
 Two implementation facts explain details of the ladder.
 The original notebook applied a random crop to development and test images as well as to training images, which is why its CLIP features could not be cached before L3b.
 v2's text encoder starts from random weights instead of pretrained DistilBERT: the cosine similarity between its saved word embeddings and the pretrained ones is $-0.0002$.
@@ -69,7 +70,7 @@ L4 & tweet siblings removed (= v2) & 2361 & 0.6673 & 0.4914 & 0.6202 \\
 \label{sec:ablation-components}
 
 \paragraph{Task 2.}
-Table~\ref{tab:t2_partb} removes one component at a time from the L4a configuration (three seeds each).
+Table~\ref{tab:t2_partb} removes one component at a time from the L4a configuration (three seeds each; trainable parameters exclude the frozen CLIP encoder).
 A 200k-parameter MLP on the cached CLIP vector scores 0.601 $\pm$ 0.005 test macro-F1 against 0.598 $\pm$ 0.010 for the full 67M-parameter model, a paired difference of $+0.003 \pm 0.009$, and concatenating the two streams without attention gives $-0.003 \pm 0.012$.
 Neither difference is established.
 The text stream alone reaches only 0.294 $\pm$ 0.014 ($-0.305 \pm 0.012$ against the full model), which is established.
@@ -84,7 +85,7 @@ That block attends over a single image vector, so its attention weight is identi
 \label{tab:t2_partb}
 \begin{tabular}{lcrllll}
 \toprule
-Variant & $n$ & Params & Dev macro-F1 & Acc. & Macro-F1 & Weighted-F1 \\
+Variant & $n$ & Trainable params & Dev macro-F1 & Acc. & Macro-F1 & Weighted-F1 \\
 \midrule
 full model (L4a) & 3 & 67\,352\,840 & 0.585 $\pm$ 0.008 & 0.799 $\pm$ 0.006 & 0.598 $\pm$ 0.010 & 0.800 $\pm$ 0.006 \\
 text only & 3 & 66\,628\,104 & 0.295 $\pm$ 0.005 & 0.486 $\pm$ 0.010 & 0.294 $\pm$ 0.014 & 0.499 $\pm$ 0.008 \\
@@ -163,10 +164,11 @@ fused & logistic regression & 0.5926 & 0.6843 & 0.6146 \\
 
 \paragraph{Missing modality.}
 Table~\ref{tab:c1} replaces one input at test time without retraining: a grey image, or an empty string.
-A grey image collapses both Task~2 models to 0.080 (L4) and 0.081 (L4a) macro-F1, within 0.002 of the score of always predicting the majority class (0.0801) at every seed, so the image carries essentially all of the decision.
+A grey image collapses both Task~2 models to 0.080 (L4) and 0.081 (L4a) macro-F1, within 0.002 of the score of always predicting the majority class (0.0801) at every seed, so the models cannot fall back on the text alone.
+A grey image is out of distribution for CLIP in the same way that an empty string is for DistilBERT.
 Removing the text has a model-dependent effect: v2's model (L4) is unchanged ($+0.003$, 0.587 to 0.590), whereas the model with pretrained DistilBERT (L4a) loses between 0.058 and 0.103 macro-F1 across the three seeds (mean $-0.087$).
 We read this as redundancy and not as an ignored input: text-only training reaches 0.294 and image-only training matches the full model, so the text does not supply information that the image lacks.
-An empty string is also an unusual input for DistilBERT: training texts are never empty, so the encoder sees only the start and end tokens, and the L4a drop may reflect that input shift as much as lost evidence.
+Training texts are never empty, so for an empty string the encoder sees only the start and end tokens, and the L4a drop may reflect that input shift as much as lost evidence.
 For Task~3 a grey image costs 0.039 macro-F1 and an empty text 0.052 (single run).
 
 \begin{table}[t]
@@ -194,7 +196,9 @@ T3 5-NN & full input & 1 & 0.667 & 0.491 & -- \\
 \paragraph{Leave-one-disaster-out.}
 Tables~\ref{tab:c2_t1} and~\ref{tab:c2_t3} train (Task~1) or build the index (Task~3) on six events and test on the seventh; the held-out event contributes no rows, which the code asserts for all 14 folds.
 Averaged over the seven events, Task~1 macro-F1 falls from 0.714 (all events seen) to 0.680 and Task~3 from 0.381 to 0.354.
-The Task~1 drop appears in 6 of 7 events (largest: Sri Lanka floods, 0.932 to 0.793) and the Task~3 drop in 5 of 7, but three Task~3 events have only 13 to 23 test images, so we regard the Task~3 figures as indicative only.
+The pooled headline scores are 0.751 for Task~1 and 0.491 for Task~3; the per-event averages above differ from them because each event is scored separately, on its own class mix and size.
+We observe that the Task~1 drop is concentrated in Sri Lanka floods, the only flood event (0.932 to 0.793), while five of the other six events change by less than 0.03.
+For Task~3 the per-event changes have mixed signs (the largest drop is Hurricane Irma, 0.483 to 0.271), and three events have only 13 to 23 test images, so we regard the Task~3 figures as indicative only.
 Task~2 was not evaluated this way and is left as future work.
 
 \begin{table}[t]
