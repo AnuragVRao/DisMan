@@ -22,8 +22,18 @@ import crisis_common as cc  # noqa: E402
 
 ART = ROOT / "artifacts"
 DATA = ROOT / "data" / "CrisisMMD_v2.0"
-# Task 2 weights: v2's checkpoint by default; set CAPSTONE_T2_CKPT to point the demo at another state dict of the same architecture
-T2_CKPT = Path(os.environ.get("CAPSTONE_T2_CKPT", ART / "task2_model.pt"))
+# Task 2 weights. Default: the ablation study's L4a seed-42 model (pretrained DistilBERT, same architecture and recipe as v2;
+# test acc 0.8033 / macro-F1 0.6080, see docs/ablation_findings.md). v2's own checkpoint (random-init DistilBERT, 0.7975 / 0.5865)
+# stays selectable: CAPSTONE_T2_CKPT=<repo>/artifacts/task2_model.pt. Any state dict of the same architecture works.
+T2_CKPT_L4A = ART / "ablation" / "ckpt" / "t2_L4a_seed42.pt"
+T2_CKPT_V2 = ART / "task2_model.pt"
+if os.environ.get("CAPSTONE_T2_CKPT"):
+    T2_CKPT = Path(os.environ["CAPSTONE_T2_CKPT"])
+elif T2_CKPT_L4A.exists():
+    T2_CKPT = T2_CKPT_L4A
+else:
+    print(f"[demo] {T2_CKPT_L4A} not found; falling back to v2's checkpoint {T2_CKPT_V2.name}", file=sys.stderr)
+    T2_CKPT = T2_CKPT_V2
 
 
 class Pipeline:
@@ -38,6 +48,7 @@ class Pipeline:
         self.t2 = cc.DualStreamClassifier(len(self.t2_labels),
                                           bert_config=DistilBertConfig.from_pretrained(ART / "distilbert_config"))
         self.t2.load_state_dict(torch.load(T2_CKPT, map_location="cpu"))
+        self.t2_ckpt = T2_CKPT.name
         self.t2.to(self.device).eval()
         self.index = faiss.read_index(str(ART / "task3_index.faiss"))
         self.meta = pd.read_csv(ART / "task3_meta.csv", dtype=str, keep_default_na=False)
