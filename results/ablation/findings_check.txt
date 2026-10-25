@@ -615,6 +615,59 @@ OK  [Task 3: L/14 helps the image-only paths] 0.595 to 0.621
 OK  [The T2 image-only gain from L/14 is consistent] +0.0014 to +0.0635
 OK  [The 18,083rd key] B/32 maximum difference 1.8e-06
 OK  [The 18,083rd key] L/14 0.0e+00
+OK  [Exact duplicates (md5 of every image file)] 18,104 image files, 17,799 distinct hashes
+OK  [Exact duplicates (md5 of every image file)] 181 groups of byte-identical files (486 files, largest group 33)
+OK  [Exact duplicates (md5 of every image file)] 175 of the groups spanning different tweet ids (474 files)
+OK  [(a) Task 3:] 9 of 529 test images
+OK  [(a) Task 3:] (2,361 rows
+OK  [(a) Task 3:] for 6 of them
+OK  [(b) Task 2:] 68 of 2,237 test images
+OK  [(b) Task 2:] (15,845 rows; 0 share the tweet id
+OK  [(b) Task 2:] for 60)
+OK  [Near-duplicates (CLIP B/32 cosine] 24 of 529 (15 not byte-identical)
+OK  [Near-duplicates (CLIP B/32 cosine] 136 of 2,237 (74 not byte-identical)
+OK  [Re-scoring with the flagged test rows excluded] 24 Task 3 and 142 Task 2 rows
+OK  [| T3 hybrid (probe label) |] 529 | 505
+OK  [| T3 hybrid (probe label) |] 0.6146 | 0.6195
+OK  [| T3 5-NN majority |] 529 | 505
+OK  [| T3 5-NN majority |] 0.4914 | 0.4962
+OK  [| T2 image_only seed 42 |] 2237 | 2095
+OK  [| T2 image_only seed 42 |] 0.6069 | 0.6074
+OK  [| T2 image_only seed 43 |] 2237 | 2095
+OK  [| T2 image_only seed 43 |] 0.6009 | 0.5965
+OK  [| T2 image_only seed 44 |] 2237 | 2095
+OK  [| T2 image_only seed 44 |] 0.5963 | 0.5930
+OK  [| T2 L4a seed 42 |] 2237 | 2095
+OK  [| T2 L4a seed 42 |] 0.6080 | 0.6036
+OK  [| T2 L4a seed 43 |] 2237 | 2095
+OK  [| T2 L4a seed 43 |] 0.5882 | 0.5902
+OK  [| T2 L4a seed 44 |] 2237 | 2095
+OK  [| T2 L4a seed 44 |] 0.5999 | 0.5957
+OK  [The largest change in any row] 0.0049
+OK  [The largest change in any row] L4a 0.5987 to 0.5965
+OK  [The largest change in any row] image_only 0.6014 to 0.5989
+OK  [| `930539345043341312_0` | agree and correct (live example) | no |] 0.7794
+OK  [| `930539345043341312_0` | agree and correct (live example) | no |] 0.9203
+OK  [| `912312190626971648_1` | agree and correct (live example) | no |] 0.7844
+OK  [| `912312190626971648_1` | agree and correct (live example) | no |] 0.8785
+OK  [| `909432584333078528_0` | agree and correct (live example) | no |] 0.7278
+OK  [| `909432584333078528_0` | agree and correct (live example) | no |] 0.8665
+OK  [| `916095924321046529_0` | disagree (live example) | no |] 0.5914
+OK  [| `916095924321046529_0` | disagree (live example) | no |] 0.8131
+OK  [| `871251322279911429_0` | T2 non-infrastructure (live example) | no |] 0.4008
+OK  [| `871251322279911429_0` | T2 non-infrastructure (live example) | no |] 0.5507
+OK  [* `914165147408596992_0` (Mild damage] cosine 1.0000
+OK  [* `914165147408596992_0` (Mild damage] byte-identical yes
+OK  [* `909710638557143040_0` (Severe damage] cosine 1.0000
+OK  [* `909710638557143040_0` (Severe damage] byte-identical no
+OK  [* `904250508931735552_0` (Severe damage] cosine 0.9828
+OK  [* `904250508931735552_0` (Severe damage] byte-identical no
+OK  [* `905200278294626309_0` (Not humanitarian] cosine 1.0000
+OK  [* `905200278294626309_0` (Not humanitarian] byte-identical yes
+OK  [* `909419682993713153_0` (Other relevant information] cosine 1.0000
+OK  [* `909419682993713153_0` (Other relevant information] byte-identical no
+OK  [* `914181026888503297_0` (Affected individuals] cosine 0.9800
+OK  [* `914181026888503297_0` (Affected individuals] byte-identical no
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
@@ -1021,3 +1074,17 @@ OK  [report/ablation_section.tex: T3 fused, 5-NN & 1 & 0.491] [-0.035, +0.063]
 OK  [report/ablation_section.tex: T3 image-only, logistic probe & 1 & 0.595] 0.621
 OK  [report/ablation_section.tex: T3 image-only, 5-NN & 1 & 0.507] 0.548
 OK  [report/ablation_section.tex: T3 zero-shot (prompt set E3) & 1 & 0.299] 0.372
+OK  [report/ablation_section.tex: Hashing every image file finds] finds 181 groups
+OK  [report/ablation_section.tex: Hashing every image file finds] 175 of them spanning
+OK  [report/ablation_section.tex: Of the 529 Task 3 test images] Of the 529 Task 3 test images, 9 have
+OK  [report/ablation_section.tex: Of the 529 Task 3 test images] and 24 have an index image
+OK  [report/ablation_section.tex: Of the 529 Task 3 test images] cosine of at least 0.98
+OK  [report/ablation_section.tex: Of the 529 Task 3 test images] of the 2,237 Task 2 test images, 68 have
+OK  [report/ablation_section.tex: Of the 529 Task 3 test images] and 136 have a training image
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] (24 and 142)
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] by more than 0.005
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] Task 3 hybrid 0.615 to 0.619
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] 5-NN 0.491 to 0.496
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] L4a 0.599 to 0.597
+OK  [report/ablation_section.tex: Scoring the stored predictions without the flagged test rows] image-only 0.601 to 0.599
+OK  [report/ablation_section.tex: Under the development-calibrated bias variant] (0.365 for L/14 against 0.397 for B/32)

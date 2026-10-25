@@ -198,6 +198,7 @@ Feeding the raw L/14 features, the same input convention as B/32, gives 0.648 on
 Against the full B/32 model (L4a) the L/14 image-only model is ahead by 0.029 at seed 42, but the interval ($-0.010$ to $+0.071$) includes zero.
 For Task~3 the larger encoder helps the image-only paths (5-NN 0.507 to 0.548, logistic probe 0.595 to 0.621) but not the fused ones: the fused probe is 0.607 against 0.615 ($-0.008$, interval $-0.044$ to $+0.030$) and the fused 5-NN 0.505 against 0.491 ($+0.014$, interval $-0.035$ to $+0.063$), so neither fused difference is established, and the image-only differences were not bootstrapped.
 Zero-shot macro-F1, with identical prompts and the prompt set chosen on the development split for both encoders, rises from 0.299 to 0.372 (accuracy 0.302 to 0.408); L/14 is above the stratified-random expectation of 0.333 and the always-``Severe damage'' baseline of 0.257, whereas B/32 was below the former, and it remains far below the trained probe (0.607).
+Under the development-calibrated bias variant, which is not pure zero-shot, the ranking of the two encoders reverses (0.365 for L/14 against 0.397 for B/32), so only the statement that both are far below the trained probe is robust.
 In short, the Task~2 gain is small but consistent across seeds, the fused Task~3 differences are not established, and none of these comparisons separates model scale from patch size.
 \begin{table}[t]
 \centering
@@ -341,6 +342,10 @@ The Task~3 probe is under-confident: its mean confidence is 0.607 against an acc
 Both signals available to the hybrid track correctness: the probe is right on 0.812 of the 345 test queries where the five nearest neighbours agree with it and on 0.446 of the 184 where they disagree, and its accuracy rises monotonically over probe-confidence quintiles from 0.500 to 0.914.
 As predictors of a correct answer, the probe confidence has an AUROC of 0.718 (95\% bootstrap interval 0.672 to 0.762) and agreement with the neighbours 0.692 (0.650 to 0.735).
 The two signals are partly independent, so combining them, for example in a confidence score fitted on development data, is a natural direction for future work.
+\paragraph{Duplicate images.}
+Hashing every image file finds 181 groups of byte-identical files, 175 of them spanning different tweet ids.
+Of the 529 Task~3 test images, 9 have an identical file in the Task~3 index and 24 have an index image at CLIP B/32 cosine of at least 0.98; of the 2,237 Task~2 test images, 68 have an identical file in the training or development split and 136 have a training image at that cosine.
+Scoring the stored predictions without the flagged test rows (24 and 142) moves no macro-F1 by more than 0.005 (Task~3 hybrid 0.615 to 0.619, 5-NN 0.491 to 0.496; Task~2 mean over three seeds, L4a 0.599 to 0.597, image-only 0.601 to 0.599), and none of the five live demo images has an identical file in the index.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.

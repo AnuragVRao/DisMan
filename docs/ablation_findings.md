@@ -388,3 +388,48 @@ Validation: with the same code path, B/32 reproduces the stored Part B image-onl
 * Task 3: L/14 helps the image-only paths (5-NN 0.507 to 0.548; probe 0.595 to 0.621; not bootstrapped) but the fused differences are not established (both intervals include zero).
 
 **The 18,083rd key (one file under two `image_id` strings).** Damage-train key `901671684478029825_0` (tweet 905274232590004225, label Severe damage) and humanitarian-test key `905274232590004225_0` (the same tweet, label not_humanitarian) point to the identical file `data_image/hurricane_harvey/27_8_2017/901671684478029825_0.jpg` (md5 d6286e2ba4c770f5c508b86be6ac6989; there is no file named after the tweet); the damage split and the annotation file key it by the file name, the humanitarian and informative splits by the tweet id. v2's Task 3 index contains the row (it is not a test sibling); it is not in the Task 3 test set; in Task 2 it is a test row. A join on `image_id` between a damage-keyed and a humanitarian-keyed table would miss it; a join on path would find it; no analysis in this study joins across the two. Cached vectors under the two keys: B/32 maximum difference 1.8e-06 (floating-point noise from different batches), L/14 0.0e+00 (embedded once per file).
+
+### 9.8 F: duplicate-image check (CPU only; no training)
+
+**Exact duplicates (md5 of every image file).** 18,104 image files, 17,799 distinct hashes: 181 groups of byte-identical files (486 files, largest group 33), 175 of the groups spanning different tweet ids (474 files).
+(a) Task 3: 9 of 529 test images have an identical file in the Task 3 index (2,361 rows; the same label is among the index copies for 6 of them).
+(b) Task 2: 68 of 2,237 test images have an identical file in Task 2 train/dev (15,845 rows; 0 share the tweet id; the same label is among the copies for 60).
+
+**Near-duplicates (CLIP B/32 cosine >= 0.98, v2's cached image embeddings).** Task 3 test queries with an index row at or above the threshold: 24 of 529 (15 not byte-identical). Task 2 test rows with a Task 2 train row at or above it: 136 of 2,237 (74 not byte-identical).
+Example pairs, Task 3 (spread over the sorted list, highest first):
+
+* `914165147408596992_0` (Mild damage, hurricane_maria) ~ `914135376138092544_0` (Severe damage, hurricane_maria): cosine 1.0000, byte-identical yes
+* `909710638557143040_0` (Severe damage, hurricane_irma) ~ `910166366015119361_0` (Severe damage, hurricane_irma): cosine 1.0000, byte-identical no
+* `904250508931735552_0` (Severe damage, hurricane_harvey) ~ `905641800542502913_0` (Severe damage, hurricane_harvey): cosine 0.9828, byte-identical no
+
+Example pairs, Task 2:
+
+* `905200278294626309_0` (Not humanitarian, hurricane_harvey) ~ `905077649843814400_0` (Not humanitarian, hurricane_harvey): cosine 1.0000, byte-identical yes
+* `909419682993713153_0` (Other relevant information, hurricane_irma) ~ `909416653347201024_0` (Rescue, volunteering or donation effort, hurricane_irma): cosine 1.0000, byte-identical no
+* `914181026888503297_0` (Affected individuals, hurricane_maria) ~ `915319640145911809_3` (Affected individuals, hurricane_maria): cosine 0.9800, byte-identical no
+
+**Re-scoring with the flagged test rows excluded (exact match or cosine >= 0.98; 24 Task 3 and 142 Task 2 rows; index, training data and predictions unchanged; "before" is asserted equal to the stored results; L4a recomputed on CPU from the saved checkpoints).**
+
+| Scored on | n before | n after | Macro-F1 before | Macro-F1 after |
+|---|---|---|---|---|
+| T3 hybrid (probe label) | 529 | 505 | 0.6146 | 0.6195 |
+| T3 5-NN majority | 529 | 505 | 0.4914 | 0.4962 |
+| T2 image_only seed 42 | 2237 | 2095 | 0.6069 | 0.6074 |
+| T2 image_only seed 43 | 2237 | 2095 | 0.6009 | 0.5965 |
+| T2 image_only seed 44 | 2237 | 2095 | 0.5963 | 0.5930 |
+| T2 L4a seed 42 | 2237 | 2095 | 0.6080 | 0.6036 |
+| T2 L4a seed 43 | 2237 | 2095 | 0.5882 | 0.5902 |
+| T2 L4a seed 44 | 2237 | 2095 | 0.5999 | 0.5957 |
+
+* The largest change in any row is 0.0049; Task 2 means over three seeds: L4a 0.5987 to 0.5965, image_only 0.6014 to 0.5989.
+* Duplicates exist but their removal does not change any conclusion; the within-class label disagreement among byte-identical copies (see the first Task 3 example) is annotation noise and is not corrected here.
+
+**The five live demo examples** (md5 asserted absent from the Task 3 index; query built as the demo builds it):
+
+| Image | Kind | Identical file in the T3 index | Top-1 fused similarity | Top-1 image cosine |
+|---|---|---|---|---|
+| `930539345043341312_0` | agree and correct (live example) | no | 0.7794 | 0.9203 |
+| `912312190626971648_1` | agree and correct (live example) | no | 0.7844 | 0.8785 |
+| `909432584333078528_0` | agree and correct (live example) | no | 0.7278 | 0.8665 |
+| `916095924321046529_0` | disagree (live example) | no | 0.5914 | 0.8131 |
+| `871251322279911429_0` | T2 non-infrastructure (live example) | no | 0.4008 | 0.5507 |

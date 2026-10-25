@@ -1,0 +1,236 @@
+{
+ "task": "T2/T3",
+ "tier": "cpu",
+ "threshold": 0.98,
+ "n_files": 18104,
+ "n_distinct_md5": 17799,
+ "n_files_not_in_annotations": 22,
+ "exact_groups": 181,
+ "exact_group_files": 486,
+ "exact_groups_cross_tweet": 175,
+ "exact_group_files_cross_tweet": 474,
+ "largest_group": 33,
+ "t3_n_test": 529,
+ "t3_index_rows": 2361,
+ "t3_test_exact_in_index": 9,
+ "t3_exact_same_label_present": 6,
+ "t2_n_test": 2237,
+ "t2_ref_rows": 15845,
+ "t2_test_exact_in_train_dev": 68,
+ "t2_exact_same_tweet": 0,
+ "t2_exact_same_label_present": 60,
+ "t3_near_dup_queries": 24,
+ "t3_near_not_byte_identical": 15,
+ "t2_near_dup_rows": 136,
+ "t2_near_not_byte_identical": 74,
+ "t3_excluded": 24,
+ "t2_excluded": 142,
+ "examples_t3": [
+  {
+   "test_image_id": "914165147408596992_0",
+   "test_tweet_id": "914165147408596992",
+   "test_label": "Mild damage",
+   "test_event": "hurricane_maria",
+   "test_file": "data_image/hurricane_maria/30_9_2017/914165147408596992_0.jpg",
+   "ref_image_id": "914135376138092544_0",
+   "ref_tweet_id": "914135376138092544",
+   "ref_label": "Severe damage",
+   "ref_event": "hurricane_maria",
+   "ref_file": "data_image/hurricane_maria/30_9_2017/914135376138092544_0.jpg",
+   "cosine": 1.000000238418579,
+   "byte_identical": true
+  },
+  {
+   "test_image_id": "909710638557143040_0",
+   "test_tweet_id": "909710638557143040",
+   "test_label": "Severe damage",
+   "test_event": "hurricane_irma",
+   "test_file": "data_image/hurricane_irma/18_9_2017/909710638557143040_0.jpg",
+   "ref_image_id": "910166366015119361_0",
+   "ref_tweet_id": "910166366015119361",
+   "ref_label": "Severe damage",
+   "ref_event": "hurricane_irma",
+   "ref_file": "data_image/hurricane_irma/19_9_2017/910166366015119361_0.jpg",
+   "cosine": 0.9999872446060181,
+   "byte_identical": false
+  },
+  {
+   "test_image_id": "904250508931735552_0",
+   "test_tweet_id": "904250508931735552",
+   "test_label": "Severe damage",
+   "test_event": "hurricane_harvey",
+   "test_file": "data_image/hurricane_harvey/3_9_2017/904250508931735552_0.jpg",
+   "ref_image_id": "905641800542502913_0",
+   "ref_tweet_id": "905641800542502913",
+   "ref_label": "Severe damage",
+   "ref_event": "hurricane_harvey",
+   "ref_file": "data_image/hurricane_harvey/7_9_2017/905641800542502913_0.jpg",
+   "cosine": 0.9827722311019897,
+   "byte_identical": false
+  }
+ ],
+ "examples_t2": [
+  {
+   "test_image_id": "905200278294626309_0",
+   "test_tweet_id": "905200278294626309",
+   "test_label": "Not humanitarian",
+   "test_event": "hurricane_harvey",
+   "test_file": "data_image/hurricane_harvey/5_9_2017/905200278294626309_0.jpg",
+   "ref_image_id": "905077649843814400_0",
+   "ref_tweet_id": "905077649843814400",
+   "ref_label": "Not humanitarian",
+   "ref_event": "hurricane_harvey",
+   "ref_file": "data_image/hurricane_harvey/5_9_2017/905077649843814400_0.jpg",
+   "cosine": 1.0000005960464478,
+   "byte_identical": true
+  },
+  {
+   "test_image_id": "909419682993713153_0",
+   "test_tweet_id": "909419682993713153",
+   "test_label": "Other relevant information",
+   "test_event": "hurricane_irma",
+   "test_file": "data_image/hurricane_irma/17_9_2017/909419682993713153_0.jpg",
+   "ref_image_id": "909416653347201024_0",
+   "ref_tweet_id": "909416653347201024",
+   "ref_label": "Rescue, volunteering or donation effort",
+   "ref_event": "hurricane_irma",
+   "ref_file": "data_image/hurricane_irma/17_9_2017/909416653347201024_0.jpg",
+   "cosine": 0.999954342842102,
+   "byte_identical": false
+  },
+  {
+   "test_image_id": "914181026888503297_0",
+   "test_tweet_id": "914181026888503297",
+   "test_label": "Affected individuals",
+   "test_event": "hurricane_maria",
+   "test_file": "data_image/hurricane_maria/30_9_2017/914181026888503297_0.jpg",
+   "ref_image_id": "915319640145911809_3",
+   "ref_tweet_id": "915319640145911809",
+   "ref_label": "Affected individuals",
+   "ref_event": "hurricane_maria",
+   "ref_file": "data_image/hurricane_maria/3_10_2017/915319640145911809_3.jpg",
+   "cosine": 0.9800151586532593,
+   "byte_identical": false
+  }
+ ],
+ "rescored": {
+  "T3 hybrid (probe label)": {
+   "n_before": 529,
+   "n_after": 505,
+   "before_macro_f1": 0.6145824565925491,
+   "after_macro_f1": 0.6194618795426349,
+   "before_acc": 0.6843100189035917,
+   "after_acc": 0.6851485148514852
+  },
+  "T3 5-NN majority": {
+   "n_before": 529,
+   "n_after": 505,
+   "before_macro_f1": 0.4914439729128235,
+   "after_macro_f1": 0.49619051742176623,
+   "before_acc": 0.667296786389414,
+   "after_acc": 0.6673267326732674
+  },
+  "T2 image_only seed 42": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.6068907892738957,
+   "after_macro_f1": 0.6073615686194305,
+   "before_acc": 0.7890031291908807,
+   "after_acc": 0.7885441527446301
+  },
+  "T2 image_only seed 43": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.6009253797858045,
+   "after_macro_f1": 0.5964867449201616,
+   "before_acc": 0.7854269110415736,
+   "after_acc": 0.7828162291169452
+  },
+  "T2 image_only seed 44": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.596305932631884,
+   "after_macro_f1": 0.5929519953730892,
+   "before_acc": 0.7890031291908807,
+   "after_acc": 0.7871121718377089
+  },
+  "T2 L4a seed 42": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.6079749039310702,
+   "after_macro_f1": 0.6035887264371654,
+   "stored_macro_f1": 0.6079749039310702,
+   "before_acc": 0.8033080017881091,
+   "after_acc": 0.801909307875895
+  },
+  "T2 L4a seed 43": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.588166208174598,
+   "after_macro_f1": 0.5901916549638937,
+   "stored_macro_f1": 0.5878592358409498,
+   "before_acc": 0.8028609745194457,
+   "after_acc": 0.8014319809069212
+  },
+  "T2 L4a seed 44": {
+   "n_before": 2237,
+   "n_after": 2095,
+   "before_macro_f1": 0.59994661464369,
+   "after_macro_f1": 0.5957327162324022,
+   "stored_macro_f1": 0.599498548309101,
+   "before_acc": 0.7925793473401878,
+   "after_acc": 0.7894988066825775
+  }
+ },
+ "demo_examples": [
+  {
+   "image_id": "930539345043341312_0",
+   "kind": "agree and correct",
+   "md5": "2ea6d7abdce2bbbae213337de6b7d793",
+   "in_t3_index": false,
+   "top1_fused_similarity": 0.7794139981269836,
+   "top1_image_cosine": 0.920258104801178,
+   "top1_image_neighbour": "930037422422941696_0"
+  },
+  {
+   "image_id": "912312190626971648_1",
+   "kind": "agree and correct",
+   "md5": "425b5b7288e2fa033bea5ddf4cb549bf",
+   "in_t3_index": false,
+   "top1_fused_similarity": 0.7844049334526062,
+   "top1_image_cosine": 0.8785266280174255,
+   "top1_image_neighbour": "914928771865694209_0"
+  },
+  {
+   "image_id": "909432584333078528_0",
+   "kind": "agree and correct",
+   "md5": "fd41b83b39b17adc3bc82fa1bf7a4356",
+   "in_t3_index": false,
+   "top1_fused_similarity": 0.7278395891189575,
+   "top1_image_cosine": 0.8664693832397461,
+   "top1_image_neighbour": "909438308253601795_0"
+  },
+  {
+   "image_id": "916095924321046529_0",
+   "kind": "disagree",
+   "md5": "968ac7d6eaca5c1ce81c9defb658a7e0",
+   "in_t3_index": false,
+   "top1_fused_similarity": 0.5913913249969482,
+   "top1_image_cosine": 0.8130782246589661,
+   "top1_image_neighbour": "922322835896287232_0"
+  },
+  {
+   "image_id": "871251322279911429_0",
+   "kind": "T2 non-infrastructure",
+   "md5": "2aaf6536f42f91bd52f372d434107b6b",
+   "in_t3_index": false,
+   "top1_fused_similarity": 0.400826096534729,
+   "top1_image_cosine": 0.5506961941719055,
+   "top1_image_neighbour": "910704791550136320_0"
+  }
+ ],
+ "part": "X",
+ "config": "f_duplicates",
+ "seed": 42,
+ "git_commit": "50e0a8e"
+}
