@@ -1,0 +1,21 @@
+{
+ "task": "T2",
+ "tier": "cpu",
+ "comparison": "t2_imageonlyL14raw_vs_B32",
+ "metric": "macro_f1",
+ "n_rows": 2237,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.6544739416116043,
+ "score_b": 0.6068907892738957,
+ "diff": 0.0475831523377086,
+ "ci95_low": 0.016621276862225927,
+ "ci95_high": 0.0814644642852129,
+ "ci_excludes_zero": true,
+ "boot_mean": 0.04783813290485085,
+ "frac_boot_diff_positive": 0.9983,
+ "part": "X",
+ "config": "e1_t2_imageonlyL14raw_vs_B32",
+ "seed": 42,
+ "git_commit": "f9aec8b"
+}

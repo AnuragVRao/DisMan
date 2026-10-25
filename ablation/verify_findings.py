@@ -765,8 +765,101 @@ tchk("The pooled Task 2 leave-one-disaster-out drop", [f"({sg3(_pc2['macro_f1_lo
 assert _bt["excludes_zero"]
 tchk("has F1 = 0 in every Task 2 condition", ["F1 = 0", f"({_c01[3]['support']} test rows)", f"about {7 / 8:.3f}"])
 
+# 4g. B: CLIP ViT-L/14 image encoder (recomputed from results/ablation/X/b_* and e1_*)
+_bx = RES / "X"
+_bT2 = {c_: [json.load(open(f_)) for f_ in sorted(glob.glob(str(_bx / f"b_t2_imageonly_{c_}_seed*.json")))] for c_ in ("B32_raw", "L14_norm", "L14_raw")}
+_bT3 = {(e_, m_, c_): json.load(open(_bx / f"b_t3_{e_}_{m_}_{c_}_seed42.json")) for e_ in ("B32", "L14") for m_ in ("fused", "image") for c_ in ("knn5", "probe")}
+_bZ = json.load(open(_bx / "b_zeroshot_l14_seed42.json"))
+_bS = {n_: json.load(open(_bx / f"e1_{n_}_seed42.json")) for n_ in
+       ("t2_imageonlyL14_vs_B32", "t2_imageonlyL14raw_vs_B32", "t2_imageonlyL14_vs_L4a", "t3_probeL14_vs_B32_fused", "t3_knnL14_vs_B32_fused")}
+_bf = lambda c_: np.array([r_["test_macro_f1"] for r_ in _bT2[c_]])
+_bl4a = np.array([json.load(open(f_))["test_macro_f1"] for f_ in sorted(glob.glob(str(RES / "A" / "t2_L4a_seed*.json")))])
+_bpair = _bf("L14_norm") - _bf("B32_raw")
+assert len(_bpair) == 3 and (_bpair > 0).all()                                      # "positive at all three seeds"
+assert _bS["t2_imageonlyL14_vs_B32"]["ci_excludes_zero"] and _bS["t2_imageonlyL14raw_vs_B32"]["ci_excludes_zero"] and not _bS["t2_imageonlyL14_vs_L4a"]["ci_excludes_zero"]
+assert not _bS["t3_probeL14_vs_B32_fused"]["ci_excludes_zero"] and not _bS["t3_knnL14_vs_B32_fused"]["ci_excludes_zero"]
+assert abs(_bS["t2_imageonlyL14_vs_B32"]["ci95_low"]) < 0.005                         # "only just excludes zero"
+assert _bZ["chosen_l14"] == _bZ["chosen_b32"] and _bZ["test_l14_chosen"]["macro_f1"] > 0.3333 > _bZ["test_b32_zero_shot"]["macro_f1"] > 0.2571
+assert _bZ["test_l14_chosen"]["macro_f1"] < _bT3[("L14", "fused", "probe")]["test_macro_f1"]
+assert _bT3[("L14", "image", "knn5")]["test_macro_f1"] > _bT3[("B32", "image", "knn5")]["test_macro_f1"] and _bT3[("L14", "image", "probe")]["test_macro_f1"] > _bT3[("B32", "image", "probe")]["test_macro_f1"]
+assert _bT3[("L14", "fused", "probe")]["test_macro_f1"] < _bT3[("B32", "fused", "probe")]["test_macro_f1"]
+_bd = lambda n_: sg3(_bS[n_]["diff"])
+_bci = lambda n_: f"({sg3(_bS[n_]['ci95_low'])} to {sg3(_bS[n_]['ci95_high'])})"
+_bcib = lambda n_: f"[{sg3(_bS[n_]['ci95_low'])}, {sg3(_bS[n_]['ci95_high'])}]"
+# model sizes from the HF configs (shapes only, no weights)
+import torch as _btorch
+from transformers import CLIPConfig as _bCC, CLIPModel as _bCM
+
+
+def _bparams(src_):
+    cfg_ = _bCC.from_pretrained(src_)
+    with _btorch.device("meta"):
+        m_ = _bCM(cfg_)
+    return (sum(p_.numel() for p_ in m_.vision_model.parameters()) + sum(p_.numel() for p_ in m_.visual_projection.parameters())) / 1e6, cfg_.vision_config.patch_size, cfg_.vision_config.num_hidden_layers
+
+
+_bP32, _bpp32, _bll32 = _bparams(_ART / "clip")
+_bP14, _bpp14, _bll14 = _bparams("openai/clip-vit-large-patch14")
+# the one file under two keys: cached vectors compared
+_bvec = lambda root_, task_, split_, key_, raw_=False: np.load(root_ / f"clip_{task_}_{split_}{'_raw' if raw_ else ''}.npy", mmap_mode="r")[json.load(open(root_ / f"clip_{task_}_{split_}.ids.json")).index(key_)].astype("float64")
+_bKD, _bKH = "901671684478029825_0", "905274232590004225_0"
+_bd32 = float(np.abs(_bvec(_ART / "emb", "damage", "train", _bKD) - _bvec(_ART / "emb", "humanitarian", "test", _bKH)).max())
+_bd14 = float(np.abs(_bvec(_ART / "ablation" / "clip_l14", "damage", "train", _bKD, True) - _bvec(_ART / "ablation" / "clip_l14", "humanitarian", "test", _bKH, True)).max())
+# findings document
+_bex = json.load(open(_bx / "b_clip_l14_extract_seed42.json"))
+_btm = json.load(open(_bx / "b_clip_l14_timing_seed42.json"))
+chk("Setup. HF `openai/clip-vit-large-patch14`", [f"Embedded {_bex['n_unique_files']:,} unique files", f"{_bex['n_cached_rows']:,} rows", f"{_btm['n_unique_images']:,} unique `image_id` keys",
+                                                  f"in {_bex['extraction_minutes']:.1f} minutes", f"{_btm['projected_sequential_min']:.1f}", f"{_btm['gpu_forward_s_median']:.2f} s", f"{_bex['unreadable_replaced_by_grey']} unreadable"])
+chk("The encoders differ in size", [f"{_bP14:.1f}M parameters against {_bP32:.1f}M", f"{_bll14} layers against {_bll32}", f"{_bpp14} against {_bpp32} pixels"])
+for c_, lab_ in (("B32_raw", "B/32 raw (v2's cached features, 512-d)"), ("L14_norm", "L/14 L2-normalised (768-d, as specified)"), ("L14_raw", "L/14 raw (768-d, control)")):
+    r_ = _bT2[c_]
+    chk(f"| {lab_} | 3 |", [ms(np.array([x_["dev_macro_f1"] for x_ in r_])), ms(np.array([x_["test_acc"] for x_ in r_])), ms(_bf(c_)), ms(np.array([x_["test_weighted_f1"] for x_ in r_]))])
+chk("L/14 minus B/32, paired by seed", [", ".join(sg3(x_) for x_ in _bpair), f"mean {sg3(_bpair.mean())} ± {_bpair.std(ddof=1):.3f}", ms(_bf("L14_raw"))])
+for e_ in ("B32", "L14"):
+    for m_ in ("fused", "image"):
+        for c_ in ("knn5", "probe"):
+            r_ = _bT3[(e_, m_, c_)]
+            chk(f"| {'B/32' if e_ == 'B32' else 'L/14'} | {'fused' if m_ == 'fused' else 'image only'} | {'5-NN majority' if c_ == 'knn5' else 'logistic probe (C = %g)' % r_['C']} |",
+                [f"{r_['dev_macro_f1']:.4f}", f"{r_['test_acc']:.4f}", f"{r_['test_macro_f1']:.4f}"])
+chk("Zero-shot Task 3 (identical prompts", [", ".join(f"{n_} {_bZ['dev_candidates_l14'][n_]['macro_f1']:.4f}" for n_ in ("E1", "E2", "E3")), ", ".join(f"{n_} {_bZ['dev_candidates_b32'][n_]:.4f}" for n_ in ("E1", "E2", "E3")),
+                                           f"L/14 accuracy {_bZ['test_l14_chosen']['acc']:.4f}, macro-F1 {_bZ['test_l14_chosen']['macro_f1']:.4f}, weighted-F1 {_bZ['test_l14_chosen']['weighted_f1']:.4f}",
+                                           f"B/32 accuracy {_bZ['test_b32_zero_shot']['acc']:.4f}, macro-F1 {_bZ['test_b32_zero_shot']['macro_f1']:.4f}, weighted-F1 {_bZ['test_b32_zero_shot']['weighted_f1']:.4f}",
+                                           f"L/14 {_bZ['test_l14_dev_calibrated']['macro_f1']:.4f} against B/32 {_bZ['test_b32_dev_calibrated']['macro_f1']:.4f}"])
+for n_ in ("t2_imageonlyL14_vs_B32", "t2_imageonlyL14_vs_L4a", "t3_probeL14_vs_B32_fused", "t3_knnL14_vs_B32_fused", "t2_imageonlyL14raw_vs_B32"):
+    s_ = _bS[n_]
+    chk(f"`{n_}`", [f"{s_['n_rows']:,}", f"{s_['score_a']:.4f}", f"{s_['score_b']:.4f}", f"{s_['diff']:+.4f}", f"[{s_['ci95_low']:+.4f}, {s_['ci95_high']:+.4f}]", "yes" if s_["ci_excludes_zero"] else "no"])
+_bm = lambda a_, b_: f"{a_:.3f} to {b_:.3f}"
+_bk = lambda m_, c_: _bm(_bT3[("B32", m_, c_)]["test_macro_f1"], _bT3[("L14", m_, c_)]["test_macro_f1"])
+chk("Task 3: L/14 helps the image-only paths", [_bk("image", "knn5"), _bk("image", "probe")])
+chk("The T2 image-only gain from L/14 is consistent", [f"{_bS['t2_imageonlyL14_vs_B32']['ci95_low']:+.4f} to {_bS['t2_imageonlyL14_vs_B32']['ci95_high']:+.4f}"])
+chk("The 18,083rd key", [f"B/32 maximum difference {_bd32:.1e}", f"L/14 {_bd14:.1e}"])
+# section prose
+tchk("ViT-L/14 differs from ViT-B/32 in both size", [f"{_bP14:.0f}M parameters against {_bP32:.0f}M", f"{_bpp14} against {_bpp32} pixels"])
+tchk("With the same head and recipe, the image-only Task 2 model gains",
+     [f"gains {_bpair.mean():.3f} macro-F1 on average over three seeds ({_bf('B32_raw').mean():.3f} to {_bf('L14_norm').mean():.3f})", "at seed 42",
+      f"{sg3(_bS['t2_imageonlyL14_vs_B32']['ci95_low'])} to {sg3(_bS['t2_imageonlyL14_vs_B32']['ci95_high'])}"])
+tchk("Feeding the raw L/14 features", [f"gives {_bf('L14_raw').mean():.3f} on average, and at seed 42 a gain of {_bd('t2_imageonlyL14raw_vs_B32')} {_bci('t2_imageonlyL14raw_vs_B32')}"])
+tchk("Against the full B/32 model (L4a)", [f"ahead by {_bS['t2_imageonlyL14_vs_L4a']['diff']:.3f} at seed 42", _bci("t2_imageonlyL14_vs_L4a")])
+tchk("For Task 3 the larger encoder helps the image-only paths",
+     [f"5-NN {_bk('image', 'knn5')}", f"logistic probe {_bk('image', 'probe')}",
+      f"{_bT3[('L14', 'fused', 'probe')]['test_macro_f1']:.3f} against {_bT3[('B32', 'fused', 'probe')]['test_macro_f1']:.3f} ({_bd('t3_probeL14_vs_B32_fused')}, interval {sg3(_bS['t3_probeL14_vs_B32_fused']['ci95_low'])} to {sg3(_bS['t3_probeL14_vs_B32_fused']['ci95_high'])})",
+      f"the fused 5-NN {_bT3[('L14', 'fused', 'knn5')]['test_macro_f1']:.3f} against {_bT3[('B32', 'fused', 'knn5')]['test_macro_f1']:.3f} ({_bd('t3_knnL14_vs_B32_fused')}, interval {sg3(_bS['t3_knnL14_vs_B32_fused']['ci95_low'])} to {sg3(_bS['t3_knnL14_vs_B32_fused']['ci95_high'])})"])
+tchk("Zero-shot macro-F1, with identical prompts",
+     [f"from {_bZ['test_b32_zero_shot']['macro_f1']:.3f} to {_bZ['test_l14_chosen']['macro_f1']:.3f} (accuracy {_bZ['test_b32_zero_shot']['acc']:.3f} to {_bZ['test_l14_chosen']['acc']:.3f})",
+      "0.333", "0.257", f"({_bT3[('L14', 'fused', 'probe')]['test_macro_f1']:.3f})"])
+tchk("Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1", ["three seeds", "n=1", "529 test queries", "at seed 42", "over the 529 queries", "(14 against 32)", "95% interval"])
+tchk("Setting & n & B/32 (or L4a) & L/14 & Difference", ["95% interval"])
+# section table rows
+tchk(f"T2 image-only (L/14 L2-normalised) & 3 & {ms(_bf('B32_raw'))}", [ms(_bf("L14_norm")), _bd("t2_imageonlyL14_vs_B32"), _bcib("t2_imageonlyL14_vs_B32")], cover_anchor=True)
+tchk(f"T2 image-only (L/14 raw input, control) & 3 & {ms(_bf('B32_raw'))}", [ms(_bf("L14_raw")), _bd("t2_imageonlyL14raw_vs_B32"), _bcib("t2_imageonlyL14raw_vs_B32")], cover_anchor=True)
+tchk(f"T2 image-only L/14 against L4a (full model, B/32) & 3 & {ms(_bl4a)}", [ms(_bf("L14_norm")), _bd("t2_imageonlyL14_vs_L4a"), _bcib("t2_imageonlyL14_vs_L4a")], cover_anchor=True)
+for lab_, m_, c_, n_ in (("T3 fused, logistic probe", "fused", "probe", "t3_probeL14_vs_B32_fused"), ("T3 fused, 5-NN", "fused", "knn5", "t3_knnL14_vs_B32_fused"),
+                         ("T3 image-only, logistic probe", "image", "probe", None), ("T3 image-only, 5-NN", "image", "knn5", None)):
+    tchk(f"{lab_} & 1 & {_bT3[('B32', m_, c_)]['test_macro_f1']:.3f}", [f"{_bT3[('L14', m_, c_)]['test_macro_f1']:.3f}"] + ([_bd(n_), _bcib(n_)] if n_ else []), cover_anchor=True)
+tchk(f"T3 zero-shot (prompt set {_bZ['chosen_l14']}) & 1 & {_bZ['test_b32_zero_shot']['macro_f1']:.3f}", [f"{_bZ['test_l14_chosen']['macro_f1']:.3f}"], cover_anchor=True)
+
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
-STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
+STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
 uncovered = []
 for i, l in TEX:
     masked = l

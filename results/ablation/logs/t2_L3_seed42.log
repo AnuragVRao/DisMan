@@ -1,0 +1,14 @@
+{'train': 13608, 'dev': 2237, 'test': 2237} | config L3 {'data': 'full', 'clip': 'hf', 'tf': 'v1_random', 'epochs': 10, 'cache': False, 'amp': False, 'bert': 'pretrained'} epochs 10
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+epoch  1/10 loss 2.1553 dev acc 0.1051 macroF1 0.0560 221s (elapsed 3.9 min)  <- best
+epoch  2/10 loss 1.5063 dev acc 0.7282 macroF1 0.4838 127s (elapsed 6.0 min)  <- best
+epoch  3/10 loss 0.9264 dev acc 0.7693 macroF1 0.5666 128s (elapsed 8.2 min)  <- best
+epoch  4/10 loss 0.7792 dev acc 0.7743 macroF1 0.5793 127s (elapsed 10.3 min)  <- best
+epoch  5/10 loss 0.6307 dev acc 0.7591 macroF1 0.5832 127s (elapsed 12.4 min)  <- best
+epoch  6/10 loss 0.5032 dev acc 0.7707 macroF1 0.6008 127s (elapsed 14.5 min)  <- best
+epoch  7/10 loss 0.3874 dev acc 0.7814 macroF1 0.5871 127s (elapsed 16.6 min)
+epoch  8/10 loss 0.3006 dev acc 0.7729 macroF1 0.5852 128s (elapsed 18.8 min)
+epoch  9/10 loss 0.2409 dev acc 0.7671 macroF1 0.5895 129s (elapsed 20.9 min)
+epoch 10/10 loss 0.2155 dev acc 0.7698 macroF1 0.5893 128s (elapsed 23.0 min)
+C:\Users\anura\Desktop\Capstone\DisMan\results\ablation\A\t2_L3_seed42.json
+TEST acc 0.7988 macroF1 0.6056 wF1 0.8013 | best dev macroF1 0.6008 @ epoch 6 | wall 24.1 min

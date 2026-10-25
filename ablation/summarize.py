@@ -66,7 +66,7 @@ for m, rs_ in x1.items():
                          **agg([{"test_acc": r["subsets"][sub]["acc"], "test_macro_f1": r["subsets"][sub]["macro_f1"],
                                  "test_weighted_f1": r["subsets"][sub]["weighted_f1"]} for r in rs_], METRICS)})
 # D (results/ablation/X/d_lodo_t2_*): Task 2 leave-one-disaster-out with the image-only proxy; per-seed macro averages over the 7 events and the pooled 2,237-row scores
-D_EV = sorted({Path(f).name.split("_seed")[0].removeprefix("d_lodo_t2_") for f in glob.glob(str(RES / "X" / "d_lodo_t2_*_seed*.json"))} - {"overall"})
+D_EV = sorted({Path(f).name.split("_seed")[0].removeprefix("d_lodo_t2_") for f in glob.glob(str(RES / "X" / "d_lodo_t2_*_seed*.json"))} - {"overall", "perclass"})
 dres = {e: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"d_lodo_t2_{e}_seed*.json")))] for e in D_EV}
 dov = json.load(open(RES / "X" / "d_lodo_t2_overall_seed42.json")) if (RES / "X" / "d_lodo_t2_overall_seed42.json").exists() else None
 if dres and dov:
@@ -82,6 +82,26 @@ if dres and dov:
         rows.append({"part": "X", "task": "T2", "config": f"d_t2_{kind}_pooled", "n_test": dov["n_test"],
                      **agg([{"test_acc": v[kind]["acc"], "test_macro_f1": v[kind]["macro_f1"], "test_weighted_f1": v[kind]["weighted_f1"]}
                             for v in dov["pooled_by_seed"].values()], METRICS)})
+# B (results/ablation/X/b_*): CLIP ViT-L/14 extension -- T2 image-only (3 seeds), T3 rows and zero-shot (deterministic)
+bt2 = {c: [json.load(open(f)) for f in sorted(glob.glob(str(RES / "X" / f"b_t2_imageonly_{c}_seed*.json")))] for c in ("B32_raw", "L14_norm", "L14_raw")}
+for c, rs_ in bt2.items():
+    if rs_:
+        rows.append({"part": "X", "task": "T2", "config": f"b_t2_imageonly_{c}", "n_test": rs_[0]["n_test"],
+                     **agg([{"dev_macro_f1": r["dev_macro_f1"], "test_acc": r["test_acc"], "test_macro_f1": r["test_macro_f1"], "test_weighted_f1": r["test_weighted_f1"]} for r in rs_], METRICS)})
+for enc in ("B32", "L14"):
+    for emb in ("fused", "image"):
+        for clf_ in ("knn5", "probe"):
+            f = RES / "X" / f"b_t3_{enc}_{emb}_{clf_}_seed42.json"
+            if f.exists():
+                r = json.load(open(f))
+                rows.append({"part": "X", "task": "T3", "config": f"b_t3_{enc}_{emb}_{clf_}", "n_test": r["n_test"], "index_rows": r["index_rows_test"],
+                             **agg([{k: r[k] for k in METRICS}], METRICS)})
+bzs = json.load(open(RES / "X" / "b_zeroshot_l14_seed42.json")) if (RES / "X" / "b_zeroshot_l14_seed42.json").exists() else None
+if bzs:
+    for tag, tst, dev_ in (("l14", bzs["test_l14_chosen"], bzs["dev_candidates_l14"][bzs["chosen_l14"]]["macro_f1"]),
+                           ("b32", bzs["test_b32_zero_shot"], bzs["dev_candidates_b32"][bzs["chosen_b32"]])):
+        rows.append({"part": "X", "task": "T3", "config": f"b_zeroshot_{tag}_{bzs['chosen_l14'] if tag == 'l14' else bzs['chosen_b32']}", "n_test": bzs["n_test"],
+                     **agg([{"dev_macro_f1": dev_, "test_acc": tst["acc"], "test_macro_f1": tst["macro_f1"], "test_weighted_f1": tst["weighted_f1"]}], METRICS)})
 summary = pd.DataFrame(rows)
 cols =["part", "task", "config", "n"] + [f"{m}_{s}" for m in METRICS for s in ("mean", "std")] + ["n_params", "n_test", "index_rows", "tier"]
 summary = summary[[c for c in cols if c in summary.columns]]
@@ -224,6 +244,29 @@ if dres and dov:
                      "In-dist.\\ = the existing image-only models (all events seen) on the same rows; Majority = always predicting the event's most frequent label. "
                      "The pooled row scores all 2237 test rows at once (macro-F1 over the 8 classes).",
                      "tab:d_t2", ["Held-out event", "Test rows", "$n$", "LODO acc.", "LODO macro-F1", "In-dist. macro-F1", "Majority macro-F1"], body, "lrcrrrr"))
+# ── B: image encoder scale (CLIP ViT-B/32 vs ViT-L/14) ────────────────────────
+if all(bt2.values()) and bzs and (RES / "X" / "b_t3_L14_fused_probe_seed42.json").exists():
+    pmb = lambda a: f"{np.mean(a):.3f} $\\pm$ {np.std(a, ddof=1):.3f}"
+    e1j = lambda n: json.load(open(RES / "X" / f"e1_{n}_seed42.json"))
+    ci = lambda r: f"[{r['ci95_low']:+.3f}, {r['ci95_high']:+.3f}]"
+    t2m = lambda c: [r["test_macro_f1"] for r in bt2[c]]
+    t3m = lambda enc, emb, c_: json.load(open(RES / "X" / f"b_t3_{enc}_{emb}_{c_}_seed42.json"))["test_macro_f1"]
+    l4a_m = [json.load(open(f))["test_macro_f1"] for f in sorted(glob.glob(str(RES / "A" / "t2_L4a_seed*.json")))]
+    body = []
+    for lab, ref, new, nm in (("T2 image-only (L/14 L2-normalised)", t2m("B32_raw"), t2m("L14_norm"), "t2_imageonlyL14_vs_B32"),
+                              ("T2 image-only (L/14 raw input, control)", t2m("B32_raw"), t2m("L14_raw"), "t2_imageonlyL14raw_vs_B32"),
+                              ("T2 image-only L/14 against L4a (full model, B/32)", l4a_m, t2m("L14_norm"), "t2_imageonlyL14_vs_L4a")):
+        r = e1j(nm)
+        body.append([lab, str(len(new)), pmb(ref), pmb(new), f"{r['diff']:+.3f}", ci(r)])
+    for lab, emb, c_, nm in (("T3 fused, logistic probe", "fused", "probe", "t3_probeL14_vs_B32_fused"), ("T3 fused, 5-NN", "fused", "knn5", "t3_knnL14_vs_B32_fused"),
+                             ("T3 image-only, logistic probe", "image", "probe", None), ("T3 image-only, 5-NN", "image", "knn5", None)):
+        r = e1j(nm) if nm else None
+        body.append([lab, "1", f"{t3m('B32', emb, c_):.3f}", f"{t3m('L14', emb, c_):.3f}", f"{r['diff']:+.3f}" if r else "--", ci(r) if r else "--"])
+    body.append([f"T3 zero-shot (prompt set {bzs['chosen_l14']})", "1", f"{bzs['test_b32_zero_shot']['macro_f1']:.3f}", f"{bzs['test_l14_chosen']['macro_f1']:.3f}", "--", "--"])
+    tex.append(table("Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1. Task 2 image-only model: mean $\\pm$ std over three seeds; Task 3 and zero-shot: deterministic, "
+                     "$n=1$, 529 test queries. Difference and 95\\% interval: paired bootstrap over the test rows at seed 42 (Task 2) or over the 529 queries (Task 3), L/14 minus the "
+                     "first column. L/14 differs from B/32 in both size and patch size (14 against 32).",
+                     "tab:b_scale", ["Setting", "$n$", "B/32 (or L4a)", "L/14", "Difference", "95\\% interval"], body, "lcrrrr"))
 # ── A1: agreed vs disagreed subsets ───────────────────────────────────────────
 if all(x1.values()):
     A1N = {"L4a": "L4a (full)", "image_only": "image only", "text_only": "text only"}

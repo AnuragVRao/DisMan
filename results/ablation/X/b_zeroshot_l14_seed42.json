@@ -1,0 +1,90 @@
+{
+ "task": "T3",
+ "tier": "gpu-small",
+ "model": "openai/clip-vit-large-patch14",
+ "n_test": 529,
+ "n_dev": 529,
+ "dev_candidates_l14": {
+  "E1": {
+   "acc": 0.5463137996219282,
+   "macro_f1": 0.37455426252146423,
+   "weighted_f1": 0.5216151152870365,
+   "n": 529,
+   "recall_Severe damage": 0.7620481927710844,
+   "recall_Mild damage": 0.1746031746031746,
+   "recall_Little or no damage": 0.19718309859154928
+  },
+  "E2": {
+   "acc": 0.3931947069943289,
+   "macro_f1": 0.3758055667311515,
+   "weighted_f1": 0.44098139228702365,
+   "n": 529,
+   "recall_Severe damage": 0.37650602409638556,
+   "recall_Mild damage": 0.3253968253968254,
+   "recall_Little or no damage": 0.5915492957746479
+  },
+  "E3": {
+   "acc": 0.4102079395085066,
+   "macro_f1": 0.3883570805872301,
+   "weighted_f1": 0.4578664100044476,
+   "n": 529,
+   "recall_Severe damage": 0.39457831325301207,
+   "recall_Mild damage": 0.3968253968253968,
+   "recall_Little or no damage": 0.5070422535211268
+  }
+ },
+ "dev_candidates_b32": {
+  "E1": 0.3095855944144254,
+  "E2": 0.3159428936847033,
+  "E3": 0.3379060407529734
+ },
+ "chosen_l14": "E3",
+ "chosen_b32": "E3",
+ "test_l14_chosen": {
+  "acc": 0.40831758034026466,
+  "macro_f1": 0.37197873808605525,
+  "weighted_f1": 0.45476116511956766,
+  "n": 529,
+  "recall_Severe damage": 0.42771084337349397,
+  "recall_Mild damage": 0.3253968253968254,
+  "recall_Little or no damage": 0.4647887323943662
+ },
+ "test_l14_with_b32_chosen_set": {
+  "acc": 0.40831758034026466,
+  "macro_f1": 0.37197873808605525,
+  "weighted_f1": 0.45476116511956766,
+  "n": 529,
+  "recall_Severe damage": 0.42771084337349397,
+  "recall_Mild damage": 0.3253968253968254,
+  "recall_Little or no damage": 0.4647887323943662
+ },
+ "test_l14_dev_calibrated": {
+  "acc": 0.6124763705103969,
+  "macro_f1": 0.36522733597502066,
+  "weighted_f1": 0.562253249986796,
+  "n": 529,
+  "recall_Severe damage": 0.8704819277108434,
+  "recall_Mild damage": 0.2698412698412698,
+  "recall_Little or no damage": 0.014084507042253521,
+  "biases": [
+   0.0,
+   -0.011999999999999955,
+   -0.03799999999999998
+  ],
+  "dev_macro_f1": 0.47746272901586245
+ },
+ "test_b32_zero_shot": {
+  "acc": 0.3024574669187145,
+  "macro_f1": 0.2985217605338784,
+  "weighted_f1": 0.3491932404547751
+ },
+ "test_b32_dev_calibrated": {
+  "acc": 0.5671077504725898,
+  "macro_f1": 0.3967183877296237,
+  "weighted_f1": 0.5628544929154516
+ },
+ "part": "X",
+ "config": "b_zeroshot_l14",
+ "seed": 42,
+ "git_commit": "f9aec8b"
+}
