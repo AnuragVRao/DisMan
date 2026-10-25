@@ -49,9 +49,9 @@ def predict(model, X):
     return torch.cat(out).numpy()
 
 
-def train_fold(Xtr, ytr, Xdv, ydv, seed, nc, all_classes):
+def train_fold(Xtr, ytr, Xdv, ydv, seed, nc, all_classes, img_dim=512):
     cc.seed_all(seed)
-    model = Variant("image_only", nc).to(DEVICE)
+    model = Variant("image_only", nc, img_dim=img_dim).to(DEVICE)
     cnt = np.bincount(ytr.numpy(), minlength=nc).astype("float32")
     w = 1.0 / cnt; w /= w.sum() / nc
     crit = nn.CrossEntropyLoss(weight=torch.tensor(w, device=DEVICE))

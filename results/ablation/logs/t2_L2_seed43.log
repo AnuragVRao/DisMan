@@ -1,0 +1,34 @@
+{'train': 13608, 'dev': 2237, 'test': 2237} | config L2 {'data': 'full', 'clip': 'hf', 'tf': 'v1_random', 'epochs': 30, 'cache': False, 'amp': False, 'bert': 'pretrained'} epochs 30
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+epoch  1/30 loss 2.1150 dev acc 0.1475 macroF1 0.0613 247s (elapsed 4.3 min)  <- best
+epoch  2/30 loss 1.4862 dev acc 0.7291 macroF1 0.5105 128s (elapsed 6.4 min)  <- best
+epoch  3/30 loss 0.9195 dev acc 0.7711 macroF1 0.5739 129s (elapsed 8.6 min)  <- best
+epoch  4/30 loss 0.7764 dev acc 0.7385 macroF1 0.5440 124s (elapsed 10.7 min)
+epoch  5/30 loss 0.6399 dev acc 0.7564 macroF1 0.5750 122s (elapsed 12.7 min)  <- best
+epoch  6/30 loss 0.5205 dev acc 0.7479 macroF1 0.5889 122s (elapsed 14.7 min)  <- best
+epoch  7/30 loss 0.4037 dev acc 0.7456 macroF1 0.5645 131s (elapsed 16.9 min)
+epoch  8/30 loss 0.3004 dev acc 0.7675 macroF1 0.5977 172s (elapsed 19.8 min)  <- best
+epoch  9/30 loss 0.2239 dev acc 0.7760 macroF1 0.5967 131s (elapsed 22.0 min)
+epoch 10/30 loss 0.1723 dev acc 0.7765 macroF1 0.6717 128s (elapsed 24.1 min)  <- best
+epoch 11/30 loss 0.1298 dev acc 0.7675 macroF1 0.6606 131s (elapsed 26.3 min)
+epoch 12/30 loss 0.1068 dev acc 0.7796 macroF1 0.6676 131s (elapsed 28.5 min)
+epoch 13/30 loss 0.0933 dev acc 0.7760 macroF1 0.6639 130s (elapsed 30.6 min)
+epoch 14/30 loss 0.0872 dev acc 0.7693 macroF1 0.6574 130s (elapsed 32.8 min)
+epoch 15/30 loss 0.0707 dev acc 0.7725 macroF1 0.6652 130s (elapsed 35.0 min)
+epoch 16/30 loss 0.0563 dev acc 0.7707 macroF1 0.6618 130s (elapsed 37.1 min)
+epoch 17/30 loss 0.0561 dev acc 0.7725 macroF1 0.5697 129s (elapsed 39.3 min)
+epoch 18/30 loss 0.0465 dev acc 0.7734 macroF1 0.6569 130s (elapsed 41.4 min)
+epoch 19/30 loss 0.0450 dev acc 0.7738 macroF1 0.6728 131s (elapsed 43.6 min)  <- best
+epoch 20/30 loss 0.0382 dev acc 0.7778 macroF1 0.6696 130s (elapsed 45.8 min)
+epoch 21/30 loss 0.0319 dev acc 0.7769 macroF1 0.6781 130s (elapsed 48.0 min)  <- best
+epoch 22/30 loss 0.0298 dev acc 0.7729 macroF1 0.6549 130s (elapsed 50.1 min)
+epoch 23/30 loss 0.0251 dev acc 0.7720 macroF1 0.6589 130s (elapsed 52.3 min)
+epoch 24/30 loss 0.0201 dev acc 0.7738 macroF1 0.6627 130s (elapsed 54.5 min)
+epoch 25/30 loss 0.0184 dev acc 0.7716 macroF1 0.6543 130s (elapsed 56.6 min)
+epoch 26/30 loss 0.0213 dev acc 0.7693 macroF1 0.6468 130s (elapsed 58.8 min)
+epoch 27/30 loss 0.0161 dev acc 0.7702 macroF1 0.6554 127s (elapsed 60.9 min)
+epoch 28/30 loss 0.0156 dev acc 0.7698 macroF1 0.6450 130s (elapsed 63.1 min)
+epoch 29/30 loss 0.0151 dev acc 0.7720 macroF1 0.6530 130s (elapsed 65.3 min)
+epoch 30/30 loss 0.0150 dev acc 0.7711 macroF1 0.6569 130s (elapsed 67.4 min)
+C:\Users\anura\Desktop\Capstone\DisMan\results\ablation\A\t2_L2_seed43.json
+TEST acc 0.7819 macroF1 0.5801 wF1 0.7807 | best dev macroF1 0.6781 @ epoch 21 | wall 68.5 min

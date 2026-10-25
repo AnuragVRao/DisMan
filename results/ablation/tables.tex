@@ -199,6 +199,27 @@ pooled & 2237 & 3 & 0.769 $\pm$ 0.005 & 0.529 $\pm$ 0.004 & 0.601 $\pm$ 0.005 & 
 \begin{table}[t]
 \centering
 \footnotesize
+\caption{Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1. Task 2 image-only model: mean $\pm$ std over three seeds; Task 3 and zero-shot: deterministic, $n=1$, 529 test queries. Difference and 95\% interval: paired bootstrap over the test rows at seed 42 (Task 2) or over the 529 queries (Task 3), L/14 minus the first column. L/14 differs from B/32 in both size and patch size (14 against 32).}
+\label{tab:b_scale}
+\begin{tabular}{lcrrrr}
+\toprule
+Setting & $n$ & B/32 (or L4a) & L/14 & Difference & 95\% interval \\
+\midrule
+T2 image-only (L/14 L2-normalised) & 3 & 0.601 $\pm$ 0.005 & 0.644 $\pm$ 0.009 & +0.031 & [+0.001, +0.063] \\
+T2 image-only (L/14 raw input, control) & 3 & 0.601 $\pm$ 0.005 & 0.648 $\pm$ 0.011 & +0.048 & [+0.017, +0.081] \\
+T2 image-only L/14 against L4a (full model, B/32) & 3 & 0.598 $\pm$ 0.010 & 0.644 $\pm$ 0.009 & +0.029 & [-0.010, +0.071] \\
+T3 fused, logistic probe & 1 & 0.615 & 0.607 & -0.008 & [-0.044, +0.030] \\
+T3 fused, 5-NN & 1 & 0.491 & 0.505 & +0.014 & [-0.035, +0.063] \\
+T3 image-only, logistic probe & 1 & 0.595 & 0.621 & -- & -- \\
+T3 image-only, 5-NN & 1 & 0.507 & 0.548 & -- & -- \\
+T3 zero-shot (prompt set E3) & 1 & 0.299 & 0.372 & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
 \caption{Task 2 on test rows where the text and image labels agree or disagree (existing checkpoints, mean $\pm$ std over seeds). Macro-F1 averages the classes present in the subset; the majority-class row always predicts ``Not humanitarian''.}
 \label{tab:a1}
 \begin{tabular}{lrlcrr}

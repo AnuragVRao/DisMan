@@ -342,3 +342,49 @@ In-distribution reference: the existing 3-seed image-only checkpoints (all event
 **The pooled leave-one-disaster-out drop (§9.5).** Its bootstrap interval is driven mainly by one 10-row class (0.052 of the 0.073 pooled drop at seed 42); without it the pooled drop is -0.020, and a bootstrap over a 10-row class gives only a rough interval.
 
 **Limitation.** "Missing or found people" (3 test rows) has F1 = 0 in every Task 2 condition (all 33 ladder and component-ablation runs, L0 and L1 as regenerated here, and the pooled leave-one-disaster-out and in-distribution comparisons at all three seeds), which caps Task 2 macro-F1 at 7/8 = 0.875 under the current models.
+
+### 9.7 B: CLIP ViT-L/14 image encoder (extension; the fusion model, the demo and all earlier results are unchanged)
+
+**Setup.** HF `openai/clip-vit-large-patch14`, fp16, the model's deterministic eval preprocessing, L2-normalised. Embedded **18,082 unique files** for the 21,608 rows of v2's CLIP cache (the cache has 18,083 unique `image_id` keys; one file sits under two keys, see below) in 5.1 minutes (projected 5.2 from one 256-image batch, which took 2.36 s on the GPU); 0 unreadable images. Saved to `artifacts/ablation/clip_l14/` (gitignored) as one array per (task, split) in v2's cache order with v2's ids (asserted equal), both L2-normalised and raw, so every downstream join is identical to the B/32 pipeline.
+The encoders differ in size (image tower 304.0M parameters against 87.8M, 24 layers against 12) **and** in patch size (14 against 32 pixels), so gains are attributed to the larger CLIP model, not to size alone.
+Validation: with the same code path, B/32 reproduces the stored Part B image-only results (maximum difference 0 at all three seeds) and the stored Part B Task 3 rows (asserted).
+
+**Task 2, image-only head (same head and recipe as Part B image-only; input dim 768 for L/14).**
+
+| Input | Seeds | Dev macro-F1 | Acc. | Test macro-F1 | Weighted-F1 |
+|---|---|---|---|---|---|
+| B/32 raw (v2's cached features, 512-d) | 3 | 0.568 ± 0.008 | 0.788 ± 0.002 | 0.601 ± 0.005 | 0.793 ± 0.002 |
+| L/14 L2-normalised (768-d, as specified) | 3 | 0.612 ± 0.002 | 0.812 ± 0.004 | 0.644 ± 0.009 | 0.816 ± 0.004 |
+| L/14 raw (768-d, control) | 3 | 0.607 ± 0.003 | 0.813 ± 0.006 | 0.648 ± 0.011 | 0.817 ± 0.006 |
+
+* L/14 minus B/32, paired by seed (test macro-F1): +0.031, +0.039, +0.058, mean +0.042 ± 0.014. The raw-input control (0.648 ± 0.011) rules out the L2 normalisation as the cause (B/32's cached features are raw, norm about 10; L/14's raw norm is about 18).
+
+**Task 3 (same construction as Part B: v2's tweet-disjoint index rows, C tuned on dev).**
+
+| Encoder | Embedding | Classifier | Dev macro-F1 | Test acc. | Test macro-F1 |
+|---|---|---|---|---|---|
+| B/32 | fused | 5-NN majority | 0.4832 | 0.6673 | 0.4914 |
+| B/32 | fused | logistic probe (C = 1) | 0.5926 | 0.6843 | 0.6146 |
+| B/32 | image only | 5-NN majority | 0.5427 | 0.6749 | 0.5074 |
+| B/32 | image only | logistic probe (C = 1) | 0.6208 | 0.6730 | 0.5946 |
+| L/14 | fused | 5-NN majority | 0.4564 | 0.6730 | 0.5050 |
+| L/14 | fused | logistic probe (C = 1) | 0.5708 | 0.6749 | 0.6070 |
+| L/14 | image only | 5-NN majority | 0.4985 | 0.6805 | 0.5479 |
+| L/14 | image only | logistic probe (C = 1) | 0.6214 | 0.6824 | 0.6208 |
+
+**Zero-shot Task 3 (identical prompts and procedure to the B/32 run; prompt set chosen by dev macro-F1).** Dev macro-F1 per prompt set, L/14: E1 0.3746, E2 0.3758, E3 0.3884; B/32: E1 0.3096, E2 0.3159, E3 0.3379. Both choose E3. Test (n = 529): L/14 accuracy 0.4083, macro-F1 0.3720, weighted-F1 0.4548; B/32 accuracy 0.3025, macro-F1 0.2985, weighted-F1 0.3492. Reference baselines from the B/32 run: always "Severe damage" macro-F1 0.2571, stratified random 0.3333. The dev-calibrated-bias variant (not pure zero-shot) gives L/14 0.3652 against B/32 0.3967.
+
+**Paired bootstraps (10,000 resamples of the test rows, 95% percentile CI, first minus second).**
+
+| Comparison (first − second) | Rows | First | Second | Difference | 95% CI | Excludes 0 |
+|---|---|---|---|---|---|---|
+| `t2_imageonlyL14_vs_B32` T2 image-only, L/14 (normalised) − B/32 (seed 42) | 2,237 | 0.6374 | 0.6069 | +0.0306 | [+0.0014, +0.0635] | yes |
+| `t2_imageonlyL14_vs_L4a` T2 image-only L/14 − L4a (seed 42) | 2,237 | 0.6374 | 0.6080 | +0.0295 | [-0.0097, +0.0712] | no |
+| `t3_probeL14_vs_B32_fused` T3 fused logistic probe, L/14 − B/32 | 529 | 0.6070 | 0.6146 | -0.0076 | [-0.0440, +0.0303] | no |
+| `t3_knnL14_vs_B32_fused` T3 fused 5-NN, L/14 − B/32 | 529 | 0.5050 | 0.4914 | +0.0135 | [-0.0354, +0.0629] | no |
+| `t2_imageonlyL14raw_vs_B32` control: T2 image-only, L/14 raw − B/32 (seed 42) | 2,237 | 0.6545 | 0.6069 | +0.0476 | [+0.0166, +0.0815] | yes |
+
+* The T2 image-only gain from L/14 is consistent in sign across seeds and its seed-42 interval (+0.0014 to +0.0635) only just excludes zero; against the full B/32 model (L4a) the interval includes zero.
+* Task 3: L/14 helps the image-only paths (5-NN 0.507 to 0.548; probe 0.595 to 0.621; not bootstrapped) but the fused differences are not established (both intervals include zero).
+
+**The 18,083rd key (one file under two `image_id` strings).** Damage-train key `901671684478029825_0` (tweet 905274232590004225, label Severe damage) and humanitarian-test key `905274232590004225_0` (the same tweet, label not_humanitarian) point to the identical file `data_image/hurricane_harvey/27_8_2017/901671684478029825_0.jpg` (md5 d6286e2ba4c770f5c508b86be6ac6989; there is no file named after the tweet); the damage split and the annotation file key it by the file name, the humanitarian and informative splits by the tweet id. v2's Task 3 index contains the row (it is not a test sibling); it is not in the Task 3 test set; in Task 2 it is a test row. A join on `image_id` between a damage-keyed and a humanitarian-keyed table would miss it; a join on path would find it; no analysis in this study joins across the two. Cached vectors under the two keys: B/32 maximum difference 1.8e-06 (floating-point noise from different batches), L/14 0.0e+00 (embedded once per file).

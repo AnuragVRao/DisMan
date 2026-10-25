@@ -1,0 +1,15 @@
+{
+ "task": "T2/T3",
+ "tier": "gpu-small",
+ "model": "openai/clip-vit-large-patch14",
+ "dtype": "fp16",
+ "n_unique_files": 18082,
+ "n_cached_rows": 21608,
+ "extraction_minutes": 5.1,
+ "unreadable_replaced_by_grey": 0,
+ "saved_to": "artifacts/ablation/clip_l14 (gitignored): L2-normalised and raw, keyed and ordered like v2's cache",
+ "part": "X",
+ "config": "b_clip_l14_extract",
+ "seed": 42,
+ "git_commit": "f9aec8b"
+}

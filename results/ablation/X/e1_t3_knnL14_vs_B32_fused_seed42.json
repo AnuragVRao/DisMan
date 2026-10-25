@@ -1,0 +1,21 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "comparison": "t3_knnL14_vs_B32_fused",
+ "metric": "macro_f1",
+ "n_rows": 529,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.5049632182496476,
+ "score_b": 0.4914439729128235,
+ "diff": 0.013519245336824137,
+ "ci95_low": -0.035378683341242445,
+ "ci95_high": 0.06289142656049096,
+ "ci_excludes_zero": false,
+ "boot_mean": 0.01353059001200682,
+ "frac_boot_diff_positive": 0.6962,
+ "part": "X",
+ "config": "e1_t3_knnL14_vs_B32_fused",
+ "seed": 42,
+ "git_commit": "f9aec8b"
+}

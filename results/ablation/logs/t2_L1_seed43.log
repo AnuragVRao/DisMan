@@ -1,0 +1,33 @@
+{'train': 13608, 'dev': 2237, 'test': 2237} | config L1 {'data': 'full', 'clip': 'open_clip', 'tf': 'v1_random', 'epochs': 30, 'cache': False, 'amp': False, 'bert': 'pretrained'} epochs 30
+epoch  1/30 loss 2.1107 dev acc 0.1614 macroF1 0.0679 245s (elapsed 4.3 min)  <- best
+epoch  2/30 loss 1.5006 dev acc 0.7188 macroF1 0.4964 125s (elapsed 6.4 min)  <- best
+epoch  3/30 loss 0.9326 dev acc 0.7667 macroF1 0.5545 126s (elapsed 8.5 min)  <- best
+epoch  4/30 loss 0.7833 dev acc 0.7349 macroF1 0.5381 127s (elapsed 10.6 min)
+epoch  5/30 loss 0.6418 dev acc 0.7568 macroF1 0.5734 127s (elapsed 12.8 min)  <- best
+epoch  6/30 loss 0.5185 dev acc 0.7465 macroF1 0.5789 128s (elapsed 14.9 min)  <- best
+epoch  7/30 loss 0.4124 dev acc 0.7371 macroF1 0.5672 128s (elapsed 17.0 min)
+epoch  8/30 loss 0.3054 dev acc 0.7693 macroF1 0.5888 127s (elapsed 19.2 min)  <- best
+epoch  9/30 loss 0.2298 dev acc 0.7734 macroF1 0.6753 127s (elapsed 21.3 min)  <- best
+epoch 10/30 loss 0.1769 dev acc 0.7698 macroF1 0.6649 127s (elapsed 23.4 min)
+epoch 11/30 loss 0.1374 dev acc 0.7622 macroF1 0.6497 126s (elapsed 25.5 min)
+epoch 12/30 loss 0.1088 dev acc 0.7720 macroF1 0.6333 128s (elapsed 27.6 min)
+epoch 13/30 loss 0.0974 dev acc 0.7698 macroF1 0.5743 127s (elapsed 29.7 min)
+epoch 14/30 loss 0.0889 dev acc 0.7720 macroF1 0.6342 127s (elapsed 31.9 min)
+epoch 15/30 loss 0.0770 dev acc 0.7644 macroF1 0.6453 127s (elapsed 34.0 min)
+epoch 16/30 loss 0.0603 dev acc 0.7725 macroF1 0.6628 127s (elapsed 36.1 min)
+epoch 17/30 loss 0.0541 dev acc 0.7635 macroF1 0.5573 123s (elapsed 38.1 min)
+epoch 18/30 loss 0.0472 dev acc 0.7702 macroF1 0.6377 137s (elapsed 40.4 min)
+epoch 19/30 loss 0.0456 dev acc 0.7617 macroF1 0.6502 127s (elapsed 42.6 min)
+epoch 20/30 loss 0.0386 dev acc 0.7662 macroF1 0.6490 128s (elapsed 44.7 min)
+epoch 21/30 loss 0.0374 dev acc 0.7675 macroF1 0.5713 128s (elapsed 46.8 min)
+epoch 22/30 loss 0.0298 dev acc 0.7684 macroF1 0.6557 127s (elapsed 48.9 min)
+epoch 23/30 loss 0.0271 dev acc 0.7653 macroF1 0.6512 128s (elapsed 51.1 min)
+epoch 24/30 loss 0.0225 dev acc 0.7667 macroF1 0.6396 127s (elapsed 53.2 min)
+epoch 25/30 loss 0.0196 dev acc 0.7662 macroF1 0.6556 128s (elapsed 55.3 min)
+epoch 26/30 loss 0.0205 dev acc 0.7608 macroF1 0.6455 127s (elapsed 57.4 min)
+epoch 27/30 loss 0.0167 dev acc 0.7653 macroF1 0.6561 127s (elapsed 59.5 min)
+epoch 28/30 loss 0.0154 dev acc 0.7631 macroF1 0.6499 127s (elapsed 61.7 min)
+epoch 29/30 loss 0.0170 dev acc 0.7667 macroF1 0.6520 126s (elapsed 63.8 min)
+epoch 30/30 loss 0.0160 dev acc 0.7626 macroF1 0.6559 127s (elapsed 65.9 min)
+C:\Users\anura\Desktop\Capstone\DisMan\results\ablation\A\t2_L1_seed43.json
+TEST acc 0.7850 macroF1 0.5773 wF1 0.7856 | best dev macroF1 0.6753 @ epoch 9 | wall 67.0 min

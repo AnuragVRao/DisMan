@@ -526,6 +526,95 @@ OK  [Limitation.] all 33 ladder and component-ablation runs
 OK  [Limitation.] 7/8 = 0.875
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
+OK  [Setup. HF `openai/clip-vit-large-patch14`] Embedded 18,082 unique files
+OK  [Setup. HF `openai/clip-vit-large-patch14`] 21,608 rows
+OK  [Setup. HF `openai/clip-vit-large-patch14`] 18,083 unique `image_id` keys
+OK  [Setup. HF `openai/clip-vit-large-patch14`] in 5.1 minutes
+OK  [Setup. HF `openai/clip-vit-large-patch14`] 5.2
+OK  [Setup. HF `openai/clip-vit-large-patch14`] 2.36 s
+OK  [Setup. HF `openai/clip-vit-large-patch14`] 0 unreadable
+OK  [The encoders differ in size] 304.0M parameters against 87.8M
+OK  [The encoders differ in size] 24 layers against 12
+OK  [The encoders differ in size] 14 against 32 pixels
+OK  [| B/32 raw (v2's cached features, 512-d) | 3 |] 0.568 ± 0.008
+OK  [| B/32 raw (v2's cached features, 512-d) | 3 |] 0.788 ± 0.002
+OK  [| B/32 raw (v2's cached features, 512-d) | 3 |] 0.601 ± 0.005
+OK  [| B/32 raw (v2's cached features, 512-d) | 3 |] 0.793 ± 0.002
+OK  [| L/14 L2-normalised (768-d, as specified) | 3 |] 0.612 ± 0.002
+OK  [| L/14 L2-normalised (768-d, as specified) | 3 |] 0.812 ± 0.004
+OK  [| L/14 L2-normalised (768-d, as specified) | 3 |] 0.644 ± 0.009
+OK  [| L/14 L2-normalised (768-d, as specified) | 3 |] 0.816 ± 0.004
+OK  [| L/14 raw (768-d, control) | 3 |] 0.607 ± 0.003
+OK  [| L/14 raw (768-d, control) | 3 |] 0.813 ± 0.006
+OK  [| L/14 raw (768-d, control) | 3 |] 0.648 ± 0.011
+OK  [| L/14 raw (768-d, control) | 3 |] 0.817 ± 0.006
+OK  [L/14 minus B/32, paired by seed] +0.031, +0.039, +0.058
+OK  [L/14 minus B/32, paired by seed] mean +0.042 ± 0.014
+OK  [L/14 minus B/32, paired by seed] 0.648 ± 0.011
+OK  [| B/32 | fused | 5-NN majority |] 0.4832
+OK  [| B/32 | fused | 5-NN majority |] 0.6673
+OK  [| B/32 | fused | 5-NN majority |] 0.4914
+OK  [| B/32 | fused | logistic probe (C = 1) |] 0.5926
+OK  [| B/32 | fused | logistic probe (C = 1) |] 0.6843
+OK  [| B/32 | fused | logistic probe (C = 1) |] 0.6146
+OK  [| B/32 | image only | 5-NN majority |] 0.5427
+OK  [| B/32 | image only | 5-NN majority |] 0.6749
+OK  [| B/32 | image only | 5-NN majority |] 0.5074
+OK  [| B/32 | image only | logistic probe (C = 1) |] 0.6208
+OK  [| B/32 | image only | logistic probe (C = 1) |] 0.6730
+OK  [| B/32 | image only | logistic probe (C = 1) |] 0.5946
+OK  [| L/14 | fused | 5-NN majority |] 0.4564
+OK  [| L/14 | fused | 5-NN majority |] 0.6730
+OK  [| L/14 | fused | 5-NN majority |] 0.5050
+OK  [| L/14 | fused | logistic probe (C = 1) |] 0.5708
+OK  [| L/14 | fused | logistic probe (C = 1) |] 0.6749
+OK  [| L/14 | fused | logistic probe (C = 1) |] 0.6070
+OK  [| L/14 | image only | 5-NN majority |] 0.4985
+OK  [| L/14 | image only | 5-NN majority |] 0.6805
+OK  [| L/14 | image only | 5-NN majority |] 0.5479
+OK  [| L/14 | image only | logistic probe (C = 1) |] 0.6214
+OK  [| L/14 | image only | logistic probe (C = 1) |] 0.6824
+OK  [| L/14 | image only | logistic probe (C = 1) |] 0.6208
+OK  [Zero-shot Task 3 (identical prompts] E1 0.3746, E2 0.3758, E3 0.3884
+OK  [Zero-shot Task 3 (identical prompts] E1 0.3096, E2 0.3159, E3 0.3379
+OK  [Zero-shot Task 3 (identical prompts] L/14 accuracy 0.4083, macro-F1 0.3720, weighted-F1 0.4548
+OK  [Zero-shot Task 3 (identical prompts] B/32 accuracy 0.3025, macro-F1 0.2985, weighted-F1 0.3492
+OK  [Zero-shot Task 3 (identical prompts] L/14 0.3652 against B/32 0.3967
+OK  [`t2_imageonlyL14_vs_B32`] 2,237
+OK  [`t2_imageonlyL14_vs_B32`] 0.6374
+OK  [`t2_imageonlyL14_vs_B32`] 0.6069
+OK  [`t2_imageonlyL14_vs_B32`] +0.0306
+OK  [`t2_imageonlyL14_vs_B32`] [+0.0014, +0.0635]
+OK  [`t2_imageonlyL14_vs_B32`] yes
+OK  [`t2_imageonlyL14_vs_L4a`] 2,237
+OK  [`t2_imageonlyL14_vs_L4a`] 0.6374
+OK  [`t2_imageonlyL14_vs_L4a`] 0.6080
+OK  [`t2_imageonlyL14_vs_L4a`] +0.0295
+OK  [`t2_imageonlyL14_vs_L4a`] [-0.0097, +0.0712]
+OK  [`t2_imageonlyL14_vs_L4a`] no
+OK  [`t3_probeL14_vs_B32_fused`] 529
+OK  [`t3_probeL14_vs_B32_fused`] 0.6070
+OK  [`t3_probeL14_vs_B32_fused`] 0.6146
+OK  [`t3_probeL14_vs_B32_fused`] -0.0076
+OK  [`t3_probeL14_vs_B32_fused`] [-0.0440, +0.0303]
+OK  [`t3_probeL14_vs_B32_fused`] no
+OK  [`t3_knnL14_vs_B32_fused`] 529
+OK  [`t3_knnL14_vs_B32_fused`] 0.5050
+OK  [`t3_knnL14_vs_B32_fused`] 0.4914
+OK  [`t3_knnL14_vs_B32_fused`] +0.0135
+OK  [`t3_knnL14_vs_B32_fused`] [-0.0354, +0.0629]
+OK  [`t3_knnL14_vs_B32_fused`] no
+OK  [`t2_imageonlyL14raw_vs_B32`] 2,237
+OK  [`t2_imageonlyL14raw_vs_B32`] 0.6545
+OK  [`t2_imageonlyL14raw_vs_B32`] 0.6069
+OK  [`t2_imageonlyL14raw_vs_B32`] +0.0476
+OK  [`t2_imageonlyL14raw_vs_B32`] [+0.0166, +0.0815]
+OK  [`t2_imageonlyL14raw_vs_B32`] yes
+OK  [Task 3: L/14 helps the image-only paths] 0.507 to 0.548
+OK  [Task 3: L/14 helps the image-only paths] 0.595 to 0.621
+OK  [The T2 image-only gain from L/14 is consistent] +0.0014 to +0.0635
+OK  [The 18,083rd key] B/32 maximum difference 1.8e-06
+OK  [The 18,083rd key] L/14 0.0e+00
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
@@ -890,3 +979,45 @@ OK  [report/ablation_section.tex: The pooled Task 2 leave-one-disaster-out drop]
 OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] F1 = 0
 OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] (3 test rows)
 OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] about 0.875
+OK  [report/ablation_section.tex: ViT-L/14 differs from ViT-B/32 in both size] 304M parameters against 88M
+OK  [report/ablation_section.tex: ViT-L/14 differs from ViT-B/32 in both size] 14 against 32 pixels
+OK  [report/ablation_section.tex: With the same head and recipe, the image-only Task 2 model gains] gains 0.042 macro-F1 on average over three seeds (0.601 to 0.644)
+OK  [report/ablation_section.tex: With the same head and recipe, the image-only Task 2 model gains] at seed 42
+OK  [report/ablation_section.tex: With the same head and recipe, the image-only Task 2 model gains] +0.001 to +0.063
+OK  [report/ablation_section.tex: Feeding the raw L/14 features] gives 0.648 on average, and at seed 42 a gain of +0.048 (+0.017 to +0.081)
+OK  [report/ablation_section.tex: Against the full B/32 model (L4a)] ahead by 0.029 at seed 42
+OK  [report/ablation_section.tex: Against the full B/32 model (L4a)] (-0.010 to +0.071)
+OK  [report/ablation_section.tex: For Task 3 the larger encoder helps the image-only paths] 5-NN 0.507 to 0.548
+OK  [report/ablation_section.tex: For Task 3 the larger encoder helps the image-only paths] logistic probe 0.595 to 0.621
+OK  [report/ablation_section.tex: For Task 3 the larger encoder helps the image-only paths] 0.607 against 0.615 (-0.008, interval -0.044 to +0.030)
+OK  [report/ablation_section.tex: For Task 3 the larger encoder helps the image-only paths] the fused 5-NN 0.505 against 0.491 (+0.014, interval -0.035 to +0.063)
+OK  [report/ablation_section.tex: Zero-shot macro-F1, with identical prompts] from 0.299 to 0.372 (accuracy 0.302 to 0.408)
+OK  [report/ablation_section.tex: Zero-shot macro-F1, with identical prompts] 0.333
+OK  [report/ablation_section.tex: Zero-shot macro-F1, with identical prompts] 0.257
+OK  [report/ablation_section.tex: Zero-shot macro-F1, with identical prompts] (0.607)
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] three seeds
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] n=1
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] 529 test queries
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] at seed 42
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] over the 529 queries
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] (14 against 32)
+OK  [report/ablation_section.tex: Image encoder scale: CLIP ViT-B/32 against ViT-L/14, test macro-F1] 95% interval
+OK  [report/ablation_section.tex: Setting & n & B/32 (or L4a) & L/14 & Difference] 95% interval
+OK  [report/ablation_section.tex: T2 image-only (L/14 L2-normalised) & 3 & 0.601 ± 0.005] 0.644 ± 0.009
+OK  [report/ablation_section.tex: T2 image-only (L/14 L2-normalised) & 3 & 0.601 ± 0.005] +0.031
+OK  [report/ablation_section.tex: T2 image-only (L/14 L2-normalised) & 3 & 0.601 ± 0.005] [+0.001, +0.063]
+OK  [report/ablation_section.tex: T2 image-only (L/14 raw input, control) & 3 & 0.601 ± 0.005] 0.648 ± 0.011
+OK  [report/ablation_section.tex: T2 image-only (L/14 raw input, control) & 3 & 0.601 ± 0.005] +0.048
+OK  [report/ablation_section.tex: T2 image-only (L/14 raw input, control) & 3 & 0.601 ± 0.005] [+0.017, +0.081]
+OK  [report/ablation_section.tex: T2 image-only L/14 against L4a (full model, B/32) & 3 & 0.598 ± 0.010] 0.644 ± 0.009
+OK  [report/ablation_section.tex: T2 image-only L/14 against L4a (full model, B/32) & 3 & 0.598 ± 0.010] +0.029
+OK  [report/ablation_section.tex: T2 image-only L/14 against L4a (full model, B/32) & 3 & 0.598 ± 0.010] [-0.010, +0.071]
+OK  [report/ablation_section.tex: T3 fused, logistic probe & 1 & 0.615] 0.607
+OK  [report/ablation_section.tex: T3 fused, logistic probe & 1 & 0.615] -0.008
+OK  [report/ablation_section.tex: T3 fused, logistic probe & 1 & 0.615] [-0.044, +0.030]
+OK  [report/ablation_section.tex: T3 fused, 5-NN & 1 & 0.491] 0.505
+OK  [report/ablation_section.tex: T3 fused, 5-NN & 1 & 0.491] +0.014
+OK  [report/ablation_section.tex: T3 fused, 5-NN & 1 & 0.491] [-0.035, +0.063]
+OK  [report/ablation_section.tex: T3 image-only, logistic probe & 1 & 0.595] 0.621
+OK  [report/ablation_section.tex: T3 image-only, 5-NN & 1 & 0.507] 0.548
+OK  [report/ablation_section.tex: T3 zero-shot (prompt set E3) & 1 & 0.299] 0.372

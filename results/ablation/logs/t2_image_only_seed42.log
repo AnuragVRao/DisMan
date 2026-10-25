@@ -1,0 +1,13 @@
+{'train': 13608, 'dev': 2237, 'test': 2237} | config L4a {'data': 'full', 'clip': 'hf', 'tf': 'deterministic', 'epochs': 10, 'cache': True, 'amp': True, 'bert': 'pretrained'} epochs 10
+epoch  1/10 loss 2.1903 dev acc 0.0112 macroF1 0.0086 5s (elapsed 0.2 min)  <- best
+epoch  2/10 loss 1.6326 dev acc 0.7166 macroF1 0.4986 4s (elapsed 0.3 min)  <- best
+epoch  3/10 loss 0.9778 dev acc 0.7367 macroF1 0.5350 4s (elapsed 0.4 min)  <- best
+epoch  4/10 loss 0.7661 dev acc 0.7309 macroF1 0.5279 5s (elapsed 0.4 min)
+epoch  5/10 loss 0.7085 dev acc 0.7577 macroF1 0.5527 5s (elapsed 0.5 min)  <- best
+epoch  6/10 loss 0.6704 dev acc 0.7421 macroF1 0.5520 5s (elapsed 0.6 min)
+epoch  7/10 loss 0.6338 dev acc 0.7506 macroF1 0.5496 4s (elapsed 0.7 min)
+epoch  8/10 loss 0.5892 dev acc 0.7546 macroF1 0.5681 4s (elapsed 0.7 min)  <- best
+epoch  9/10 loss 0.5623 dev acc 0.7640 macroF1 0.5752 4s (elapsed 0.8 min)  <- best
+epoch 10/10 loss 0.5731 dev acc 0.7582 macroF1 0.5708 5s (elapsed 0.9 min)
+C:\Users\anura\Desktop\Capstone\DisMan\results\ablation\B\t2_image_only_seed42.json
+TEST acc 0.7890 macroF1 0.6069 wF1 0.7935 | best dev macroF1 0.5752 @ epoch 9 | wall 0.9 min

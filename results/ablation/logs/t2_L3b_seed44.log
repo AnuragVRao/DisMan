@@ -1,0 +1,13 @@
+{'train': 13608, 'dev': 2237, 'test': 2237} | config L3b {'data': 'full', 'clip': 'hf', 'tf': 'deterministic', 'epochs': 10, 'cache': True, 'amp': False, 'bert': 'pretrained'} epochs 10
+epoch  1/10 loss 2.1106 dev acc 0.3111 macroF1 0.0702 98s (elapsed 1.8 min)  <- best
+epoch  2/10 loss 1.4890 dev acc 0.7184 macroF1 0.4869 98s (elapsed 3.4 min)  <- best
+epoch  3/10 loss 0.9009 dev acc 0.7367 macroF1 0.5211 98s (elapsed 5.1 min)  <- best
+epoch  4/10 loss 0.7697 dev acc 0.7447 macroF1 0.5548 98s (elapsed 6.7 min)  <- best
+epoch  5/10 loss 0.6287 dev acc 0.7573 macroF1 0.5676 96s (elapsed 8.3 min)  <- best
+epoch  6/10 loss 0.5103 dev acc 0.7599 macroF1 0.5903 95s (elapsed 9.9 min)  <- best
+epoch  7/10 loss 0.3809 dev acc 0.7671 macroF1 0.5852 98s (elapsed 11.5 min)
+epoch  8/10 loss 0.2987 dev acc 0.7465 macroF1 0.5627 98s (elapsed 13.1 min)
+epoch  9/10 loss 0.2400 dev acc 0.7532 macroF1 0.5706 98s (elapsed 14.8 min)
+epoch 10/10 loss 0.2162 dev acc 0.7599 macroF1 0.5743 98s (elapsed 16.4 min)
+C:\Users\anura\Desktop\Capstone\DisMan\results\ablation\A\t2_L3b_seed44.json
+TEST acc 0.7881 macroF1 0.5965 wF1 0.7903 | best dev macroF1 0.5903 @ epoch 6 | wall 16.5 min
