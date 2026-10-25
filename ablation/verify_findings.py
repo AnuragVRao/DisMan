@@ -239,6 +239,19 @@ gapx = lambda m, k: xg(m, "agreed", k) - xg(m, "disagreed", k)
 chk("Agreed minus disagreed gap", [f"L4a {xpm(gapx('L4a', 'macro_f1'))} / {xpm(gapx('L4a', 'acc'))}", f"image only {xpm(gapx('image_only', 'macro_f1'))} / {xpm(gapx('image_only', 'acc'))}"])
 chk("Caveats: the two subsets differ in class mix", [f"{mbx['agreed']['acc'] * 100:.1f}%", f"{mbx['disagreed']['acc'] * 100:.1f}%", f"{max(xg('text_only', s, 'macro_f1').std(ddof=1) for s in ('agreed', 'disagreed', 'all')):.2f} for text-only"])
 
+# ── §9.2 E1 bootstrap intervals, recomputed from results/ablation/X/e1_* ──────────────────────────────────────────────
+_E1N = ["t3_probe_vs_knn_fused", "t3_probe_vs_knn_image", "t3_L4_vs_L1", "t2_imageonly_vs_L4a", "t2_agreed_acc_L4a_vs_imageonly"]
+_E1 = {n: json.load(open(RES / "X" / f"e1_{n}_seed42.json")) for n in _E1N}
+for _n, _r in _E1.items():
+    chk(f"| `{_n}` |", [f"{_r['n_rows']:,}", f"{_r['score_a']:.4f}", f"{_r['score_b']:.4f}", f"{_r['diff']:+.4f}",
+                       f"[{_r['ci95_low']:+.4f}, {_r['ci95_high']:+.4f}]", "yes" if _r["ci_excludes_zero"] else "no"])
+chk("Paired percentile bootstrap:", [f"{_E1['t3_L4_vs_L1']['n_boot']:,} resamples", f"seed {_E1['t3_L4_vs_L1']['rng_seed']}"])
+chk("The probe beats 5-NN on both embeddings", [f"fused {_E1['t3_probe_vs_knn_fused']['diff']:+.3f}", f"image {_E1['t3_probe_vs_knn_image']['diff']:+.3f}"])
+chk("The gap between v2's index (L4)", [f"{_E1['t3_L4_vs_L1']['diff']:+.3f}"])
+chk("Image-only against L4a at seed 42", [f"{_E1['t2_imageonly_vs_L4a']['diff']:+.3f}", f"{_E1['t2_imageonly_vs_L4a']['ci95_low']:+.3f} to {_E1['t2_imageonly_vs_L4a']['ci95_high']:+.3f}"])
+chk("The accuracy gain of L4a over image-only on the agreed rows", [f"{_E1['t2_agreed_acc_L4a_vs_imageonly']['diff']:+.3f}"])
+assert not _E1["t2_imageonly_vs_L4a"]["ci_excludes_zero"] and all(_E1[n]["ci_excludes_zero"] for n in _E1N if n != "t2_imageonly_vs_L4a")
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
@@ -316,10 +329,11 @@ for rung, key, extra in [("L0", "L0 & v1 buggy", ["30 ep"]), ("L1", "L1 & + full
 for rung, key in [("L0", "L0 & v1 index"), ("L1", "L1 & test rows"), ("L2", "L2 & pollution"), ("L3", "L3 & dev removed"), ("L4", "L4 & tweet siblings")]:
     d = T3[rung]
     tchk(key, [f"& {d['index_rows']} &", f"{d['test_acc']:.4f}", f"{d['test_macro_f1']:.4f}", f"{d['test_weighted_f1']:.4f}"])
-for key, c, part in [("full model (L4a) &", "t2_L4a", "A"), ("image only &", "t2_image_only", "B"), ("concat, no attention &", "t2_concat", "B"),
-                     ("no text→image attention &", "t2_no_t2i", "B"), ("text only & 3", "t2_text_only", "B")]:
-    tchk(key, [f"& {nseed(c, part)} &", f"{int(rows(c, part)[0]['n_params']):,}"] +
-         [ms(col(c, k, part)) for k in ("dev_macro_f1", "test_acc", "test_macro_f1", "test_weighted_f1")])
+for label, c, part in [("full model (L4a)", "t2_L4a", "A"), ("image only", "t2_image_only", "B"), ("concat, no attention", "t2_concat", "B"),
+                       ("no text→image attention", "t2_no_t2i", "B"), ("text only", "t2_text_only", "B")]:
+    # anchored with the (JSON-derived) parameter count so the A1 table's rows with the same model names cannot match
+    tchk(f"{label} & {nseed(c, part)} & {int(rows(c, part)[0]['n_params']):,}",
+         [ms(col(c, k, part)) for k in ("dev_macro_f1", "test_acc", "test_macro_f1", "test_weighted_f1")], cover_anchor=True)
 for k in KS:
     tchk(f"{k} & {b3('fused', k, 'majority', 'dev_macro_f1'):.4f}", [f"{b3('fused', k, 'majority', 'test_acc'):.4f}", f"{b3('fused', k, 'majority', 'test_macro_f1'):.4f}"], cover_anchor=True)
 for key, v in [("majority (v2) &", "majority"), ("similarity-weighted &", "sim_weighted"), ("class-balanced &", "class_balanced")]:
@@ -412,8 +426,13 @@ tchk("Class-balanced voting raises", [f"{b3('fused',5,'class_balanced','dev_macr
                                       f"{b3('fused',5,'majority','test_acc'):.3f}", f"{b3('fused',5,'class_balanced','test_acc'):.3f}"])
 tchk("Image-only retrieval", [f"{b3('image',5,'majority','test_macro_f1'):.3f}", f"{b3('fused',5,'majority','test_macro_f1'):.3f}",
                               f"{b3('text',5,'majority','test_macro_f1'):.3f}"])
+_e1f = json.load(open(RES / "X" / "e1_t3_probe_vs_knn_fused_seed42.json"))
+_e1i = json.load(open(RES / "X" / "e1_t3_probe_vs_knn_image_seed42.json"))
+assert _e1f["ci_excludes_zero"] and _e1i["ci_excludes_zero"] and _e1f["n_boot"] == _e1i["n_boot"] == 10000      # "both exclude zero"
+_iv = lambda r: f"{r['diff']:+.3f} ({r['ci95_low']:+.3f} to {r['ci95_high']:+.3f})"
 tchk("A logistic-regression probe", [f"{lr('fused','test_macro_f1'):.3f}", f"{b3('fused',5,'majority','test_macro_f1'):.3f}",
-                                     f"{lr('image','test_macro_f1'):.3f}", f"{b3('image',5,'majority','test_macro_f1'):.3f}"])
+                                     f"{lr('image','test_macro_f1'):.3f}", f"{b3('image',5,'majority','test_macro_f1'):.3f}",
+                                     "bootstrap 95%", _iv(_e1f), _iv(_e1i)])
 g4, g4a = c1("c1_t2_L4", "image_grey"), c1("c1_t2_L4a", "image_grey")
 assert max(np.abs(np.concatenate([g4, g4a]) - maj)) <= 0.002
 tchk("A grey image collapses", [f"{g4.mean():.3f}", f"{g4a.mean():.3f}", "within 0.002", f"{maj:.4f}"])
@@ -449,6 +468,29 @@ tchk("Development macro-F1 for L0 to L2", [f"best of {rows('t2_L2')[0]['flags'][
                                            f"{gap('L3'):+.3f}", f"{rows('t2_L3')[0]['flags']['epochs']}-epoch"])
 tchk("we regard only the following as established", [sg(col("t2_L1", "test_macro_f1").mean() - col("t2_L0", "test_macro_f1").mean()), "about 0.01"])
 tchk("Differences of about 0.01", "about 0.01")
+
+# 4b. A1 table, the rewritten agreed/disagreed sentences and the E1 bootstrap intervals (all recomputed from results/ablation/X)
+E1N = ["t3_probe_vs_knn_fused", "t3_probe_vs_knn_image", "t3_L4_vs_L1", "t2_imageonly_vs_L4a", "t2_agreed_acc_L4a_vs_imageonly"]
+E1 = {n: json.load(open(RES / "X" / f"e1_{n}_seed42.json")) for n in E1N}
+for n, r in E1.items():
+    assert r["n_boot"] == 10_000, n
+xs = {sub: x0["subsets"][sub]["n"] for sub in ("agreed", "disagreed", "all")}
+ANAME = {"L4a": "L4a (full)", "image_only": "image only", "text_only": "text only"}
+for sub, lab in (("agreed", "agreed"), ("disagreed", "disagreed"), ("all", "all rows")):
+    tchk(f"{lab} & {xs[sub]} & majority class & -- & {mbx[sub]['acc']:.3f}", [f"{mbx[sub]['macro_f1']:.3f}"], cover_anchor=True)
+    for m in ("L4a", "image_only", "text_only"):
+        tchk(f"& & {ANAME[m]} & {len(X1[m])} & {ms(xg(m, sub, 'acc'))}", [ms(xg(m, sub, "macro_f1"))], cover_anchor=True)
+sg3 = lambda v: f"{v:+.3f}"
+agr_acc = xd("L4a", "image_only", "agreed", "acc")
+assert (agr_acc > 0).all() and E1["t2_agreed_acc_L4a_vs_imageonly"]["ci_excludes_zero"]          # "positive at all three seeds ... established"
+dis_f1 = xd("L4a", "image_only", "disagreed", "macro_f1")
+tchk("Over the whole test set the text adds", [sg3(pairB("t2_image_only").mean())])
+tchk("The effect depends on whether the two labels agree",
+     [f"{x0['n_agreed']} rows", sg3(agr_acc.mean()), f"{x0['n_disagreed']:,} disagreed rows", sg3(dis_f1.mean()),
+      f"paired bootstrap 95% interval of {sg3(E1['t2_agreed_acc_L4a_vs_imageonly']['ci95_low'])} to {sg3(E1['t2_agreed_acc_L4a_vs_imageonly']['ci95_high'])}",
+      f"at seed {E1['t2_agreed_acc_L4a_vs_imageonly']['seed']}"])
+f1b, imb = E1["t3_probe_vs_knn_fused"], E1["t3_probe_vs_knn_image"]
+tchk("The bootstrap resamples the", [f"{f1b['n_rows']} test queries"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]

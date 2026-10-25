@@ -192,3 +192,22 @@ Majority-class reference (always "Not humanitarian"): agreed acc 0.528 / macro-F
 * **Text-only on disagreed rows** scores accuracy 0.338 ± 0.005, below the majority-class accuracy of 0.430 there (macro-F1 0.198 ± 0.010 against 0.075); on these rows the text annotation differs from the image label by construction.
 * **Agreed minus disagreed gap** (macro-F1 / accuracy): L4a +0.196 ± 0.021 / +0.116 ± 0.004; image only +0.133 ± 0.033 / +0.100 ± 0.009.
 * Caveats: the two subsets differ in class mix ("Not humanitarian" is 52.8% of the agreed rows and 43.0% of the disagreed rows), and macro-F1 on 955 rows with rare classes is noisy (seed std up to 0.06 for text-only).
+
+### 9.2 E1: paired bootstrap intervals (CPU)
+
+Paired percentile bootstrap: 10,000 resamples of the test rows (seed 20241025); both prediction vectors are scored on the same resampled rows and the difference is first minus second.
+Predictions were regenerated exactly as in `t3_partb.py`, `t3_ladder.py` and `a1_agreement.py` and asserted to reproduce the stored scores before bootstrapping.
+
+| Key | Comparison (first − second) | Metric | Rows | First | Second | Difference | 95% CI | CI excludes 0 |
+|---|---|---|---|---|---|---|---|---|
+| `t3_probe_vs_knn_fused` | T3 logistic probe − 5-NN, fused | macro-F1 | 529 | 0.6146 | 0.4914 | +0.1231 | [+0.0615, +0.1861] | yes |
+| `t3_probe_vs_knn_image` | T3 logistic probe − 5-NN, image | macro-F1 | 529 | 0.5946 | 0.5074 | +0.0873 | [+0.0277, +0.1479] | yes |
+| `t3_L4_vs_L1` | T3 ladder L4 (v2) − L1 | macro-F1 | 529 | 0.4914 | 0.3777 | +0.1137 | [+0.0635, +0.1673] | yes |
+| `t2_imageonly_vs_L4a` | T2 image-only − L4a (seed 42) | macro-F1 | 2,237 | 0.6069 | 0.6080 | -0.0011 | [-0.0358, +0.0340] | no |
+| `t2_agreed_acc_L4a_vs_imageonly` | T2 L4a − image-only, agreed rows (seed 42) | accuracy | 955 | 0.8723 | 0.8482 | +0.0241 | [+0.0115, +0.0377] | yes |
+
+* The probe beats 5-NN on both embeddings (fused +0.123, image +0.087); both intervals exclude zero.
+* The gap between v2's index (L4) and the original index with the test images removed (L1) is +0.114 macro-F1 and its interval excludes zero.
+* Image-only against L4a at seed 42 is -0.001 macro-F1, interval -0.036 to +0.034, which includes zero (consistent with §4).
+* The accuracy gain of L4a over image-only on the agreed rows is +0.024 at seed 42 with an interval that excludes zero; together with its positive sign at all three seeds (§9.1) this is regarded as established.
+* Scope: the bootstrap resamples test rows only. Each side is one trained model or one index (T2: seed 42 only), so variability from training is not covered; the T3 comparisons are therefore intervals for these particular index and probe fits.

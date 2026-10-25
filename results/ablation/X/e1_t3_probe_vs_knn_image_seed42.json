@@ -1,0 +1,21 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "comparison": "t3_probe_vs_knn_image",
+ "metric": "macro_f1",
+ "n_rows": 529,
+ "n_boot": 10000,
+ "rng_seed": 20241025,
+ "score_a": 0.5946407564509798,
+ "score_b": 0.5073605639643376,
+ "diff": 0.0872801924866422,
+ "ci95_low": 0.027707707891559376,
+ "ci95_high": 0.1479086891247328,
+ "ci_excludes_zero": true,
+ "boot_mean": 0.08743947587676375,
+ "frac_boot_diff_positive": 0.9975,
+ "part": "X",
+ "config": "e1_t3_probe_vs_knn_image",
+ "seed": 42,
+ "git_commit": "e348b69"
+}
