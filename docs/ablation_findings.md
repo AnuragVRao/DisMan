@@ -228,3 +228,51 @@ Because the hybrid's label is the probe's label, its row is the probe row of Par
 * Bootstrap, hybrid minus 5-NN macro-F1: +0.1231, 95% interval +0.0615 to +0.1861 (10,000 resamples), identical to the E1 probe row.
 * **The neighbour majority disagrees with the probe on 184 of 529 queries (34.8%).** Where they agree (345 queries) accuracy is 0.812; where they disagree the probe is right on 0.446 of the queries and the 5-NN majority on 0.397, so disagreement marks the hard cases for both.
 * Demo: behind `CAPSTONE_T3_HYBRID=1` (or `Pipeline(hybrid_t3=True)`), default off; the default Task 3 output is unchanged and v2's behaviour is not altered. One-off smoke test (`ablation/e2_demo_smoke.py`, not part of the number verifier): over the first 60 test images the flag-off labels are the k-NN majority and carry no hybrid keys; with the flag on the demo's 5-NN field equals the flag-off label on 60 of 60 rows and its hybrid label equals the offline probe on 60 of 60; the probe and the neighbour majority disagree on 21 of those 60; the Gradio handler shows the neighbour-majority note only when the flag is set.
+
+### 9.4 C: calibration (inference only)
+
+Top-label expected calibration error (ECE) with 15 equal-width confidence bins, on the test split. If a model's test ECE exceeds 0.05, one temperature T is fitted on the development split (minimising dev NLL) and applied to the test logits; for the T2 seeds it is computed for all three so that the aggregate covers every seed (the column "Exceeds 0.05" shows which seeds the rule selects).
+T3 calibrates the **probe's** probabilities, not the 5-NN vote fractions. The dev fit uses a probe trained on damage-train minus the tweets shared with dev (the test probe would have seen dev siblings), and T is then applied to the test probe. Reliability diagram: `results/ablation/reliability.pdf` (bins with few queries are noisy).
+
+**Task 3, logistic probe (fused, C = 1; 529 test queries)**
+
+| Accuracy | Mean confidence | ECE before | T | ECE after | NLL before | NLL after | Brier before | Brier after |
+|---|---|---|---|---|---|---|---|---|
+| 0.6843 | 0.6073 | 0.0770 | 0.693 | 0.0381 | 0.7757 | 0.7723 | 0.4482 | 0.4404 |
+
+**Task 2, L4a (2,237 test rows)**
+
+| Seed | Accuracy | Mean confidence | ECE before | Exceeds 0.05 | T (fitted on dev) | ECE after | NLL before | NLL after |
+|---|---|---|---|---|---|---|---|---|
+| 42 | 0.8033 | 0.8431 | 0.0459 | no | 1.185 | 0.0239 | 0.5465 | 0.5423 |
+| 43 | 0.8029 | 0.8793 | 0.0770 | yes | 1.467 | 0.0216 | 0.5970 | 0.5564 |
+| 44 | 0.7921 | 0.8782 | 0.0867 | yes | 1.472 | 0.0246 | 0.6181 | 0.5706 |
+| mean ± std (3 seeds) | 0.7994 ± 0.0063 | 0.8669 ± 0.0206 | 0.0698 ± 0.0213 | | 1.375 ± 0.164 | 0.0234 ± 0.0016 | 0.5872 ± 0.0368 | 0.5564 ± 0.0141 |
+
+* The T3 probe is **under-confident** (mean confidence 0.607 against accuracy 0.684; T = 0.693 < 1 sharpens it) and the T2 model is **over-confident** (mean confidence 0.867 against accuracy 0.799; T > 1 softens it). In both cases temperature scaling brings ECE below 0.05 (T3 0.077 to 0.038; T2 0.070 to 0.023 on average); the NLL and Brier gains are small.
+
+**Do the two signals track correctness? (T3 probe, test)**
+
+| Probe vs 5-NN majority | Queries | Accuracy |
+|---|---|---|
+| agree | 345 | 0.812 |
+| disagree | 184 | 0.446 |
+
+| Probe-confidence quintile | Queries | Confidence range | Mean confidence | Accuracy |
+|---|---|---|---|---|
+| Q1 | 106 | 0.336 to 0.463 | 0.412 | 0.500 |
+| Q2 | 106 | 0.464 to 0.548 | 0.504 | 0.575 |
+| Q3 | 106 | 0.548 to 0.633 | 0.589 | 0.623 |
+| Q4 | 106 | 0.635 to 0.759 | 0.697 | 0.811 |
+| Q5 | 105 | 0.760 to 0.957 | 0.836 | 0.914 |
+
+| Agreement × confidence (median 0.586) | Queries | Accuracy |
+|---|---|---|
+| agree, high confidence | 217 | 0.894 |
+| agree, low confidence | 128 | 0.672 |
+| disagree, high confidence | 48 | 0.521 |
+| disagree, low confidence | 136 | 0.419 |
+
+* Both signals track correctness. Accuracy rises monotonically with confidence from 0.500 (Q1) to 0.914 (Q5), and is 0.812 where the probe and the neighbours agree against 0.446 where they disagree.
+* AUROC for predicting a correct answer: probe confidence 0.718 (95% bootstrap interval 0.672 to 0.762); agreement 0.692 (0.650 to 0.735). Both intervals exclude 0.5 (10,000 resamples).
+* The signals are partly independent: among agreeing queries accuracy rises from 0.672 (low confidence) to 0.894 (high), and among disagreeing queries from 0.419 to 0.521.

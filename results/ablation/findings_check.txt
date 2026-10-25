@@ -337,6 +337,67 @@ OK  [The neighbour majority disagrees with the probe on] 184 of 529 queries (34.
 OK  [The neighbour majority disagrees with the probe on] (345 queries) accuracy is 0.812
 OK  [The neighbour majority disagrees with the probe on] the probe is right on 0.446
 OK  [The neighbour majority disagrees with the probe on] majority on 0.397
+OK  [Task 3, logistic probe (fused, C = 1;] 529 test queries
+OK  [| 0.6843 | 0.6073 |] | 0.0770 | 0.693 | 0.0381 | 0.7757 | 0.7723 | 0.4482 | 0.4404 |
+OK  [| 42 | 0.8033 | 0.8431 |] | 0.0459 | no | 1.185 | 0.0239 | 0.5465 | 0.5423 |
+OK  [| 43 | 0.8029 | 0.8793 |] | 0.0770 | yes | 1.467 | 0.0216 | 0.5970 | 0.5564 |
+OK  [| 44 | 0.7921 | 0.8782 |] | 0.0867 | yes | 1.472 | 0.0246 | 0.6181 | 0.5706 |
+OK  [| mean ± std (3 seeds) |] 0.7994 ± 0.0063
+OK  [| mean ± std (3 seeds) |] 0.8669 ± 0.0206
+OK  [| mean ± std (3 seeds) |] 0.0698 ± 0.0213
+OK  [| mean ± std (3 seeds) |] 1.375 ± 0.164
+OK  [| mean ± std (3 seeds) |] 0.0234 ± 0.0016
+OK  [| mean ± std (3 seeds) |] 0.5872 ± 0.0368
+OK  [| mean ± std (3 seeds) |] 0.5564 ± 0.0141
+OK  [The T3 probe is under-confident] mean confidence 0.607 against accuracy 0.684
+OK  [The T3 probe is under-confident] T = 0.693
+OK  [The T3 probe is under-confident] mean confidence 0.867 against accuracy 0.799
+OK  [The T3 probe is under-confident] T3 0.077 to 0.038
+OK  [The T3 probe is under-confident] T2 0.070 to 0.023
+OK  [| agree |] 345
+OK  [| agree |] 0.812
+OK  [| disagree |] 184
+OK  [| disagree |] 0.446
+OK  [| Q1 |] 106
+OK  [| Q1 |] 0.336 to 0.463
+OK  [| Q1 |] 0.412
+OK  [| Q1 |] 0.500
+OK  [| Q2 |] 106
+OK  [| Q2 |] 0.464 to 0.548
+OK  [| Q2 |] 0.504
+OK  [| Q2 |] 0.575
+OK  [| Q3 |] 106
+OK  [| Q3 |] 0.548 to 0.633
+OK  [| Q3 |] 0.589
+OK  [| Q3 |] 0.623
+OK  [| Q4 |] 106
+OK  [| Q4 |] 0.635 to 0.759
+OK  [| Q4 |] 0.697
+OK  [| Q4 |] 0.811
+OK  [| Q5 |] 105
+OK  [| Q5 |] 0.760 to 0.957
+OK  [| Q5 |] 0.836
+OK  [| Q5 |] 0.914
+OK  [| Agreement × confidence] median 0.586
+OK  [| agree, high confidence |] 217
+OK  [| agree, high confidence |] 0.894
+OK  [| agree, low confidence |] 128
+OK  [| agree, low confidence |] 0.672
+OK  [| disagree, high confidence |] 48
+OK  [| disagree, high confidence |] 0.521
+OK  [| disagree, low confidence |] 136
+OK  [| disagree, low confidence |] 0.419
+OK  [Both signals track correctness] 0.500 (Q1)
+OK  [Both signals track correctness] 0.914 (Q5)
+OK  [Both signals track correctness] is 0.812
+OK  [Both signals track correctness] against 0.446
+OK  [AUROC for predicting a correct answer] probe confidence 0.718
+OK  [AUROC for predicting a correct answer] 0.672 to 0.762
+OK  [AUROC for predicting a correct answer] agreement 0.692
+OK  [AUROC for predicting a correct answer] 0.650 to 0.735
+OK  [AUROC for predicting a correct answer] 10,000 resamples
+OK  [The signals are partly independent] 0.672 (low confidence) to 0.894 (high)
+OK  [The signals are partly independent] from 0.419 to 0.521
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
