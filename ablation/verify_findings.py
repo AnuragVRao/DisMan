@@ -370,8 +370,10 @@ chk("Run time:", [f"{_dov['total_wall_clock_s'] / 60:.1f} minutes"])
 # ── §9.5 per-class pooled F1 (seed 42), recomputed from results/ablation/X/d_lodo_t2_perclass_seed42.json ─────────────
 _pc2 = json.load(open(RES / "X" / "d_lodo_t2_perclass_seed42.json"))
 for _r in _pc2["classes"]:
-    chk(f"| {_r['cls']} | {_r['support']} | {_r['support_earthquake']} |",
-        [f"{_r['earthquake_fraction']:.3f}", f"{_r['f1_lodo']:.3f}", f"{_r['f1_indist']:.3f}", f"{_r['diff']:+.3f}", f"{100 * _r['share_of_total_drop']:.1f}%"])
+    if _r["cls"] == "Missing or found people":
+        continue                    # its row is identical in the D and the L0/L1 tables (F1 0.000 everywhere); checked below as appearing exactly twice
+    chk(f"| {_r['cls']} | {_r['support']} | {_r['support_earthquake']} | {_r['earthquake_fraction']:.3f} | {_r['f1_lodo']:.3f} | {_r['f1_indist']:.3f} |",
+        [f"{_r['diff']:+.3f}", f"{100 * _r['share_of_total_drop']:.1f}%"])
 _t = max(_pc2["classes"], key=lambda r: -r["diff"])
 _pr = _pc2["macro_f1_lodo"] - _pc2["macro_f1_indist"]
 _sd42 = [r["lodo"]["macro_f1"] - r["indist"]["macro_f1"] for r in (next(x for x in _DR_ if x["seed"] == 42) for _DR_ in _DR.values())]
@@ -384,6 +386,67 @@ chk("It is a single class", [f"{_pc2['classes'][6]['diff']:+.3f} with {_pc2['cla
                              f"is {_pc2['pearson_eqfrac_vs_diff']:+.2f}"])
 chk("Caveat: Injured or dead people has only", [f"{_t['support']} test rows", f"{_pc2['classes'][3]['support']}, F1 0 in both settings"])
 assert _pc2["classes"][3]["f1_lodo"] == 0 == _pc2["classes"][3]["f1_indist"]
+
+# ── §9.6 L0 vs L1 per class, the D caveat and the limitation, recomputed from results/ablation/X ─────────────────────────
+_l01 = json.load(open(RES / "X" / "l0_l1_perclass_seed42.json"))
+_e1l = json.load(open(RES / "X" / "e1_t2_L1_vs_L0_seed42.json"))
+assert abs(_l01["cpu_macro_f1_L0"] - _e1l["regen_macro_f1_L0_crop_seeds"][0]) < 1e-12 and abs(_l01["cpu_macro_f1_L1"] - _e1l["regen_macro_f1_L1_crop_seeds"][0]) < 1e-12
+_c01 = _l01["classes"]
+_t01 = max(_c01, key=lambda r: r["diff"])
+assert _t01["cls"] == "Injured or dead people" and _t01["share_of_total_gain"] > 0.5                 # "carries the majority of the gain"
+_dt = max(_pc2["classes"], key=lambda r: -r["diff"])
+assert _dt["cls"] == _t01["cls"]                                                                       # the same class dominates both experiments
+chk("Per-class F1, T2 L0 vs L1 (seed 42, crop seed 0", [f"the {_l01['n_test']:,} test rows", f"{_l01['e1_macro_f1_L0']:.6f} and {_l01['e1_macro_f1_L1']:.6f}"])
+for _r in _c01:
+    if _r["cls"] == "Missing or found people":
+        continue
+    chk(f"| {_r['cls']} | {_r['support']} | {_r['support_earthquake']} | {_r['earthquake_fraction']:.3f} | {_r['f1_L0']:.3f} | {_r['f1_L1']:.3f} |",
+        [f"{_r['diff']:+.3f}", f"{100 * _r['share_of_total_gain']:.1f}%"])
+# the "Missing or found people" row: identical in the D table (LODO vs in-dist.) and the L0/L1 table, so it must appear exactly twice
+_mr_d = next(r for r in _pc2["classes"] if r["cls"] == "Missing or found people"); _mr_l = next(r for r in _c01 if r["cls"] == "Missing or found people")
+_mrow = (f"| Missing or found people | {_mr_d['support']} | {_mr_d['support_earthquake']} | {_mr_d['earthquake_fraction']:.3f} | {_mr_d['f1_lodo']:.3f} | {_mr_d['f1_indist']:.3f} | "
+         f"{_mr_d['diff']:+.3f} | {100 * _mr_d['share_of_total_drop']:.1f}% |")
+_mrow_l = (f"| Missing or found people | {_mr_l['support']} | {_mr_l['support_earthquake']} | {_mr_l['earthquake_fraction']:.3f} | {_mr_l['f1_L0']:.3f} | {_mr_l['f1_L1']:.3f} | "
+           f"{_mr_l['diff']:+.3f} | {100 * _mr_l['share_of_total_gain']:.1f}% |")
+_n_rows = sum(1 for _l in LINES if _l.strip() == _mrow) if _mrow == _mrow_l else -1
+checks.append(("Missing-or-found row appears in both per-class tables", _mrow, _n_rows == 2))
+if _n_rows != 2:
+    bad.append(("Missing-or-found row", "appears exactly twice (D table and L0/L1 table)", str(_n_rows)))
+chk(f"Macro-F1 {_l01['cpu_macro_f1_L0']:.4f} to {_l01['cpu_macro_f1_L1']:.4f}", [f"a gain of {_l01['cpu_macro_f1_L1'] - _l01['cpu_macro_f1_L0']:+.4f}"])
+chk("carries the majority of the gain", [f"{_t01['diff']:+.3f} F1 ({_t01['f1_L0']:.3f} to {_t01['f1_L1']:.3f})", f"{100 * _t01['share_of_total_gain']:.1f}% of the summed per-class gain",
+                                        f"({_t01['support']} test rows, {_t01['support_earthquake']} of them", f"({100 * _dt['share_of_total_drop']:.1f}% of the summed loss)"])
+chk("The gain is not confined to that class", [f"{_c01[0]['cls']} {_c01[0]['diff']:+.3f} ({100 * _c01[0]['share_of_total_gain']:.1f}% of the gain)",
+                                              f"{_c01[6]['cls']} {_c01[6]['diff']:+.3f} ({100 * _c01[6]['share_of_total_gain']:.1f}%)",
+                                              f"with {_c01[0]['earthquake_fraction']:.2f} and {_c01[6]['earthquake_fraction']:.2f}"])
+_rest2 = _pc2["macro_f1_lodo"] - _pc2["macro_f1_indist"] - _dt["diff"] / 8
+chk("The pooled leave-one-disaster-out drop (§9.5)", [f"one {_dt['support']}-row class ({abs(_dt['diff'] / 8):.3f} of the {abs(_pc2['macro_f1_lodo'] - _pc2['macro_f1_indist']):.3f} pooled drop at seed 42)",
+                                                       f"is {_rest2:+.3f}", f"over a {_dt['support']}-row class"])
+# the limitation: "Missing or found people" scores F1 = 0 in EVERY Task 2 condition
+_MC = "Missing or found people"
+_zn = 0
+for _f in glob.glob(str(RES / "[AB]" / "t2_*_seed*.json")):
+    _d = json.load(open(_f))
+    if "per_class_f1" in _d:
+        _zn += 1
+        assert _d["per_class_f1"][_MC] == 0, _f
+assert _zn == 33
+assert all(r["f1_L0"] == 0 and r["f1_L1"] == 0 for r in _c01 if r["cls"] == _MC)
+sys.path.insert(0, str(ROOT / "ablation"))
+from common import cc as _cc0, DATA as _D0, SPLIT_DIR as _S0
+_te_df = _cc0.load_split("humanitarian", "test", _D0, _S0, verbose=False)[0]
+_labels8 = sorted(_cc0.load_split("humanitarian", "train", _D0, _S0, verbose=False)[0]["label"].unique())
+_yy = np.array([_labels8.index(l_) for l_ in _te_df["label"]])
+_mi = _labels8.index(_MC)
+assert int((_yy == _mi).sum()) == 3 == next(r["support"] for r in _c01 if r["cls"] == _MC)
+from sklearn.metrics import f1_score as _f1
+for _seed_z in (42, 43, 44):
+    _lp, _ip = np.full(len(_yy), -1), np.full(len(_yy), -1)
+    for _e in sorted(_te_df.event_name.unique()):
+        _dd2 = json.load(open(RES / "X" / f"d_lodo_t2_{_e}_seed{_seed_z}.json")); _m = (_te_df.event_name == _e).to_numpy()
+        _lp[_m], _ip[_m] = _dd2["pred"], _dd2["indist_pred"]
+    for _p in (_lp, _ip):
+        assert _f1(_yy, _p, labels=list(range(8)), average=None, zero_division=0)[_mi] == 0.0
+chk("Limitation.", [f'"{_MC}" ({_c01[3]["support"]} test rows) has F1 = 0 in every Task 2 condition', f"all {_zn} ladder and component-ablation runs", f"7/8 = {7 / 8:.3f}"])
 
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
@@ -690,6 +753,17 @@ assert abs(np.mean(_dp)) > abs(np.mean(_dm))                                    
 tchk("L0 was trained without both earthquake events", [f"the L0 to L1 gain ({sg3(np.mean(col('t2_L1', 'test_macro_f1') - col('t2_L0', 'test_macro_f1')))})"])
 tchk("No fold falls below its event's majority-class macro-F1", [f"({min(_bases):.3f} to {max(_bases):.3f})"])
 
+
+# 4f. ladder link by class, the pooled-drop caveat (twice) and the limitation
+tchk("In both experiments the same class dominates at seed 42",
+     ["at seed 42", f"{_dt['support_earthquake']} of whose {_dt['support']} test rows", f"{100 * _t01['share_of_total_gain']:.0f}% of the summed per-class gain from L0 to L1",
+      f"{100 * _dt['share_of_total_drop']:.0f}% of the summed per-class loss"])
+tchk("The pooled bootstrap interval is therefore driven mainly by", [f"that one {_dt['support']}-row class ({abs(_dt['diff'] / 8):.3f} of the {abs(_pc2['macro_f1_lodo'] - _pc2['macro_f1_indist']):.3f})",
+                                                                      f"over a {_dt['support']}-row class"])
+tchk("The pooled Task 2 leave-one-disaster-out drop", [f"({sg3(_pc2['macro_f1_lodo'] - _pc2['macro_f1_indist'])} at seed 42", f"one {_dt['support']}-row class ({abs(_dt['diff'] / 8):.3f} of the {abs(_pc2['macro_f1_lodo'] - _pc2['macro_f1_indist']):.3f})",
+                                                       f"without it the drop is {sg3(_rest2)}", f"over a {_dt['support']}-row class"])
+assert _bt["excludes_zero"]
+tchk("has F1 = 0 in every Task 2 condition", ["F1 = 0", f"({_c01[3]['support']} test rows)", f"about {7 / 8:.3f}"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
