@@ -464,46 +464,20 @@ OK  [Where the loss is] changes by -0.026
 OK  [Caveats: per-event macro-F1 over rare classes] seed spread is 0.099
 OK  [Caveats: per-event macro-F1 over rare classes] 73 test rows
 OK  [Run time:] 10.7 minutes
-OK  [| Affected individuals | 88 | 16 |] 0.182
-OK  [| Affected individuals | 88 | 16 |] 0.573
-OK  [| Affected individuals | 88 | 16 |] 0.592
-OK  [| Affected individuals | 88 | 16 |] -0.020
-OK  [| Affected individuals | 88 | 16 |] 3.4%
-OK  [| Infrastructure and utility damage | 458 | 48 |] 0.105
-OK  [| Infrastructure and utility damage | 458 | 48 |] 0.792
-OK  [| Infrastructure and utility damage | 458 | 48 |] 0.818
-OK  [| Infrastructure and utility damage | 458 | 48 |] -0.026
-OK  [| Infrastructure and utility damage | 458 | 48 |] 4.4%
-OK  [| Injured or dead people | 10 | 8 |] 0.800
-OK  [| Injured or dead people | 10 | 8 |] 0.190
-OK  [| Injured or dead people | 10 | 8 |] 0.609
-OK  [| Injured or dead people | 10 | 8 |] -0.418
-OK  [| Injured or dead people | 10 | 8 |] 71.8%
-OK  [| Missing or found people | 3 | 1 |] 0.333
-OK  [| Missing or found people | 3 | 1 |] 0.000
-OK  [| Missing or found people | 3 | 1 |] 0.000
-OK  [| Missing or found people | 3 | 1 |] +0.000
-OK  [| Missing or found people | 3 | 1 |] 0.0%
-OK  [| Not humanitarian | 1055 | 91 |] 0.086
-OK  [| Not humanitarian | 1055 | 91 |] 0.845
-OK  [| Not humanitarian | 1055 | 91 |] 0.850
-OK  [| Not humanitarian | 1055 | 91 |] -0.005
-OK  [| Not humanitarian | 1055 | 91 |] 0.8%
-OK  [| Other relevant information | 331 | 22 |] 0.066
-OK  [| Other relevant information | 331 | 22 |] 0.749
-OK  [| Other relevant information | 331 | 22 |] 0.758
-OK  [| Other relevant information | 331 | 22 |] -0.008
-OK  [| Other relevant information | 331 | 22 |] 1.4%
-OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.234
-OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.629
-OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 0.683
-OK  [| Rescue, volunteering or donation effort | 256 | 60 |] -0.054
-OK  [| Rescue, volunteering or donation effort | 256 | 60 |] 9.3%
-OK  [| Vehicle damage | 36 | 3 |] 0.083
-OK  [| Vehicle damage | 36 | 3 |] 0.494
-OK  [| Vehicle damage | 36 | 3 |] 0.545
-OK  [| Vehicle damage | 36 | 3 |] -0.052
-OK  [| Vehicle damage | 36 | 3 |] 8.9%
+OK  [| Affected individuals | 88 | 16 | 0.182 | 0.573 | 0.592 |] -0.020
+OK  [| Affected individuals | 88 | 16 | 0.182 | 0.573 | 0.592 |] 3.4%
+OK  [| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.792 | 0.818 |] -0.026
+OK  [| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.792 | 0.818 |] 4.4%
+OK  [| Injured or dead people | 10 | 8 | 0.800 | 0.190 | 0.609 |] -0.418
+OK  [| Injured or dead people | 10 | 8 | 0.800 | 0.190 | 0.609 |] 71.8%
+OK  [| Not humanitarian | 1055 | 91 | 0.086 | 0.845 | 0.850 |] -0.005
+OK  [| Not humanitarian | 1055 | 91 | 0.086 | 0.845 | 0.850 |] 0.8%
+OK  [| Other relevant information | 331 | 22 | 0.066 | 0.749 | 0.758 |] -0.008
+OK  [| Other relevant information | 331 | 22 | 0.066 | 0.749 | 0.758 |] 1.4%
+OK  [| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.629 | 0.683 |] -0.054
+OK  [| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.629 | 0.683 |] 9.3%
+OK  [| Vehicle damage | 36 | 3 | 0.083 | 0.494 | 0.545 |] -0.052
+OK  [| Vehicle damage | 36 | 3 | 0.083 | 0.494 | 0.545 |] 8.9%
 OK  [Per-class pooled F1 (seed 42] 249 of the 2,237 test rows
 OK  [Per-class pooled F1 (seed 42] 11.1%
 OK  [Pooled macro-F1 is the mean of these eight F1 values] 0.5341 (LODO) against 0.6069
@@ -519,6 +493,37 @@ OK  [It is a single class] -0.052 with 0.08
 OK  [It is a single class] is -0.91
 OK  [Caveat: Injured or dead people has only] 10 test rows
 OK  [Caveat: Injured or dead people has only] 3, F1 0 in both settings
+OK  [Per-class F1, T2 L0 vs L1 (seed 42, crop seed 0] the 2,237 test rows
+OK  [Per-class F1, T2 L0 vs L1 (seed 42, crop seed 0] 0.499499 and 0.602474
+OK  [| Affected individuals | 88 | 16 | 0.182 | 0.444 | 0.589 |] +0.145
+OK  [| Affected individuals | 88 | 16 | 0.182 | 0.444 | 0.589 |] 17.6%
+OK  [| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.790 | 0.811 |] +0.021
+OK  [| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.790 | 0.811 |] 2.6%
+OK  [| Injured or dead people | 10 | 8 | 0.800 | 0.167 | 0.632 |] +0.465
+OK  [| Injured or dead people | 10 | 8 | 0.800 | 0.167 | 0.632 |] 56.4%
+OK  [| Not humanitarian | 1055 | 91 | 0.086 | 0.847 | 0.867 |] +0.020
+OK  [| Not humanitarian | 1055 | 91 | 0.086 | 0.847 | 0.867 |] 2.4%
+OK  [| Other relevant information | 331 | 22 | 0.066 | 0.712 | 0.758 |] +0.046
+OK  [| Other relevant information | 331 | 22 | 0.066 | 0.712 | 0.758 |] 5.6%
+OK  [| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.585 | 0.689 |] +0.105
+OK  [| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.585 | 0.689 |] 12.7%
+OK  [| Vehicle damage | 36 | 3 | 0.083 | 0.452 | 0.474 |] +0.022
+OK  [| Vehicle damage | 36 | 3 | 0.083 | 0.452 | 0.474 |] 2.7%
+OK  [Missing-or-found row appears in both per-class tables] | Missing or found people | 3 | 1 | 0.333 | 0.000 | 0.000 | +0.000 | 0.0% |
+OK  [Macro-F1 0.4995 to 0.6025] a gain of +0.1030
+OK  [carries the majority of the gain] +0.465 F1 (0.167 to 0.632)
+OK  [carries the majority of the gain] 56.4% of the summed per-class gain
+OK  [carries the majority of the gain] (10 test rows, 8 of them
+OK  [carries the majority of the gain] (71.8% of the summed loss)
+OK  [The gain is not confined to that class] Affected individuals +0.145 (17.6% of the gain)
+OK  [The gain is not confined to that class] Rescue, volunteering or donation effort +0.105 (12.7%)
+OK  [The gain is not confined to that class] with 0.18 and 0.23
+OK  [The pooled leave-one-disaster-out drop (§9.5)] one 10-row class (0.052 of the 0.073 pooled drop at seed 42)
+OK  [The pooled leave-one-disaster-out drop (§9.5)] is -0.020
+OK  [The pooled leave-one-disaster-out drop (§9.5)] over a 10-row class
+OK  [Limitation.] "Missing or found people" (3 test rows) has F1 = 0 in every Task 2 condition
+OK  [Limitation.] all 33 ladder and component-ablation runs
+OK  [Limitation.] 7/8 = 0.875
 OK  [Similarity-weighted voting gives identical] 0.695
 OK  [Similarity-weighted voting gives identical] 0.046
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
@@ -872,3 +877,16 @@ OK  [report/ablation_section.tex: The pooled drop is larger than the per-event a
 OK  [report/ablation_section.tex: The pooled drop is larger than the per-event average] at seed 42 would be -0.020
 OK  [report/ablation_section.tex: L0 was trained without both earthquake events] the L0 to L1 gain (+0.095)
 OK  [report/ablation_section.tex: No fold falls below its event's majority-class macro-F1] (0.064 to 0.174)
+OK  [report/ablation_section.tex: In both experiments the same class dominates at seed 42] at seed 42
+OK  [report/ablation_section.tex: In both experiments the same class dominates at seed 42] 8 of whose 10 test rows
+OK  [report/ablation_section.tex: In both experiments the same class dominates at seed 42] 56% of the summed per-class gain from L0 to L1
+OK  [report/ablation_section.tex: In both experiments the same class dominates at seed 42] 72% of the summed per-class loss
+OK  [report/ablation_section.tex: The pooled bootstrap interval is therefore driven mainly by] that one 10-row class (0.052 of the 0.073)
+OK  [report/ablation_section.tex: The pooled bootstrap interval is therefore driven mainly by] over a 10-row class
+OK  [report/ablation_section.tex: The pooled Task 2 leave-one-disaster-out drop] (-0.073 at seed 42
+OK  [report/ablation_section.tex: The pooled Task 2 leave-one-disaster-out drop] one 10-row class (0.052 of the 0.073)
+OK  [report/ablation_section.tex: The pooled Task 2 leave-one-disaster-out drop] without it the drop is -0.020
+OK  [report/ablation_section.tex: The pooled Task 2 leave-one-disaster-out drop] over a 10-row class
+OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] F1 = 0
+OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] (3 test rows)
+OK  [report/ablation_section.tex: has F1 = 0 in every Task 2 condition] about 0.875

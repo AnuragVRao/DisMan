@@ -235,7 +235,9 @@ Each fold is run with seeds 42, 43 and 44, the checkpoint is selected on the dev
 Averaged over the seven events the macro-F1 falls from 0.614 to 0.572, and scoring all 2237 test rows at once gives 0.534 against 0.607 at seed 42, a difference of $-0.073$ with a paired bootstrap 95\% interval of $-0.108$ to $-0.036$, which excludes zero.
 The loss is concentrated in the two earthquake events (Iraq--Iran 0.558 to 0.421, Mexico 0.660 to 0.568); the three hurricanes and the flood change by less than 0.02, and the wildfire change ($-0.026$) is within its seed spread ($\pm 0.099$) and is not interpretable.
 The pooled drop is larger than the per-event average ($-0.072$ against $-0.042$ over three seeds) because macro-F1 weights the eight classes equally and one class carries most of it: Injured or dead people (10 test rows, 8 of them from the two earthquake events) falls from 0.609 to 0.190 F1 at seed 42, which is 72\% of the summed per-class loss, and without it the pooled drop at seed 42 would be $-0.020$.
+The pooled bootstrap interval is therefore driven mainly by that one 10-row class (0.052 of the 0.073), and a bootstrap over a 10-row class gives only a rough interval.
 L0 was trained without both earthquake events, so the L0 to L1 gain ($+0.095$) and the earthquake-fold losses above are two measurements of the same dependence on earthquake data.
+In both experiments the same class dominates at seed 42: Injured or dead people, 8 of whose 10 test rows come from the two earthquake events, accounts for 56\% of the summed per-class gain from L0 to L1 and for 72\% of the summed per-class loss in the leave-one-disaster-out comparison.
 No fold falls below its event's majority-class macro-F1 (0.064 to 0.174).
 
 \begin{table}[t]
@@ -313,3 +315,6 @@ The two signals are partly independent, so combining them, for example in a conf
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.
+The pooled Task~2 leave-one-disaster-out drop ($-0.073$ at seed 42, bootstrap interval excluding zero) is driven mainly by one 10-row class (0.052 of the 0.073); without it the drop is $-0.020$, and a bootstrap over a 10-row class gives only a rough interval.
+\paragraph{Limitation.}
+``Missing or found people'' has F1 = 0 in every Task~2 condition (3 test rows), which caps Task~2 macro-F1 at about 0.875 under the current models.

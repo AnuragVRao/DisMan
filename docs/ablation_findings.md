@@ -319,3 +319,26 @@ In-distribution reference: the existing 3-seed image-only checkpoints (all event
 * **The drop is concentrated in one class that comes mostly from the earthquakes:** Injured or dead people (10 test rows, 8 of them from the two earthquake events) falls from F1 0.609 to 0.190, 71.8% of the summed per-class loss; its share of the pooled macro-F1 drop is -0.052 of -0.073. Without it the pooled drop would be -0.020, smaller than the per-event average (-0.053 at seed 42, -0.042 over three seeds), which is why the pooled drop exceeds the per-event average: macro-F1 weights the eight classes equally and this class has 0.4% of the rows.
 * It is a single class: the other classes' losses do not track the earthquake share of their rows (Rescue, volunteering or donation effort -0.054 with 0.23 of its rows from the earthquakes; Vehicle damage -0.052 with 0.08). The correlation across the eight classes between earthquake fraction and F1 difference is -0.91, but it is produced by that one class and should not be read as a trend.
 * Caveat: Injured or dead people has only 10 test rows (and "Missing or found people" 3, F1 0 in both settings), so the class-level numbers are noisy.
+
+### 9.6 L0 vs L1 per class, the D caveat and a limitation (CPU only)
+
+**Per-class F1, T2 L0 vs L1 (seed 42, crop seed 0, the 2,237 test rows).** E1 regenerated these predictions but did not save them, so they were regenerated here from the checkpoints on the CPU under the original random-crop evaluation; they reproduce E1's macro-F1 exactly (0.499499 and 0.602474), and are saved this time in `results/ablation/X/l0_l1_perclass_seed42.json`.
+
+| Class | Test rows | Rows from the two earthquakes | Earthquake fraction | F1 L0 | F1 L1 | Difference | Share of the summed gain |
+|---|---|---|---|---|---|---|---|
+| Affected individuals | 88 | 16 | 0.182 | 0.444 | 0.589 | +0.145 | 17.6% |
+| Infrastructure and utility damage | 458 | 48 | 0.105 | 0.790 | 0.811 | +0.021 | 2.6% |
+| Injured or dead people | 10 | 8 | 0.800 | 0.167 | 0.632 | +0.465 | 56.4% |
+| Missing or found people | 3 | 1 | 0.333 | 0.000 | 0.000 | +0.000 | 0.0% |
+| Not humanitarian | 1055 | 91 | 0.086 | 0.847 | 0.867 | +0.020 | 2.4% |
+| Other relevant information | 331 | 22 | 0.066 | 0.712 | 0.758 | +0.046 | 5.6% |
+| Rescue, volunteering or donation effort | 256 | 60 | 0.234 | 0.585 | 0.689 | +0.105 | 12.7% |
+| Vehicle damage | 36 | 3 | 0.083 | 0.452 | 0.474 | +0.022 | 2.7% |
+
+* Macro-F1 0.4995 to 0.6025, a gain of +0.1030.
+* **Injured or dead people carries the majority of the gain:** +0.465 F1 (0.167 to 0.632), 56.4% of the summed per-class gain (10 test rows, 8 of them from the two earthquake events). It is also the class that dominates the leave-one-disaster-out loss in §9.5 (71.8% of the summed loss), so both experiments isolate the same class, consistent with L0's missing earthquake data (L0 was trained without both earthquake events).
+* The gain is not confined to that class: Affected individuals +0.145 (17.6% of the gain) and Rescue, volunteering or donation effort +0.105 (12.7%) also improve, with 0.18 and 0.23 of their test rows from the earthquakes. The 10-row class makes the single-class share noisy.
+
+**The pooled leave-one-disaster-out drop (§9.5).** Its bootstrap interval is driven mainly by one 10-row class (0.052 of the 0.073 pooled drop at seed 42); without it the pooled drop is -0.020, and a bootstrap over a 10-row class gives only a rough interval.
+
+**Limitation.** "Missing or found people" (3 test rows) has F1 = 0 in every Task 2 condition (all 33 ladder and component-ablation runs, L0 and L1 as regenerated here, and the pooled leave-one-disaster-out and in-distribution comparisons at all three seeds), which caps Task 2 macro-F1 at 7/8 = 0.875 under the current models.
