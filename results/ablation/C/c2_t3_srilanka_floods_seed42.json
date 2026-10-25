@@ -1,0 +1,19 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "held_out_event": "srilanka_floods",
+ "n_train_or_index": 2402,
+ "heldout_rows_in_training": 0,
+ "n": 13,
+ "test_acc": 0.6923076923076923,
+ "test_macro_f1": 0.27272727272727276,
+ "test_weighted_f1": 0.6293706293706294,
+ "test_macro_f1_fixed_labels": 0.27272727272727276,
+ "in_dist_acc": 0.46153846153846156,
+ "in_dist_macro_f1": 0.3157894736842105,
+ "in_dist_weighted_f1": 0.4858299595141701,
+ "part": "C",
+ "config": "c2_t3_srilanka_floods",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

@@ -1,0 +1,23 @@
+{
+ "task": "T2",
+ "tier": "gpu-small",
+ "checkpoint": "t2_L4_seed44.pt",
+ "n_test": 2237,
+ "full_acc": 0.7930263746088512,
+ "full_macro_f1": 0.5889659672365384,
+ "full_weighted_f1": 0.7945770556009176,
+ "image_grey_acc": 0.47161376843987485,
+ "image_grey_macro_f1": 0.08011846901579586,
+ "image_grey_weighted_f1": 0.3022797847533827,
+ "text_empty_acc": 0.7983907018328118,
+ "text_empty_macro_f1": 0.595841653412301,
+ "text_empty_weighted_f1": 0.792500116404346,
+ "drop_image_grey_macro_f1": 0.5088474982207425,
+ "drop_text_empty_macro_f1": -0.006875686175762619,
+ "drop_image_grey_acc": 0.3214126061689763,
+ "drop_text_empty_acc": -0.00536432722396063,
+ "part": "C",
+ "config": "c1_t2_L4",
+ "seed": 44,
+ "git_commit": "22ea6d2"
+}

@@ -1,0 +1,59 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "config": "t3_L0",
+ "index_rows": 18082,
+ "n_test": 529,
+ "test_acc": 0.722117202268431,
+ "test_macro_f1": 0.6879962413792629,
+ "test_weighted_f1": 0.7630432389007513,
+ "per_class_f1": {
+  "Severe damage": 0.8567208271787297,
+  "Mild damage": 0.6091370558375635,
+  "Little or no damage": 0.5981308411214953
+ },
+ "confusion_matrix": [
+  [
+   290,
+   5,
+   0,
+   37
+  ],
+  [
+   44,
+   60,
+   4,
+   18
+  ],
+  [
+   11,
+   6,
+   32,
+   22
+  ],
+  [
+   0,
+   0,
+   0,
+   0
+  ]
+ ],
+ "confusion_labels": [
+  "Severe damage",
+  "Mild damage",
+  "Little or no damage",
+  "Don't know or can't judge"
+ ],
+ "predicted_dont_know": 77,
+ "test_queries_with_self_in_top5": 529,
+ "test_queries_with_self_top1": 528,
+ "test_queries_with_same_tweet_sibling_in_top5": 95,
+ "neighbour_votes_for_dont_know": 560,
+ "neighbour_votes_total": 2645,
+ "tie_break": "cc.knn_vote (v2)",
+ "k": 5,
+ "clip": "openai/clip-vit-base-patch32 (HF, QuickGELU)",
+ "part": "A",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

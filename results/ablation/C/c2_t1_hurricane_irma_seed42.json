@@ -1,0 +1,19 @@
+{
+ "task": "T1",
+ "tier": "cpu",
+ "held_out_event": "hurricane_irma",
+ "n_train_or_index": 10187,
+ "heldout_rows_in_training": 0,
+ "n": 548,
+ "test_acc": 0.7755474452554745,
+ "test_macro_f1": 0.6748151042797389,
+ "test_weighted_f1": 0.7798409548708337,
+ "test_macro_f1_fixed_labels": 0.6748151042797389,
+ "in_dist_acc": 0.801094890510949,
+ "in_dist_macro_f1": 0.6971961290257169,
+ "in_dist_weighted_f1": 0.8001238740484701,
+ "part": "C",
+ "config": "c2_t1_hurricane_irma",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

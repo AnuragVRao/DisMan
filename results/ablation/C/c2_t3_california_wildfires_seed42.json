@@ -1,0 +1,19 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "held_out_event": "california_wildfires",
+ "n_train_or_index": 2110,
+ "heldout_rows_in_training": 0,
+ "n": 87,
+ "test_acc": 0.8620689655172413,
+ "test_macro_f1": 0.30864197530864196,
+ "test_weighted_f1": 0.8301404853128992,
+ "test_macro_f1_fixed_labels": 0.30864197530864196,
+ "in_dist_acc": 0.896551724137931,
+ "in_dist_macro_f1": 0.3151515151515151,
+ "in_dist_weighted_f1": 0.8476489028213167,
+ "part": "C",
+ "config": "c2_t3_california_wildfires",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

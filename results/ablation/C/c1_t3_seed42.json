@@ -1,0 +1,22 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "n_test": 529,
+ "full_acc": 0.667296786389414,
+ "full_macro_f1": 0.4914439729128235,
+ "full_weighted_f1": 0.6202453429276462,
+ "image_grey_acc": 0.5652173913043478,
+ "image_grey_macro_f1": 0.45200839343338034,
+ "image_grey_weighted_f1": 0.5565833409221143,
+ "text_empty_acc": 0.665406427221172,
+ "text_empty_macro_f1": 0.43989898989898985,
+ "text_empty_weighted_f1": 0.5993183250272096,
+ "drop_image_grey_macro_f1": 0.03943557947944315,
+ "drop_text_empty_macro_f1": 0.051544983013833645,
+ "drop_image_grey_acc": 0.10207939508506625,
+ "drop_text_empty_acc": 0.001890359168241984,
+ "part": "C",
+ "config": "c1_t3",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

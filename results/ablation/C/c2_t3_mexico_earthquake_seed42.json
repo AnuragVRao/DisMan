@@ -1,0 +1,19 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "held_out_event": "mexico_earthquake",
+ "n_train_or_index": 2333,
+ "heldout_rows_in_training": 0,
+ "n": 21,
+ "test_acc": 0.8571428571428571,
+ "test_macro_f1": 0.46153846153846156,
+ "test_weighted_f1": 0.7912087912087913,
+ "test_macro_f1_fixed_labels": 0.3076923076923077,
+ "in_dist_acc": 0.7142857142857143,
+ "in_dist_macro_f1": 0.4166666666666667,
+ "in_dist_weighted_f1": 0.7142857142857143,
+ "part": "C",
+ "config": "c2_t3_mexico_earthquake",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

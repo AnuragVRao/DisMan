@@ -1,0 +1,17 @@
+{
+ "task": "T1",
+ "tier": "cpu",
+ "folds": 7,
+ "test_acc": 0.7542228964343559,
+ "test_macro_f1": 0.6801576754885186,
+ "test_weighted_f1": 0.7610258419274121,
+ "test_macro_f1_fixed_labels": 0.6801576754885186,
+ "in_dist_acc": 0.8052659978709295,
+ "in_dist_macro_f1": 0.7141301833446457,
+ "in_dist_weighted_f1": 0.8022220275086059,
+ "n": 2237,
+ "part": "C",
+ "config": "c2_t1_macro_avg",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

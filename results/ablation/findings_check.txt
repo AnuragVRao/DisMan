@@ -1,0 +1,215 @@
+OK  [| L0 | v1 as it was] 0.557 ± 0.016
+OK  [| L0 | v1 as it was] 0.767 ± 0.002
+OK  [| L0 | v1 as it was] 0.494 ± 0.006
+OK  [| L0 | v1 as it was] 0.760 ± 0.002
+OK  [| L1 | + full] 0.643 ± 0.044
+OK  [| L1 | + full] 0.788 ± 0.008
+OK  [| L1 | + full] 0.588 ± 0.012
+OK  [| L1 | + full] 0.788 ± 0.011
+OK  [| L2 | + Quick] 0.648 ± 0.043
+OK  [| L2 | + Quick] 0.786 ± 0.012
+OK  [| L2 | + Quick] 0.592 ± 0.012
+OK  [| L2 | + Quick] 0.787 ± 0.013
+OK  [| L3 | + epoch] 0.595 ± 0.008
+OK  [| L3 | + epoch] 0.797 ± 0.005
+OK  [| L3 | + epoch] 0.600 ± 0.005
+OK  [| L3 | + epoch] 0.799 ± 0.004
+OK  [| L3b | +] 0.581 ± 0.011
+OK  [| L3b | +] 0.792 ± 0.008
+OK  [| L3b | +] 0.587 ± 0.011
+OK  [| L3b | +] 0.793 ± 0.007
+OK  [| L4a | +] 0.585 ± 0.008
+OK  [| L4a | +] 0.799 ± 0.006
+OK  [| L4a | +] 0.598 ± 0.010
+OK  [| L4a | +] 0.800 ± 0.006
+OK  [| L4 | v2] 0.581 ± 0.003
+OK  [| L4 | v2] 0.793 ± 0.005
+OK  [| L4 | v2] 0.587 ± 0.001
+OK  [| L4 | v2] 0.795 ± 0.002
+OK  [| L0 → L1] +0.103
+OK  [| L0 → L1] +0.082
+OK  [| L0 → L1] +0.099
+OK  [| L0 → L1] +0.095 ± 0.011
+OK  [| L1 → L2] +0.003
+OK  [| L1 → L2] +0.003
+OK  [| L1 → L2] +0.007
+OK  [| L1 → L2] +0.004 ± 0.002
+OK  [| L2 → L3] +0.002
+OK  [| L2 → L3] +0.015
+OK  [| L2 → L3] +0.007
+OK  [| L2 → L3] +0.008 ± 0.007
+OK  [| L3 → L3b] -0.031
+OK  [| L3 → L3b] -0.006
+OK  [| L3 → L3b] -0.003
+OK  [| L3 → L3b] -0.013 ± 0.015
+OK  [| L3b → L4a] +0.033
+OK  [| L3b → L4a] -0.001
+OK  [| L3b → L4a] +0.003
+OK  [| L3b → L4a] +0.012 ± 0.019
+OK  [| L4a → L4] -0.022
+OK  [| L4a → L4] -0.001
+OK  [| L4a → L4] -0.011
+OK  [| L4a → L4] -0.011 ± 0.010
+OK  [| L3 → L4 ] -0.019
+OK  [| L3 → L4 ] -0.009
+OK  [| L3 → L4 ] -0.011
+OK  [| L3 → L4 ] -0.013 ± 0.005
+OK  [Dev inflation from 30-epoch selection] 0.64
+OK  [Dev inflation from 30-epoch selection] 0.65
+OK  [Dev inflation from 30-epoch selection] 0.59
+OK  [Dev inflation from 30-epoch selection] (0.595)
+OK  [Dev inflation from 30-epoch selection] 0.600
+OK  [Plan expectation] 0.013
+OK  [Plan expectation] 0.005
+OK  [| L0 v1 index] 18,082
+OK  [| L0 v1 index] 0.7221
+OK  [| L0 v1 index] 0.6880
+OK  [| L0 v1 index] 0.7630
+OK  [| L0 v1 index] 529/529
+OK  [| L1 test rows removed] 17,553
+OK  [| L1 test rows removed] 0.5028
+OK  [| L1 test rows removed] 0.3777
+OK  [| L1 test rows removed] 0.5328
+OK  [| L1 test rows removed] | 0 |
+OK  [| L2 "Don't know" rows removed] 2,997
+OK  [| L2 "Don't know" rows removed] 0.6767
+OK  [| L2 "Don't know" rows removed] 0.5037
+OK  [| L2 "Don't know" rows removed] 0.6318
+OK  [| L2 "Don't know" rows removed] | 0 |
+OK  [| L3 dev removed] 2,468
+OK  [| L3 dev removed] 0.6749
+OK  [| L3 dev removed] 0.5091
+OK  [| L3 dev removed] 0.6309
+OK  [| L3 dev removed] | 0 |
+OK  [| L4 tweet siblings removed] 2,361
+OK  [| L4 tweet siblings removed] 0.6673
+OK  [| L4 tweet siblings removed] 0.4914
+OK  [| L4 tweet siblings removed] 0.6202
+OK  [| L4 tweet siblings removed] | 0 |
+OK  [| L0 v1 index] top-1: 528
+OK  [L0 → L1 (-0.31 macro-F1)] -0.31
+OK  [L1 → L2 (+0.126)] +0.126
+OK  [786 of 2,645] 786 of 2,645
+OK  [786 of 2,645] 30%
+OK  [786 of 2,645] 143 test queries
+OK  [L2 → L3 (dev rows removed)] 0.5037 → 0.5091
+OK  [L2 → L3 (dev rows removed)] 0.6767 → 0.6749
+OK  [L3 → L4 (tweet siblings removed)] 0.5091 → 0.4914
+OK  [L3 → L4 (tweet siblings removed)] 67 test queries
+OK  [L3 → L4 (tweet siblings removed)] 0
+OK  [reproduces v2's headline exactly] 0.6673
+OK  [reproduces v2's headline exactly] 0.4914
+OK  [reproduces v2's headline exactly] 0.6202
+OK  [| full (L4a)] 67,352,840
+OK  [| full (L4a)] 0.585 ± 0.008
+OK  [| full (L4a)] 0.799 ± 0.006
+OK  [| full (L4a)] 0.598 ± 0.010
+OK  [| full (L4a)] 0.800 ± 0.006
+OK  [| image only (CLIP] 199,688
+OK  [| image only (CLIP] 0.568 ± 0.008
+OK  [| image only (CLIP] 0.788 ± 0.002
+OK  [| image only (CLIP] 0.601 ± 0.005
+OK  [| image only (CLIP] 0.793 ± 0.002
+OK  [| concat, no attention] 66,825,480
+OK  [| concat, no attention] 0.580 ± 0.012
+OK  [| concat, no attention] 0.796 ± 0.007
+OK  [| concat, no attention] 0.595 ± 0.009
+OK  [| concat, no attention] 0.795 ± 0.007
+OK  [| no text→image attention] 67,089,160
+OK  [| no text→image attention] 0.583 ± 0.015
+OK  [| no text→image attention] 0.795 ± 0.005
+OK  [| no text→image attention] 0.570 ± 0.014
+OK  [| no text→image attention] 0.795 ± 0.005
+OK  [| text only | 66,628,104] 66,628,104
+OK  [| text only | 66,628,104] 0.295 ± 0.005
+OK  [| text only | 66,628,104] 0.486 ± 0.010
+OK  [| text only | 66,628,104] 0.294 ± 0.014
+OK  [| text only | 66,628,104] 0.499 ± 0.008
+OK  [Paired differences from the full model] image_only +0.003 ± 0.009
+OK  [Paired differences from the full model] concat -0.003 ± 0.012
+OK  [Paired differences from the full model] no_t2i -0.029 ± 0.024
+OK  [Paired differences from the full model] -0.049
+OK  [Paired differences from the full model] -0.003
+OK  [Paired differences from the full model] -0.033
+OK  [Paired differences from the full model] text_only -0.305 ± 0.012
+OK  [No variant fell below] 0.0801
+OK  [T2 run count] 33 == 33
+OK  [33 T2 runs] 0.0801
+OK  [| Dev macro-F1 | 0.4627] 0.4627
+OK  [| Dev macro-F1 | 0.4627] 0.4739
+OK  [| Dev macro-F1 | 0.4627] 0.4832
+OK  [| Dev macro-F1 | 0.4627] 0.4438
+OK  [| Dev macro-F1 | 0.4627] 0.4334
+OK  [| Test macro-F1 | 0.4538] 0.4538
+OK  [| Test macro-F1 | 0.4538] 0.5150
+OK  [| Test macro-F1 | 0.4538] 0.4914
+OK  [| Test macro-F1 | 0.4538] 0.5006
+OK  [| Test macro-F1 | 0.4538] 0.4704
+OK  [| Test acc. | 0.6011] 0.6011
+OK  [| Test acc. | 0.6011] 0.6749
+OK  [| Test acc. | 0.6011] 0.6673
+OK  [| Test acc. | 0.6011] 0.6843
+OK  [| Test acc. | 0.6011] 0.6843
+OK  [| majority (v2) |] 0.4832
+OK  [| majority (v2) |] 0.6673
+OK  [| majority (v2) |] 0.4914
+OK  [| similarity-weighted |] 0.4832
+OK  [| similarity-weighted |] 0.6673
+OK  [| similarity-weighted |] 0.4914
+OK  [| class-balanced |] 0.5198
+OK  [| class-balanced |] 0.5860
+OK  [| class-balanced |] 0.4954
+OK  [| image only | 0.] 0.5427 / 0.5074 (0.6749)
+OK  [| image only | 0.] C = 1: 0.6208 / 0.5946 (0.6730)
+OK  [| text only | 0.] 0.4021 / 0.4276 (0.6068)
+OK  [| text only | 0.] C = 0.01: 0.4731 / 0.4632 (0.5085)
+OK  [| fused | 0.] 0.4832 / 0.4914 (0.6673)
+OK  [| fused | 0.] C = 1: 0.5926 / 0.6146 (0.6843)
+OK  [sim_weighted == majority in 15/15 cells] True
+OK  [Similarity-weighted voting gives identical] 15 of 15
+OK  [class-balanced voting raises] +0.037
+OK  [class-balanced voting raises] +0.004
+OK  [class-balanced voting raises] 0.667 → 0.586
+OK  [Best dev-selected k-NN] dev 0.5727 → test 0.5705
+OK  [Best dev-selected k-NN] dev 0.6208 → test 0.5946
+OK  [best dev kNN cell is image/k5/class_balanced] ('image', 5, 'class_balanced')
+OK  [| T2 L4a (n = 3)] 0.598 ± 0.010
+OK  [| T2 L4a (n = 3)] 0.081 ± 0.001 (Δ -0.518)
+OK  [| T2 L4a (n = 3)] 0.511 ± 0.034 (Δ -0.087)
+OK  [| T2 L4, v2 (n = 3)] 0.587 ± 0.001
+OK  [| T2 L4, v2 (n = 3)] 0.080 ± 0.000 (Δ -0.507)
+OK  [| T2 L4, v2 (n = 3)] 0.590 ± 0.013 (Δ +0.003)
+OK  [| T3 5-NN fused (n = 1)] 0.4914
+OK  [| T3 5-NN fused (n = 1)] 0.4520 (Δ -0.039)
+OK  [| T3 5-NN fused (n = 1)] 0.4399 (Δ -0.052)
+OK  [A grey image collapses both] 0.0801
+OK  [v2's text stream is ignored] +0.003
+OK  [v2's text stream is ignored] 0.087
+OK  [| Macro average over 7 events] 0.754 / 0.680
+OK  [| Macro average over 7 events] 0.714
+OK  [| Macro average over 7 events] 0.687 / 0.354
+OK  [| Macro average over 7 events] 0.381
+OK  [T1 drops] 0.034
+OK  [T1 drops] srilanka_floods (0.793 vs 0.932)
+OK  [T1 drops] hurricane_maria (0.692 vs 0.742)
+OK  [T3 drops] 0.028
+OK  [T3 drops] srilanka_floods 13
+OK  [T3 drops] mexico 21
+OK  [T3 drops] iraq_iran 23
+OK  [asserted by event, tweet and image id for all 14 folds] 14
+OK  [T1 regression check passes] 0.794367
+OK  [T1 regression check passes] 0.796959
+OK  [v2 reproduces itself exactly] 0.7975
+OK  [v2 reproduces itself exactly] 0.5865
+OK  [v2 reproduces itself exactly] 0.7968
+OK  [gave test macro-F1 0.6022] 0.6022
+OK  [Evidence: saved word-embedding std] 0.0200
+OK  [Evidence: saved word-embedding std] 0.0470
+OK  [Evidence: saved word-embedding std] -0.0002
+OK  [cosine with the model's own seed-42 random init] 1.000
+OK  [cosine with the model's own seed-42 random init] 0.019
+OK  [txt_to_img` block, 263,680 parameters] 263,680
+OK  [L4a with empty text:] 0.550
+OK  [L4a with empty text:] 0.485
+OK  [L4a with empty text:] 0.499
+OK  [zeroed with probability] 0.208

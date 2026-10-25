@@ -1,0 +1,19 @@
+{
+ "task": "T1",
+ "tier": "cpu",
+ "held_out_event": "hurricane_harvey",
+ "n_train_or_index": 10323,
+ "heldout_rows_in_training": 0,
+ "n": 568,
+ "test_acc": 0.8045774647887324,
+ "test_macro_f1": 0.7350289775282315,
+ "test_weighted_f1": 0.8115084136909816,
+ "test_macro_f1_fixed_labels": 0.7350289775282315,
+ "in_dist_acc": 0.8274647887323944,
+ "in_dist_macro_f1": 0.7582012788434807,
+ "in_dist_weighted_f1": 0.8311102366212845,
+ "part": "C",
+ "config": "c2_t1_hurricane_harvey",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

@@ -1,0 +1,146 @@
+{
+ "task": "T2",
+ "config": "t2_L0_timing2ep",
+ "dev_macro_f1": 0.44516112097295035,
+ "test_acc": 0.7545820295037997,
+ "test_macro_f1": 0.46309318835646424,
+ "test_weighted_f1": 0.754861463395937,
+ "per_class_f1": {
+  "Affected individuals": 0.5150214592274678,
+  "Infrastructure and utility damage": 0.7835051546391752,
+  "Injured or dead people": 0.0,
+  "Missing or found people": 0.0,
+  "Not humanitarian": 0.8435171385991058,
+  "Other relevant information": 0.75,
+  "Rescue, volunteering or donation effort": 0.532,
+  "Vehicle damage": 0.2807017543859649
+ },
+ "confusion_matrix": [
+  [
+   60,
+   12,
+   0,
+   0,
+   9,
+   1,
+   6,
+   0
+  ],
+  [
+   25,
+   380,
+   0,
+   0,
+   18,
+   9,
+   18,
+   8
+  ],
+  [
+   8,
+   0,
+   0,
+   0,
+   0,
+   0,
+   2,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   2,
+   0
+  ],
+  [
+   17,
+   38,
+   0,
+   0,
+   849,
+   77,
+   72,
+   2
+  ],
+  [
+   1,
+   14,
+   0,
+   0,
+   46,
+   258,
+   11,
+   1
+  ],
+  [
+   31,
+   46,
+   0,
+   0,
+   33,
+   11,
+   133,
+   2
+  ],
+  [
+   3,
+   22,
+   0,
+   0,
+   3,
+   0,
+   0,
+   8
+  ]
+ ],
+ "labels": [
+  "Affected individuals",
+  "Infrastructure and utility damage",
+  "Injured or dead people",
+  "Missing or found people",
+  "Not humanitarian",
+  "Other relevant information",
+  "Rescue, volunteering or donation effort",
+  "Vehicle damage"
+ ],
+ "epochs_trained": 2,
+ "best_epoch": 2,
+ "wall_clock_s": 422.4207532405853,
+ "n_train": 12124,
+ "n_dev": 1993,
+ "n_test": 2237,
+ "n_params": 67352840,
+ "mean_epoch_s": 169.6173928976059,
+ "flags": {
+  "data": "v1",
+  "clip": "open_clip",
+  "tf": "v1_random",
+  "epochs": 2,
+  "cache": false,
+  "amp": false,
+  "bert": "pretrained"
+ },
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 2.14354888556186,
+   "dev_acc": 0.13045659809332663,
+   "dev_macro_f1": 0.06649367637106918,
+   "dev_weighted_f1": 0.15089898753646883
+  },
+  {
+   "epoch": 2,
+   "train_loss": 1.513532631472736,
+   "dev_acc": 0.7420973406924235,
+   "dev_macro_f1": 0.44516112097295035,
+   "dev_weighted_f1": 0.7500115250783673
+  }
+ ],
+ "part": "A",
+ "seed": 42,
+ "git_commit": "001ec9c"
+}

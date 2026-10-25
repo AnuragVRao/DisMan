@@ -1,0 +1,44 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "embedding": "text",
+ "probe": "logistic_regression",
+ "C": 0.01,
+ "dev_macro_f1": 0.4730804600098341,
+ "test_acc": 0.5085066162570888,
+ "test_macro_f1": 0.46315348899248665,
+ "test_weighted_f1": 0.5320824982442508,
+ "per_class_f1": {
+  "Severe damage": 0.6247755834829444,
+  "Mild damage": 0.3591549295774648,
+  "Little or no damage": 0.4055299539170507
+ },
+ "confusion_matrix": [
+  [
+   174,
+   92,
+   66
+  ],
+  [
+   39,
+   51,
+   36
+  ],
+  [
+   12,
+   15,
+   44
+  ]
+ ],
+ "labels": [
+  "Severe damage",
+  "Mild damage",
+  "Little or no damage"
+ ],
+ "n_test": 529,
+ "index_rows_test": 2361,
+ "part": "B",
+ "config": "t3_lr_text",
+ "seed": 42,
+ "git_commit": "5af8882"
+}

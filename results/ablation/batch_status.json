@@ -1,0 +1,205 @@
+{
+ "started": "2026-10-24 12:57:12",
+ "jobs": {
+  "tier1/t2_L4_seed42": {
+   "ok": true,
+   "minutes": 10.1,
+   "test_macro_f1": 0.5865,
+   "test_acc": 0.7975
+  },
+  "tier1/t2_L4a_seed42": {
+   "ok": true,
+   "minutes": 8.7,
+   "test_macro_f1": 0.608,
+   "test_acc": 0.8033
+  },
+  "tier1/t2_L3b_seed42": {
+   "ok": true,
+   "minutes": 15.6,
+   "test_macro_f1": 0.5748,
+   "test_acc": 0.7863
+  },
+  "tier1/t2_text_only_seed42": {
+   "ok": true,
+   "minutes": 9.1,
+   "test_macro_f1": 0.3088,
+   "test_acc": 0.4971
+  },
+  "tier1/t2_image_only_seed42": {
+   "ok": true,
+   "minutes": 1.1,
+   "test_macro_f1": 0.6069,
+   "test_acc": 0.789
+  },
+  "tier1/t2_concat_seed42": {
+   "ok": true,
+   "minutes": 9.6,
+   "test_macro_f1": 0.5907,
+   "test_acc": 0.7953
+  },
+  "tier1/t2_no_t2i_seed42": {
+   "ok": true,
+   "minutes": 9.7,
+   "test_macro_f1": 0.5586,
+   "test_acc": 0.7895
+  },
+  "tier1/t2_L3_seed42": {
+   "ok": true,
+   "minutes": 24.5,
+   "test_macro_f1": 0.6056,
+   "test_acc": 0.7988
+  },
+  "tier1/t2_L2_seed42": {
+   "ok": true,
+   "minutes": 68.3,
+   "test_macro_f1": 0.6039,
+   "test_acc": 0.7997
+  },
+  "tier1/t2_L1_seed42": {
+   "ok": true,
+   "minutes": 66.6,
+   "test_macro_f1": 0.6012,
+   "test_acc": 0.7979
+  },
+  "tier1/t2_L0_seed42": {
+   "ok": true,
+   "minutes": 60.5,
+   "test_macro_f1": 0.4983,
+   "test_acc": 0.7671
+  },
+  "tier2/t2_L4_seed43": {
+   "ok": true,
+   "minutes": 10.1,
+   "test_macro_f1": 0.5866,
+   "test_acc": 0.7877
+  },
+  "tier2/t2_L4a_seed43": {
+   "ok": true,
+   "minutes": 9.9,
+   "test_macro_f1": 0.5879,
+   "test_acc": 0.8029
+  },
+  "tier2/t2_L3b_seed43": {
+   "ok": true,
+   "minutes": 16.7,
+   "test_macro_f1": 0.5893,
+   "test_acc": 0.8002
+  },
+  "tier2/t2_text_only_seed43": {
+   "ok": true,
+   "minutes": 9.5,
+   "test_macro_f1": 0.2913,
+   "test_acc": 0.4837
+  },
+  "tier2/t2_image_only_seed43": {
+   "ok": true,
+   "minutes": 1.0,
+   "test_macro_f1": 0.6009,
+   "test_acc": 0.7854
+  },
+  "tier2/t2_concat_seed43": {
+   "ok": true,
+   "minutes": 9.5,
+   "test_macro_f1": 0.5884,
+   "test_acc": 0.7886
+  },
+  "tier2/t2_no_t2i_seed43": {
+   "ok": true,
+   "minutes": 9.8,
+   "test_macro_f1": 0.5851,
+   "test_acc": 0.7993
+  },
+  "tier2/t2_L3_seed43": {
+   "ok": true,
+   "minutes": 25.3,
+   "test_macro_f1": 0.5954,
+   "test_acc": 0.8011
+  },
+  "tier2/t2_L4_seed44": {
+   "ok": true,
+   "minutes": 10.1,
+   "test_macro_f1": 0.589,
+   "test_acc": 0.793
+  },
+  "tier2/t2_L4a_seed44": {
+   "ok": true,
+   "minutes": 10.1,
+   "test_macro_f1": 0.5995,
+   "test_acc": 0.7921
+  },
+  "tier2/t2_L3b_seed44": {
+   "ok": true,
+   "minutes": 16.7,
+   "test_macro_f1": 0.5965,
+   "test_acc": 0.7881
+  },
+  "tier2/t2_text_only_seed44": {
+   "ok": true,
+   "minutes": 9.4,
+   "test_macro_f1": 0.2811,
+   "test_acc": 0.4774
+  },
+  "tier2/t2_image_only_seed44": {
+   "ok": true,
+   "minutes": 1.0,
+   "test_macro_f1": 0.5963,
+   "test_acc": 0.789
+  },
+  "tier2/t2_concat_seed44": {
+   "ok": true,
+   "minutes": 9.5,
+   "test_macro_f1": 0.6057,
+   "test_acc": 0.8033
+  },
+  "tier2/t2_no_t2i_seed44": {
+   "ok": true,
+   "minutes": 9.8,
+   "test_macro_f1": 0.5661,
+   "test_acc": 0.7948
+  },
+  "tier2/t2_L3_seed44": {
+   "ok": true,
+   "minutes": 25.3,
+   "test_macro_f1": 0.6,
+   "test_acc": 0.7912
+  },
+  "tier3/t2_L2_seed43": {
+   "ok": true,
+   "minutes": 68.8,
+   "test_macro_f1": 0.5801,
+   "test_acc": 0.7819
+  },
+  "tier3/t2_L1_seed43": {
+   "ok": true,
+   "minutes": 67.4,
+   "test_macro_f1": 0.5773,
+   "test_acc": 0.785
+  },
+  "tier3/t2_L0_seed43": {
+   "ok": true,
+   "minutes": 60.3,
+   "test_macro_f1": 0.4955,
+   "test_acc": 0.7644
+  },
+  "tier4/t2_L2_seed44": {
+   "ok": true,
+   "minutes": 66.8,
+   "test_macro_f1": 0.5931,
+   "test_acc": 0.776
+  },
+  "tier4/t2_L1_seed44": {
+   "ok": true,
+   "minutes": 66.3,
+   "test_macro_f1": 0.5862,
+   "test_acc": 0.7823
+  },
+  "tier4/t2_L0_seed44": {
+   "ok": true,
+   "minutes": 60.5,
+   "test_macro_f1": 0.4872,
+   "test_acc": 0.7689
+  }
+ },
+ "updated": "2026-10-25 03:14:38",
+ "finished": "2026-10-25 03:14:38"
+}
