@@ -1,0 +1,245 @@
+% report/ablation_section.tex -- draft ablation section for merging into the main report (IEEEtran). Not included anywhere yet.
+% Requires \usepackage{booktabs}. Tables are copied verbatim from results/ablation/tables.tex (same style: caption above, \footnotesize, booktabs).
+% Every number in this file is checked against results/ablation/*.json by ablation/verify_findings.py (one sentence per line on purpose).
+
+\subsection{From the original notebook to v2}
+\label{sec:ablation-ladder}
+
+We rebuilt the path from the original notebook to the final pipeline as a ladder of single changes and scored every rung on the same corrected test sets.
+Task~2 rungs are trained with three seeds (42, 43, 44) and reported as mean $\pm$ sample standard deviation; Task~1 and Task~3 involve no training and are single deterministic runs.
+Across the Task~2 rungs the seed standard deviation of test macro-F1 lies between 0.001 and 0.012, and the standard deviation of paired same-seed differences between 0.002 and 0.019, so we treat differences below about 0.01 as not established.
+
+\paragraph{Task 2.}
+Table~\ref{tab:t2_ladder} lists the rungs; all are evaluated on the full corrected test set of 2237 images.
+The path fix is the only established accuracy gain.
+The original notebook's \texttt{lstrip('data\_image/')} strips a set of characters instead of a prefix and silently dropped both earthquake events from the training and development data (L0).
+Restoring them raises test macro-F1 from 0.494 $\pm$ 0.006 to 0.588 $\pm$ 0.012 (L1), a paired gain of $+0.095 \pm 0.011$ that is positive at all three seeds.
+Every later step moves test macro-F1 by less than the noise floor: the paired differences are $+0.004 \pm 0.002$ (QuickGELU CLIP, L2), $+0.008 \pm 0.007$ (10-epoch cap, L3), $-0.013 \pm 0.015$ (deterministic cached features, L3b), $+0.012 \pm 0.019$ (mixed precision, L4a) and $-0.011 \pm 0.010$ (randomly initialised text encoder, L4).
+The rest of v2 therefore delivers equal accuracy at a fraction of the compute: L1 reaches 0.588 $\pm$ 0.012 and v2 (L4) 0.587 $\pm$ 0.001 test macro-F1, at 9.8 instead of 66.4 minutes of wall-clock time per run, about one seventh, measured on a single laptop GPU.
+The whole bundle from L3 to L4 is consistently slightly lower ($-0.013 \pm 0.005$, negative at every seed), but no single step of it is established, including the effect of the random initialisation, which is no larger than the opposite-signed effect of mixed precision alone.
+Two implementation facts explain details of the ladder.
+The original notebook applied a random crop to development and test images as well as to training images, which is why its CLIP features could not be cached before L3b.
+v2's text encoder starts from random weights instead of pretrained DistilBERT: the cosine similarity between its saved word embeddings and the pretrained ones is $-0.0002$.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 2 ladder from the original notebook (L0) to v2 (L4). All rungs are scored on the full corrected test set (2237 rows).}
+\label{tab:t2_ladder}
+\begin{tabular}{llcllll}
+\toprule
+Rung & Change & $n$ & Dev macro-F1 & Acc. & Macro-F1 & Weighted-F1 \\
+\midrule
+L0 & v1 buggy train/dev, GELU CLIP, random crop, 30 ep & 3 & 0.557 $\pm$ 0.016 & 0.767 $\pm$ 0.002 & 0.494 $\pm$ 0.006 & 0.760 $\pm$ 0.002 \\
+L1 & + full corrected train/dev & 3 & 0.643 $\pm$ 0.044 & 0.788 $\pm$ 0.008 & 0.588 $\pm$ 0.012 & 0.788 $\pm$ 0.011 \\
+L2 & + QuickGELU CLIP & 3 & 0.648 $\pm$ 0.043 & 0.786 $\pm$ 0.012 & 0.592 $\pm$ 0.012 & 0.787 $\pm$ 0.013 \\
+L3 & + epoch budget 30 $\to$ 10 & 3 & 0.595 $\pm$ 0.008 & 0.797 $\pm$ 0.005 & 0.600 $\pm$ 0.005 & 0.799 $\pm$ 0.004 \\
+L3b & + deterministic transform, cached features & 3 & 0.581 $\pm$ 0.011 & 0.792 $\pm$ 0.008 & 0.587 $\pm$ 0.011 & 0.793 $\pm$ 0.007 \\
+L4a & + AMP (pretrained DistilBERT) & 3 & 0.585 $\pm$ 0.008 & 0.799 $\pm$ 0.006 & 0.598 $\pm$ 0.010 & 0.800 $\pm$ 0.006 \\
+L4 & v2: random-init DistilBERT & 3 & 0.581 $\pm$ 0.003 & 0.793 $\pm$ 0.005 & 0.587 $\pm$ 0.001 & 0.795 $\pm$ 0.002 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Task 3.}
+Table~\ref{tab:t3_ladder} follows the nearest-neighbour index from the original notebook to v2; every rung is scored on the same 529 test queries and the three real damage classes.
+The original index held all 18082 annotated images, including the test images, and 14556 of them (80.5\%) carried a ``Don't know'' label that never occurs in the test split.
+The original notebook's score is not its real performance: with the test images in the index, all 529 test queries retrieve themselves among their five nearest neighbours, and the resulting macro-F1 of 0.688 (accuracy 0.722) falls to 0.378 (accuracy 0.503) once they are removed (L1).
+L1 is therefore the fair measure of the original system; removing the polluted labels recovers 0.504 (L2), and the last two steps, dropping development images (L3) and same-tweet siblings (L4, v2), give 0.509 and 0.491, which are within the noise of 529 queries.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 3 ladder (deterministic, $n=1$ per rung). Every rung is scored on the same 529 test queries (3 real classes).}
+\label{tab:t3_ladder}
+\begin{tabular}{llrrrr}
+\toprule
+Rung & Index & Rows & Acc. & Macro-F1 & Weighted-F1 \\
+\midrule
+L0 & v1 index (incl. test, ``Don't know'' pollution) & 18082 & 0.7221 & 0.6880 & 0.7630 \\
+L1 & test rows removed & 17553 & 0.5028 & 0.3777 & 0.5328 \\
+L2 & pollution removed (train+dev) & 2997 & 0.6767 & 0.5037 & 0.6318 \\
+L3 & dev removed (train only) & 2468 & 0.6749 & 0.5091 & 0.6309 \\
+L4 & tweet siblings removed (= v2) & 2361 & 0.6673 & 0.4914 & 0.6202 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Component ablation}
+\label{sec:ablation-components}
+
+\paragraph{Task 2.}
+Table~\ref{tab:t2_partb} removes one component at a time from the L4a configuration (three seeds each).
+A 200k-parameter MLP on the cached CLIP vector scores 0.601 $\pm$ 0.005 test macro-F1 against 0.598 $\pm$ 0.010 for the full 67M-parameter model, a paired difference of $+0.003 \pm 0.009$, and concatenating the two streams without attention gives $-0.003 \pm 0.012$.
+Neither difference is established.
+The text stream alone reaches only 0.294 $\pm$ 0.014 ($-0.305 \pm 0.012$ against the full model), which is established.
+For this task the text is redundant with the image: the target is the image's own humanitarian label, and the tweet text adds nothing measurable once the CLIP vector is available.
+Removing the text-to-image attention block gives $-0.029 \pm 0.024$ (negative at all three seeds), which we regard as suggestive only.
+That block attends over a single image vector, so its attention weight is identically one and it contributes an additional linear copy of the image; the image-to-text block and the direct residual image path remain in the ablated model.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 2 component ablation on L4a's configuration (10 epochs, cached CLIP, AMP, pretrained DistilBERT).}
+\label{tab:t2_partb}
+\begin{tabular}{lcrllll}
+\toprule
+Variant & $n$ & Params & Dev macro-F1 & Acc. & Macro-F1 & Weighted-F1 \\
+\midrule
+full model (L4a) & 3 & 67\,352\,840 & 0.585 $\pm$ 0.008 & 0.799 $\pm$ 0.006 & 0.598 $\pm$ 0.010 & 0.800 $\pm$ 0.006 \\
+text only & 3 & 66\,628\,104 & 0.295 $\pm$ 0.005 & 0.486 $\pm$ 0.010 & 0.294 $\pm$ 0.014 & 0.499 $\pm$ 0.008 \\
+image only & 3 & 199\,688 & 0.568 $\pm$ 0.008 & 0.788 $\pm$ 0.002 & 0.601 $\pm$ 0.005 & 0.793 $\pm$ 0.002 \\
+concat, no attention & 3 & 66\,825\,480 & 0.580 $\pm$ 0.012 & 0.796 $\pm$ 0.007 & 0.595 $\pm$ 0.009 & 0.795 $\pm$ 0.007 \\
+no text$\to$image attention & 3 & 67\,089\,160 & 0.583 $\pm$ 0.015 & 0.795 $\pm$ 0.005 & 0.570 $\pm$ 0.014 & 0.795 $\pm$ 0.005 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Task 3.}
+Tables~\ref{tab:t3_k}--\ref{tab:t3_emb} vary one factor of the nearest-neighbour classifier at a time on the tweet-disjoint index (single deterministic runs on 529 test queries).
+The value $k=5$ is the best on the development set for the headline configuration (macro-F1 0.483), and test macro-F1 lies between 0.454 and 0.515 across $k \in \{1, 3, 5, 10, 20\}$, which is not an established effect.
+Similarity-weighted voting gives metrics identical to majority voting in all 15 combinations of embedding and $k$, because the neighbours of a query have similar similarities (mean gap between the first and fifth neighbour 0.046).
+Class-balanced voting raises development macro-F1 by 0.037 but test macro-F1 by only 0.004, and lowers accuracy from 0.667 to 0.586.
+Image-only retrieval (0.507) is not worse than the fused embedding (0.491), and text-only retrieval is clearly weaker (0.428).
+A logistic-regression probe on the same embeddings scores higher than five-nearest-neighbour voting on the fused embedding (0.615 against 0.491) and on the image embedding (0.595 against 0.507); this is large relative to the noise floor but it is a single run and has not been replicated across seeds.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 3: effect of $k$ (fused embedding, majority vote, tweet-disjoint index). Headline is $k=5$. Deterministic, $n=1$.}
+\label{tab:t3_k}
+\begin{tabular}{rrrr}
+\toprule
+$k$ & Dev macro-F1 & Test acc. & Test macro-F1 \\
+\midrule
+1 & 0.4627 & 0.6011 & 0.4538 \\
+3 & 0.4739 & 0.6749 & 0.5150 \\
+5 & 0.4832 & 0.6673 & 0.4914 \\
+10 & 0.4438 & 0.6843 & 0.5006 \\
+20 & 0.4334 & 0.6843 & 0.4704 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 3: voting rule ($k=5$, fused embedding). Deterministic, $n=1$.}
+\label{tab:t3_vote}
+\begin{tabular}{lrrr}
+\toprule
+Vote & Dev macro-F1 & Test acc. & Test macro-F1 \\
+\midrule
+majority (v2) & 0.4832 & 0.6673 & 0.4914 \\
+similarity-weighted & 0.4832 & 0.6673 & 0.4914 \\
+class-balanced & 0.5198 & 0.5860 & 0.4954 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Task 3: embedding and classifier (index/training rows identical; logistic-regression $C$ tuned on dev). Deterministic, $n=1$.}
+\label{tab:t3_emb}
+\begin{tabular}{llrrr}
+\toprule
+Embedding & Classifier & Dev macro-F1 & Test acc. & Test macro-F1 \\
+\midrule
+image & 5-NN majority & 0.5427 & 0.6749 & 0.5074 \\
+image & logistic regression & 0.6208 & 0.6730 & 0.5946 \\
+text & 5-NN majority & 0.4021 & 0.6068 & 0.4276 \\
+text & logistic regression & 0.4731 & 0.5085 & 0.4632 \\
+fused & 5-NN majority & 0.4832 & 0.6673 & 0.4914 \\
+fused & logistic regression & 0.5926 & 0.6843 & 0.6146 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Robustness}
+\label{sec:ablation-robustness}
+
+\paragraph{Missing modality.}
+Table~\ref{tab:c1} replaces one input at test time without retraining: a grey image, or an empty string.
+A grey image collapses both Task~2 models to 0.080 (L4) and 0.081 (L4a) macro-F1, within 0.002 of the score of always predicting the majority class (0.0801) at every seed, so the image carries essentially all of the decision.
+Removing the text has a model-dependent effect: v2's model (L4) is unchanged ($+0.003$, 0.587 to 0.590), whereas the model with pretrained DistilBERT (L4a) loses between 0.058 and 0.103 macro-F1 across the three seeds (mean $-0.087$).
+We read this as redundancy and not as an ignored input: text-only training reaches 0.294 and image-only training matches the full model, so the text does not supply information that the image lacks.
+An empty string is also an unusual input for DistilBERT: training texts are never empty, so the encoder sees only the start and end tokens, and the L4a drop may reflect that input shift as much as lost evidence.
+For Task~3 a grey image costs 0.039 macro-F1 and an empty text 0.052 (single run).
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Missing-modality robustness at test time (no retraining). $\Delta$ is the macro-F1 change from the full-input score.}
+\label{tab:c1}
+\begin{tabular}{llcrrr}
+\toprule
+Model & Condition & $n$ & Acc. & Macro-F1 & $\Delta$ macro-F1 \\
+\midrule
+T2 L4a & full input & 3 & 0.799 $\pm$ 0.006 & 0.598 $\pm$ 0.010 & -- \\
+ & grey image & 3 & 0.472 $\pm$ 0.001 & 0.081 $\pm$ 0.001 & -0.518 \\
+ & empty text & 3 & 0.774 $\pm$ 0.005 & 0.511 $\pm$ 0.034 & -0.087 \\
+T2 L4 (v2) & full input & 3 & 0.793 $\pm$ 0.005 & 0.587 $\pm$ 0.001 & -- \\
+ & grey image & 3 & 0.472 $\pm$ 0.000 & 0.080 $\pm$ 0.000 & -0.507 \\
+ & empty text & 3 & 0.796 $\pm$ 0.003 & 0.590 $\pm$ 0.013 & +0.003 \\
+T3 5-NN & full input & 1 & 0.667 & 0.491 & -- \\
+ & grey image & 1 & 0.565 & 0.452 & -0.039 \\
+ & empty text & 1 & 0.665 & 0.440 & -0.052 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Leave-one-disaster-out.}
+Tables~\ref{tab:c2_t1} and~\ref{tab:c2_t3} train (Task~1) or build the index (Task~3) on six events and test on the seventh; the held-out event contributes no rows, which the code asserts for all 14 folds.
+Averaged over the seven events, Task~1 macro-F1 falls from 0.714 (all events seen) to 0.680 and Task~3 from 0.381 to 0.354.
+The Task~1 drop appears in 6 of 7 events (largest: Sri Lanka floods, 0.932 to 0.793) and the Task~3 drop in 5 of 7, but three Task~3 events have only 13 to 23 test images, so we regard the Task~3 figures as indicative only.
+Task~2 was not evaluated this way and is left as future work.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Leave-one-disaster-out, T1 (train/index on the other six events' train split; deterministic, $n=1$ per fold). Per-event macro-F1 averages the classes present in that event. In-dist.\ = standard model on the same rows.}
+\label{tab:c2_t1}
+\begin{tabular}{lrrrr}
+\toprule
+Held-out event & Test rows & Acc. & LODO macro-F1 & In-dist. macro-F1 \\
+\midrule
+california\_wildfires & 240 & 0.708 & 0.615 & 0.606 \\
+hurricane\_harvey & 568 & 0.805 & 0.735 & 0.758 \\
+hurricane\_irma & 548 & 0.776 & 0.675 & 0.697 \\
+hurricane\_maria & 542 & 0.723 & 0.692 & 0.742 \\
+iraq\_iran\_earthquake & 73 & 0.753 & 0.622 & 0.625 \\
+mexico\_earthquake & 159 & 0.711 & 0.628 & 0.638 \\
+srilanka\_floods & 107 & 0.804 & 0.793 & 0.932 \\
+\textbf{macro average} & 2237 & 0.754 & 0.680 & 0.714 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Leave-one-disaster-out, T3 (train/index on the other six events' train split; deterministic, $n=1$ per fold). Per-event macro-F1 averages the classes present in that event. In-dist.\ = standard model on the same rows.}
+\label{tab:c2_t3}
+\begin{tabular}{lrrrr}
+\toprule
+Held-out event & Test rows & Acc. & LODO macro-F1 & In-dist. macro-F1 \\
+\midrule
+california\_wildfires & 87 & 0.862 & 0.309 & 0.315 \\
+hurricane\_harvey & 132 & 0.629 & 0.481 & 0.494 \\
+hurricane\_irma & 120 & 0.408 & 0.271 & 0.483 \\
+hurricane\_maria & 133 & 0.579 & 0.389 & 0.343 \\
+iraq\_iran\_earthquake & 23 & 0.783 & 0.293 & 0.302 \\
+mexico\_earthquake & 21 & 0.857 & 0.462 & 0.417 \\
+srilanka\_floods & 13 & 0.692 & 0.273 & 0.316 \\
+\textbf{macro average} & 529 & 0.687 & 0.354 & 0.381 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{What is established.}
+With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, and the fall of the original Task~3 score once self-retrieval is removed.
+Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, and all differences among the Task~3 rungs from L2 to L4.
