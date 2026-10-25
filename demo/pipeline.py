@@ -49,18 +49,22 @@ class Pipeline:
                                           bert_config=DistilBertConfig.from_pretrained(ART / "distilbert_config"))
         self.t2.load_state_dict(torch.load(T2_CKPT, map_location="cpu"))
         self.t2_ckpt = T2_CKPT.name
+        # Temperatures for the displayed confidences (fitted on dev, see demo/calibration.json). They never change a predicted label.
+        self.calib = json.load(open(Path(__file__).resolve().parent / "calibration.json"))
+        self.t2_T = float(self.calib["t2"]["temperature"]) if self.t2_ckpt == self.calib["t2"]["checkpoint"] else 1.0   # only valid for that checkpoint
         self.t2.to(self.device).eval()
         self.index = faiss.read_index(str(ART / "task3_index.faiss"))
         self.meta = pd.read_csv(ART / "task3_meta.csv", dtype=str, keep_default_na=False)
         self.k = self.cfg["t3_k"]
-        # Optional hybrid Task 3 (ablation E2): probe predicts, k-NN supplies the evidence. OFF unless asked for.
+        # Hybrid Task 3 (ablation E2): a logistic probe predicts, the k-NN search supplies the evidence. Default ON;
+        # CAPSTONE_T3_HYBRID=0 (or Pipeline(hybrid_t3=False)) restores v2's 5-NN vote.
         if hybrid_t3 is None:
-            hybrid_t3 = os.environ.get("CAPSTONE_T3_HYBRID", "0") == "1"
+            hybrid_t3 = os.environ.get("CAPSTONE_T3_HYBRID", "1") != "0"
         self.hybrid = None
         if hybrid_t3:
             sys.path.insert(0, str(Path(__file__).resolve().parent))
             from hybrid import HybridT3
-            self.hybrid = HybridT3(self.index, self.meta["label"])
+            self.hybrid = HybridT3(self.index, self.meta["label"], temperature=self.calib["t3_probe"]["temperature"])
 
     def predict(self, image, text):
         """image: PIL.Image or path; text: tweet string. Returns a dict with t1, t2, t3, neighbours, latency_s."""
@@ -82,8 +86,12 @@ class Pipeline:
 
         # Task 2
         ids, mask = cc.tokenize(self.tok, [clean], self.cfg["t2_max_len"])
-        p2 = cc.t2_predict_proba(self.t2, img_raw, ids, mask, self.device)[0]
-        t2 = dict(label=self.t2_labels[int(p2.argmax())], probs=dict(zip(self.t2_labels, map(float, p2))))
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.float16, enabled=(self.device.type == "cuda")):
+            logits = self.t2(torch.as_tensor(img_raw).float().to(self.device), ids.to(self.device), mask.to(self.device)).float()
+        p2_raw = torch.softmax(logits, -1)[0].cpu().numpy()                # what t2_predict_proba returned before calibration
+        p2 = torch.softmax(logits / self.t2_T, -1)[0].cpu().numpy()        # displayed: temperature-scaled
+        t2 = dict(label=self.t2_labels[int(p2.argmax())], probs=dict(zip(self.t2_labels, map(float, p2))),
+                  temperature=self.t2_T, label_unscaled=self.t2_labels[int(p2_raw.argmax())])
 
         # Task 3: kNN over the train-only index
         q = cc.t3_vectors(img_raw, txt_emb)
@@ -93,10 +101,11 @@ class Pipeline:
         t3 = dict(label=label, vote_share=share, note="agreement among similar past cases (k=%d vote share); not a calibrated probability" % self.k)
         if self.hybrid is not None:
             h = self.hybrid.predict(q, rows["label"], scores[0])
-            t3 = dict(label=h["label"], vote_share=h["vote_share"], probe_probs=h["probs"], knn_label=h["knn_label"],
+            t3 = dict(label=h["label"], vote_share=h["vote_share"], probe_probs=h["probs"], probe_confidence=h["confidence"],
+                      probe_probs_unscaled=h["probs_unscaled"], temperature=self.hybrid.temperature, knn_label=h["knn_label"],
                       neighbours_agree=h["agrees"],
                       note="hybrid: a logistic probe predicts the label; the k=%d retrieved cases are the evidence (their majority is "
-                           "shown for comparison); probe probabilities are not calibrated" % self.k)
+                           "shown for comparison); probe confidence is temperature-scaled on the dev split" % self.k)
         neighbours = [dict(image_path=str(DATA / r.rel_image), tweet=r.tweet_text, label=r.label,
                            event=r.event_name, score=float(s))
                       for r, s in zip(rows.itertuples(), scores[0])]

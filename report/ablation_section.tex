@@ -275,6 +275,13 @@ srilanka\_floods & 13 & 0.692 & 0.273 & 0.316 \\
 \end{tabular}
 \end{table}
 
+\paragraph{Confidence and calibration.}
+We measure top-label expected calibration error (ECE, 15 equal-width bins) on the test split and fit one temperature per model on the development split, without any ECE threshold.
+Task~2 is over-confident: the mean confidence of L4a is 0.867 against an accuracy of 0.799, and temperature scaling (T between 1.19 and 1.47) lowers its ECE from 0.070 to 0.023 on average over the three seeds.
+The Task~3 probe is under-confident: its mean confidence is 0.607 against an accuracy of 0.684, and temperature scaling (T = 0.69) lowers its ECE from 0.077 to 0.038.
+Both signals available to the hybrid track correctness: the probe is right on 0.812 of the 345 test queries where the five nearest neighbours agree with it and on 0.446 of the 184 where they disagree, and its accuracy rises monotonically over probe-confidence quintiles from 0.500 to 0.914.
+As predictors of a correct answer, the probe confidence has an AUROC of 0.718 (95\% bootstrap interval 0.672 to 0.762) and agreement with the neighbours 0.692 (0.650 to 0.735).
+The two signals are partly independent, so combining them, for example in a confidence score fitted on development data, is a natural direction for future work.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.

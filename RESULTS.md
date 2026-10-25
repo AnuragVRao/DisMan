@@ -36,7 +36,7 @@ These two effects pull in opposite directions and plausibly roughly cancelled. R
 | | corrected, tweet-disjoint index (headline) | 0.6673 | 0.4914 | 0.6202 | 529 |
 | | corrected, official split (image-disjoint only), secondary | 0.6749 | 0.5091 | 0.6309 | 529 |
 
-> **Note:** the demo serves the ablation study's L4a seed-42 Task 2 model (0.8033 / 0.6080); the numbers listed in this table are for the v2 pipeline.
+> **Note:** the demo serves the ablation study's L4a seed-42 Task 2 model (0.8033 / 0.6080) and a hybrid Task 3 (probe predicts, nearest cases are the evidence) with temperature-scaled confidences; the numbers listed in this table are for the v2 pipeline (`CAPSTONE_T3_HYBRID=0` restores v2's 5-NN vote).
 
 \* "Corrected pipeline" for Task 2 bundles **five** changes: the path fix, HF CLIP / QuickGELU fix, cached embeddings, a 10-epoch cap, and AMP. The delta is not attributable to any single one of them.
 

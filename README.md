@@ -22,7 +22,7 @@ and rebuilt it as `capstone-v2.ipynb`. The full audit, tables, figures and limit
 | T2 Humanitarian (8 classes) | 0.7975 | 0.5865 | 0.7968 | 2237 |
 | T3 Damage severity (3 classes, tweet-disjoint index) | 0.6673 | 0.4914 | 0.6202 | 529 |
 
-> **Which Task 2 model does the demo serve?** The live demo serves the ablation study's L4a seed-42 model (test accuracy 0.8033, macro-F1 0.6080); the numbers listed above are for the v2 pipeline (its own checkpoint is selectable with `CAPSTONE_T2_CKPT`, see `docs/ablation_findings.md`).
+> **What does the demo serve?** The live demo serves the ablation study's L4a seed-42 Task 2 model (test accuracy 0.8033, macro-F1 0.6080) and a hybrid Task 3 (a logistic probe predicts the damage level, the five most similar past cases are shown as evidence, and a disagreement is flagged for human review), with temperature-scaled confidences (`demo/calibration.json`). The numbers listed above are for the v2 pipeline. `CAPSTONE_T3_HYBRID=0` restores v2's 5-NN vote and `CAPSTONE_T2_CKPT=artifacts/task2_model.pt` selects v2's own Task 2 checkpoint (see `docs/ablation_findings.md`).
 
 Task 3 is lower than the old notebook's number on purpose: the old evaluation was inflated by test-set leakage and polluted by a
 class that does not exist in the test split (details in RESULTS.md). The old and corrected rows are not on identical test sets

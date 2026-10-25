@@ -231,7 +231,7 @@ Because the hybrid's label is the probe's label, its row is the probe row of Par
 
 ### 9.4 C: calibration (inference only)
 
-Top-label expected calibration error (ECE) with 15 equal-width confidence bins, on the test split. If a model's test ECE exceeds 0.05, one temperature T is fitted on the development split (minimising dev NLL) and applied to the test logits; for the T2 seeds it is computed for all three so that the aggregate covers every seed (the column "Exceeds 0.05" shows which seeds the rule selects).
+Top-label expected calibration error (ECE) with 15 equal-width confidence bins, on the test split. For every model one temperature T is fitted on the development split (minimising dev NLL) and applied to the test logits; there is no ECE threshold, and the scaled results are reported for all three T2 seeds.
 T3 calibrates the **probe's** probabilities, not the 5-NN vote fractions. The dev fit uses a probe trained on damage-train minus the tweets shared with dev (the test probe would have seen dev siblings), and T is then applied to the test probe. Reliability diagram: `results/ablation/reliability.pdf` (bins with few queries are noisy).
 
 **Task 3, logistic probe (fused, C = 1; 529 test queries)**
@@ -242,14 +242,15 @@ T3 calibrates the **probe's** probabilities, not the 5-NN vote fractions. The de
 
 **Task 2, L4a (2,237 test rows)**
 
-| Seed | Accuracy | Mean confidence | ECE before | Exceeds 0.05 | T (fitted on dev) | ECE after | NLL before | NLL after |
-|---|---|---|---|---|---|---|---|---|
-| 42 | 0.8033 | 0.8431 | 0.0459 | no | 1.185 | 0.0239 | 0.5465 | 0.5423 |
-| 43 | 0.8029 | 0.8793 | 0.0770 | yes | 1.467 | 0.0216 | 0.5970 | 0.5564 |
-| 44 | 0.7921 | 0.8782 | 0.0867 | yes | 1.472 | 0.0246 | 0.6181 | 0.5706 |
-| mean ± std (3 seeds) | 0.7994 ± 0.0063 | 0.8669 ± 0.0206 | 0.0698 ± 0.0213 | | 1.375 ± 0.164 | 0.0234 ± 0.0016 | 0.5872 ± 0.0368 | 0.5564 ± 0.0141 |
+| Seed | Accuracy | Mean confidence | ECE before | T (fitted on dev) | ECE after | NLL before | NLL after |
+|---|---|---|---|---|---|---|---|
+| 42 | 0.8033 | 0.8431 | 0.0459 | 1.185 | 0.0239 | 0.5465 | 0.5423 |
+| 43 | 0.8029 | 0.8793 | 0.0770 | 1.467 | 0.0216 | 0.5970 | 0.5564 |
+| 44 | 0.7921 | 0.8782 | 0.0867 | 1.472 | 0.0246 | 0.6181 | 0.5706 |
+| mean ± std (3 seeds) | 0.7994 ± 0.0063 | 0.8669 ± 0.0206 | 0.0698 ± 0.0213 | 1.375 ± 0.164 | 0.0234 ± 0.0016 | 0.5872 ± 0.0368 | 0.5564 ± 0.0141 |
 
 * The T3 probe is **under-confident** (mean confidence 0.607 against accuracy 0.684; T = 0.693 < 1 sharpens it) and the T2 model is **over-confident** (mean confidence 0.867 against accuracy 0.799; T > 1 softens it). In both cases temperature scaling brings ECE below 0.05 (T3 0.077 to 0.038; T2 0.070 to 0.023 on average); the NLL and Brier gains are small.
+* The demo shows temperature-scaled confidences: T = 1.185 for the L4a seed-42 Task 2 model and T = 0.693 for the Task 3 probe, read from `demo/calibration.json` (generated from these results by `ablation/make_demo_calibration.py`; the T2 value is applied only to that checkpoint). A single temperature never changes the predicted class.
 
 **Do the two signals track correctness? (T3 probe, test)**
 

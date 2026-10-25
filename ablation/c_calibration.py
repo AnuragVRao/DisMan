@@ -4,9 +4,9 @@ T3: the hybrid's logistic PROBE probabilities (fused embedding, C = 1, fitted on
    Besides ECE, test accuracy by (a) probe-neighbour agreement and (b) probe-confidence bins (equal-count quintiles), with AUROCs of both
    signals for predicting correctness, so the report can show that they track correctness.
 T2: L4a seeds 42, 43, 44 (existing checkpoints), test split.
-If a model's test ECE > 0.05, a single temperature T is fitted on the DEV split (minimising dev NLL) and applied to the test logits; ECE / NLL /
-Brier are reported before and after. The T3 probe used for the dev fit is trained on damage-train minus the tweets shared with dev (the test
-probe would see dev siblings); T is then applied to the test probe. Writes results/ablation/X/c_calibration_*.json and results/ablation/reliability.pdf.
+For EVERY model (no ECE threshold) a single temperature T is fitted on the DEV split (minimising dev NLL) and applied to the test logits;
+ECE / NLL / Brier are reported before and after. The T3 probe used for the dev fit is trained on damage-train minus the tweets shared with dev
+(the test probe would see dev siblings); T is then applied to the test probe. Writes results/ablation/X/c_calibration_*.json and results/ablation/reliability.pdf.
 """
 import json
 import os
@@ -26,7 +26,7 @@ from transformers import DistilBertConfig, DistilBertTokenizerFast
 
 from common import ABL_ART, ART, DATA, RES, SPLIT_DIR, cc, write_row
 
-N_BINS, THRESH, N_BOOT = 15, 0.05, 10_000
+N_BINS, N_BOOT = 15, 10_000
 faiss.omp_set_num_threads(4)
 
 
@@ -84,27 +84,19 @@ def boot_auroc(score, correct, seed=20241025):
     return [float(x) for x in np.percentile(v, [2.5, 97.5])]
 
 
-def report(name, conf, correct, p, y, z=None, z_dev=None, y_dev=None, force=False):
-    """ECE / NLL / Brier before, and after temperature scaling (fitted on dev) when the test ECE exceeds THRESH (or force=True, used for the
-    three T2 seeds so that the before/after aggregate covers every seed; `exceeds_threshold` records which seeds the 0.05 rule selects)."""
+def report(name, conf, correct, p, y, z, z_dev, y_dev):
+    """ECE / NLL / Brier before, and after temperature scaling (T fitted on dev) -- applied to every model."""
+    T = fit_temperature(z_dev, y_dev)
+    p2 = softmax(z / T); c2 = p2.max(1); ok2 = (p2.argmax(1) == y)
+    assert (p2.argmax(1) == p.argmax(1)).all()                    # a single temperature never changes the predicted class
     out = dict(n=int(len(y)), accuracy=float(correct.mean()), mean_confidence=float(conf.mean()), ece_before=ece(conf, correct),
-               nll_before=nll(p, y), brier_before=brier(p, y), bins_before=bins(conf, correct), temperature_scaled=False)
-    out["exceeds_threshold"] = bool(out["ece_before"] > THRESH)
-    if out["exceeds_threshold"] or force:
-        T = fit_temperature(z_dev, y_dev)
-        p2 = softmax(z / T); c2 = p2.max(1); ok2 = (p2.argmax(1) == y)
-        out.update(temperature_scaled=True, temperature=T, ece_after=ece(c2, ok2), nll_after=nll(p2, y), brier_after=brier(p2, y),
-                   mean_confidence_after=float(c2.mean()), bins_after=bins(c2, ok2), accuracy_after=float(ok2.mean()),
-                   dev_ece_before=ece(softmax(z_dev).max(1), softmax(z_dev).argmax(1) == y_dev),
-                   dev_ece_after=ece(softmax(z_dev / T).max(1), softmax(z_dev / T).argmax(1) == y_dev))
-    line = f"{name}: acc {out['accuracy']:.4f} mean conf {out['mean_confidence']:.4f} ECE {out['ece_before']:.4f} NLL {out['nll_before']:.4f}"
-    if out["temperature_scaled"]:
-        line += f" -> T={out['temperature']:.3f}: ECE {out['ece_after']:.4f} NLL {out['nll_after']:.4f} Brier {out['brier_before']:.4f}->{out['brier_after']:.4f}"
-    else:
-        line += "  (ECE <= 0.05: no temperature scaling)"
-    if force and not out["exceeds_threshold"]:
-        line += "  [scaled anyway for the three-seed aggregate]"
-    print(line, flush=True)
+               nll_before=nll(p, y), brier_before=brier(p, y), bins_before=bins(conf, correct), temperature=T,
+               ece_after=ece(c2, ok2), nll_after=nll(p2, y), brier_after=brier(p2, y), mean_confidence_after=float(c2.mean()),
+               bins_after=bins(c2, ok2), accuracy_after=float(ok2.mean()),
+               dev_ece_before=ece(softmax(z_dev).max(1), softmax(z_dev).argmax(1) == y_dev),
+               dev_ece_after=ece(softmax(z_dev / T).max(1), softmax(z_dev / T).argmax(1) == y_dev))
+    print(f"{name}: acc {out['accuracy']:.4f} mean conf {out['mean_confidence']:.4f} ECE {out['ece_before']:.4f} NLL {out['nll_before']:.4f} "
+          f"-> T={T:.4f}: ECE {out['ece_after']:.4f} NLL {out['nll_after']:.4f} Brier {out['brier_before']:.4f}->{out['brier_after']:.4f}", flush=True)
     return out
 
 
@@ -181,7 +173,7 @@ def main():
         p = softmax(zt)
         stored2 = json.load(open(RES / "A" / f"t2_L4a_seed{seed}.json"))
         assert abs((p.argmax(1) == yt2).mean() - stored2["test_acc"]) < 1e-4, "T2 accuracy != stored"
-        r = report(f"T2 L4a seed {seed}", p.max(1), p.argmax(1) == yt2, p, yt2, z=zt, z_dev=zd, y_dev=yd2, force=True)
+        r = report(f"T2 L4a seed {seed}", p.max(1), p.argmax(1) == yt2, p, yt2, z=zt, z_dev=zd, y_dev=yd2)
         write_row("X", "c_calibration_t2_L4a", seed, dict(task="T2", tier="gpu-small", model="L4a", **r))
         if seed == 42:
             panels["t2"] = (p.max(1), p.argmax(1) == yt2, r)
@@ -190,9 +182,7 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(9.0, 3.8), sharey=True)
     for ax, (key, title) in zip(axes, (("t3", "Task 3 probe (test, n=529)"), ("t2", "Task 2 L4a, seed 42 (test, n=2237)"))):
         _, _, r = panels[key]
-        for lab, bl, col, off in (("before", r["bins_before"], "#3b6ea5", -0.5), ("after temperature scaling", r.get("bins_after"), "#d98c2b", 0.5)):
-            if bl is None:
-                continue
+        for lab, bl, col, off in (("before", r["bins_before"], "#3b6ea5", -0.5), ("after temperature scaling", r["bins_after"], "#d98c2b", 0.5)):
             xs = [(b["lo"] + b["hi"]) / 2 + off * 0.027 for b in bl if b["n"]]
             ax.bar(xs, [b["acc"] for b in bl if b["n"]], width=0.026, color=col, alpha=0.85, label=f"{lab} (ECE {r['ece_before' if lab == 'before' else 'ece_after']:.3f})")
         ax.plot([0, 1], [0, 1], "k--", lw=1)

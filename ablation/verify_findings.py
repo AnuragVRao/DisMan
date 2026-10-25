@@ -284,13 +284,16 @@ chk("The neighbour majority disagrees with the probe on",
 # ── §9.4 C: calibration, recomputed from results/ablation/X/c_calibration_* ───────────────────────────────────────────
 _c3 = json.load(open(RES / "X" / "c_calibration_t3_probe_seed42.json"))
 _c2 = [json.load(open(RES / "X" / f"c_calibration_t2_L4a_seed{s_}.json")) for s_ in (42, 43, 44)]
-assert _c3["temperature_scaled"] and _c3["ece_before"] > 0.05 and all(r["temperature_scaled"] for r in _c2)
+assert "exceeds_threshold" not in _c3 and all("exceeds_threshold" not in r and "temperature" in r for r in _c2) and "temperature" in _c3   # no ECE threshold: every model is scaled
+_demo_cal = json.load(open(ROOT / "demo" / "calibration.json"))
+assert _demo_cal["t2"]["temperature"] == _c2[0]["temperature"] and _demo_cal["t3_probe"]["temperature"] == _c3["temperature"], "demo/calibration.json != results"
+assert _demo_cal["t2"]["checkpoint"] == "t2_L4a_seed42.pt"
 chk("Task 3, logistic probe (fused, C = 1;", f"{_c3['n']} test queries")
 chk(f"| {_c3['accuracy']:.4f} | {_c3['mean_confidence']:.4f} |",
     [f"| {_c3['ece_before']:.4f} | {_c3['temperature']:.3f} | {_c3['ece_after']:.4f} | {_c3['nll_before']:.4f} | {_c3['nll_after']:.4f} | {_c3['brier_before']:.4f} | {_c3['brier_after']:.4f} |"])
 for _sd, _r in zip((42, 43, 44), _c2):
     chk(f"| {_sd} | {_r['accuracy']:.4f} | {_r['mean_confidence']:.4f} |",
-        [f"| {_r['ece_before']:.4f} | {'yes' if _r['exceeds_threshold'] else 'no'} | {_r['temperature']:.3f} | {_r['ece_after']:.4f} | {_r['nll_before']:.4f} | {_r['nll_after']:.4f} |"])
+        [f"| {_r['ece_before']:.4f} | {_r['temperature']:.3f} | {_r['ece_after']:.4f} | {_r['nll_before']:.4f} | {_r['nll_after']:.4f} |"])
 _m = lambda k, d: f"{np.mean([r[k] for r in _c2]):.{d}f} ± {np.std([r[k] for r in _c2], ddof=1):.{d}f}"
 chk("| mean ± std (3 seeds) |", [_m("accuracy", 4), _m("mean_confidence", 4), _m("ece_before", 4), _m("temperature", 3), _m("ece_after", 4), _m("nll_before", 4), _m("nll_after", 4)])
 assert _c3["mean_confidence"] < _c3["accuracy"] and _c3["temperature"] < 1                  # "under-confident ... T < 1"
@@ -311,6 +314,7 @@ for _k, _lab in (("agree_high_conf", "agree, high confidence"), ("agree_low_conf
                  ("disagree_high_conf", "disagree, high confidence"), ("disagree_low_conf", "disagree, low confidence")):
     chk(f"| {_lab} |", [f"{_x2[_k]['n']}", f"{_x2[_k]['accuracy']:.3f}"])
 assert _c3["auroc_confidence_ci95"][0] > 0.5 and _c3["auroc_agreement_ci95"][0] > 0.5
+chk("The demo shows temperature-scaled confidences", [f"T = {_c2[0]['temperature']:.3f} for the L4a seed-42", f"T = {_c3['temperature']:.3f} for the Task 3 probe"])
 chk("Both signals track correctness", [f"{_q[0]['accuracy']:.3f} (Q1)", f"{_q[-1]['accuracy']:.3f} (Q5)", f"is {_ag['agree']['accuracy']:.3f}", f"against {_ag['disagree']['accuracy']:.3f}"])
 chk("AUROC for predicting a correct answer", [f"probe confidence {_c3['auroc_confidence']:.3f}", f"{_c3['auroc_confidence_ci95'][0]:.3f} to {_c3['auroc_confidence_ci95'][1]:.3f}",
                                               f"agreement {_c3['auroc_agreement']:.3f}", f"{_c3['auroc_agreement_ci95'][0]:.3f} to {_c3['auroc_agreement_ci95'][1]:.3f}", f"{_c3['n_boot']:,} resamples"])
@@ -568,6 +572,27 @@ tchk("At seed 42 the paired bootstrap 95% interval of this gain", ["At seed 42",
 _iv2 = json.load(open(RES / "X" / "e1_t2_imageonly_vs_L4a_seed42.json"))
 assert not _iv2["ci_excludes_zero"]
 tchk("This noise floor is seed variability", ["95% bootstrap interval", "at seed 42", f"half-width of {(_iv2['ci95_high'] - _iv2['ci95_low']) / 2:.3f}"])
+
+# 4d. "Confidence and calibration" paragraph (recomputed from results/ablation/X/c_calibration_*)
+_t3c = json.load(open(RES / "X" / "c_calibration_t3_probe_seed42.json"))
+_t2c = [json.load(open(RES / "X" / f"c_calibration_t2_L4a_seed{s_}.json")) for s_ in (42, 43, 44)]
+_qq, _aa = _t3c["by_confidence_quintile"], _t3c["by_agreement"]
+assert all(_qq[i]["accuracy"] < _qq[i + 1]["accuracy"] for i in range(4))                   # "rises monotonically"
+assert all(r["mean_confidence"] > r["accuracy"] for r in _t2c) and _t3c["mean_confidence"] < _t3c["accuracy"]   # over- / under-confident
+assert _t3c["auroc_confidence_ci95"][0] > 0.5 and _t3c["auroc_agreement_ci95"][0] > 0.5
+_Ts = [r["temperature"] for r in _t2c]
+tchk("We measure top-label expected calibration error", ["15 equal-width bins"])
+tchk("Task 2 is over-confident", [f"{np.mean([r['mean_confidence'] for r in _t2c]):.3f} against an accuracy of {np.mean([r['accuracy'] for r in _t2c]):.3f}",
+                                  f"T between {min(_Ts):.2f} and {max(_Ts):.2f}",
+                                  f"from {np.mean([r['ece_before'] for r in _t2c]):.3f} to {np.mean([r['ece_after'] for r in _t2c]):.3f}"])
+tchk("The Task 3 probe is under-confident", [f"{_t3c['mean_confidence']:.3f} against an accuracy of {_t3c['accuracy']:.3f}", f"T = {_t3c['temperature']:.2f}",
+                                             f"from {_t3c['ece_before']:.3f} to {_t3c['ece_after']:.3f}"])
+tchk("Both signals available to the hybrid track correctness",
+     [f"{_aa['agree']['accuracy']:.3f} of the {_aa['agree']['n']} test queries", f"{_aa['disagree']['accuracy']:.3f} of the {_aa['disagree']['n']}",
+      f"from {_qq[0]['accuracy']:.3f} to {_qq[-1]['accuracy']:.3f}"])
+tchk("As predictors of a correct answer",
+     [f"AUROC of {_t3c['auroc_confidence']:.3f} (95% bootstrap interval {_t3c['auroc_confidence_ci95'][0]:.3f} to {_t3c['auroc_confidence_ci95'][1]:.3f})",
+      f"{_t3c['auroc_agreement']:.3f} ({_t3c['auroc_agreement_ci95'][0]:.3f} to {_t3c['auroc_agreement_ci95'][1]:.3f})"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
