@@ -858,6 +858,37 @@ for lab_, m_, c_, n_ in (("T3 fused, logistic probe", "fused", "probe", "t3_prob
     tchk(f"{lab_} & 1 & {_bT3[('B32', m_, c_)]['test_macro_f1']:.3f}", [f"{_bT3[('L14', m_, c_)]['test_macro_f1']:.3f}"] + ([_bd(n_), _bcib(n_)] if n_ else []), cover_anchor=True)
 tchk(f"T3 zero-shot (prompt set {_bZ['chosen_l14']}) & 1 & {_bZ['test_b32_zero_shot']['macro_f1']:.3f}", [f"{_bZ['test_l14_chosen']['macro_f1']:.3f}"], cover_anchor=True)
 
+# 4h. F: duplicate-image check (results/ablation/X/f_duplicates_seed42.json)
+_fd = json.load(open(RES / "X" / "f_duplicates_seed42.json"))
+_fr = _fd["rescored"]
+_fm = lambda sub_, k_: np.mean([v_[k_] for n_, v_ in _fr.items() if sub_ in n_])
+assert max(abs(v_["after_macro_f1"] - v_["before_macro_f1"]) for v_ in _fr.values()) < 0.005
+assert _fd["t3_excluded"] == _fr["T3 hybrid (probe label)"]["n_before"] - _fr["T3 hybrid (probe label)"]["n_after"] and _fd["t2_excluded"] == 2237 - _fr["T2 L4a seed 42"]["n_after"]
+assert all(not e_["in_t3_index"] for e_ in _fd["demo_examples"]) and len(_fd["demo_examples"]) == 5 and max(e_["top1_image_cosine"] for e_ in _fd["demo_examples"]) < _fd["threshold"]
+assert _bZ["test_l14_dev_calibrated"]["macro_f1"] < _bZ["test_b32_dev_calibrated"]["macro_f1"] and _bZ["test_l14_chosen"]["macro_f1"] > _bZ["test_b32_zero_shot"]["macro_f1"]   # ranking reverses
+chk("Exact duplicates (md5 of every image file)", [f"{_fd['n_files']:,} image files, {_fd['n_distinct_md5']:,} distinct hashes", f"{_fd['exact_groups']} groups of byte-identical files ({_fd['exact_group_files']} files, largest group {_fd['largest_group']})",
+                                                    f"{_fd['exact_groups_cross_tweet']} of the groups spanning different tweet ids ({_fd['exact_group_files_cross_tweet']} files)"])
+chk("(a) Task 3:", [f"{_fd['t3_test_exact_in_index']} of {_fd['t3_n_test']} test images", f"({_fd['t3_index_rows']:,} rows", f"for {_fd['t3_exact_same_label_present']} of them"])
+chk("(b) Task 2:", [f"{_fd['t2_test_exact_in_train_dev']} of {_fd['t2_n_test']:,} test images", f"({_fd['t2_ref_rows']:,} rows; {_fd['t2_exact_same_tweet']} share the tweet id", f"for {_fd['t2_exact_same_label_present']})"])
+chk("Near-duplicates (CLIP B/32 cosine", [f"{_fd['t3_near_dup_queries']} of {_fd['t3_n_test']} ({_fd['t3_near_not_byte_identical']} not byte-identical)", f"{_fd['t2_near_dup_rows']} of {_fd['t2_n_test']:,} ({_fd['t2_near_not_byte_identical']} not byte-identical)"])
+chk("Re-scoring with the flagged test rows excluded", [f"{_fd['t3_excluded']} Task 3 and {_fd['t2_excluded']} Task 2 rows"])
+for k_, v_ in _fr.items():
+    chk(f"| {k_} |", [f"{v_['n_before']} | {v_['n_after']}", f"{v_['before_macro_f1']:.4f} | {v_['after_macro_f1']:.4f}"])
+chk("The largest change in any row", [f"{max(abs(v_['after_macro_f1'] - v_['before_macro_f1']) for v_ in _fr.values()):.4f}", f"L4a {_fm('L4a', 'before_macro_f1'):.4f} to {_fm('L4a', 'after_macro_f1'):.4f}",
+                                      f"image_only {_fm('image_only', 'before_macro_f1'):.4f} to {_fm('image_only', 'after_macro_f1'):.4f}"])
+for e_ in _fd["demo_examples"]:
+    chk(f"| `{e_['image_id']}` | {e_["kind"]} (live example) | no |", [f"{e_['top1_fused_similarity']:.4f}", f"{e_['top1_image_cosine']:.4f}"])
+for e_ in _fd["examples_t3"] + _fd["examples_t2"]:
+    chk(f"* `{e_['test_image_id']}` ({e_['test_label']}", [f"cosine {e_['cosine']:.4f}", f"byte-identical {'yes' if e_['byte_identical'] else 'no'}"])
+tchk("Hashing every image file finds", [f"finds {_fd['exact_groups']} groups", f"{_fd['exact_groups_cross_tweet']} of them spanning"])
+tchk("Of the 529 Task 3 test images", [f"Of the {_fd['t3_n_test']} Task 3 test images, {_fd['t3_test_exact_in_index']} have", f"and {_fd['t3_near_dup_queries']} have an index image", f"cosine of at least {_fd['threshold']}",
+                                       f"of the {_fd['t2_n_test']:,} Task 2 test images, {_fd['t2_test_exact_in_train_dev']} have", f"and {_fd['t2_near_dup_rows']} have a training image"])
+_fh, _fk = _fr["T3 hybrid (probe label)"], _fr["T3 5-NN majority"]
+tchk("Scoring the stored predictions without the flagged test rows",
+     [f"({_fd['t3_excluded']} and {_fd['t2_excluded']})", "by more than 0.005", f"Task 3 hybrid {_fh['before_macro_f1']:.3f} to {_fh['after_macro_f1']:.3f}", f"5-NN {_fk['before_macro_f1']:.3f} to {_fk['after_macro_f1']:.3f}",
+      f"L4a {_fm('L4a', 'before_macro_f1'):.3f} to {_fm('L4a', 'after_macro_f1'):.3f}", f"image-only {_fm('image_only', 'before_macro_f1'):.3f} to {_fm('image_only', 'after_macro_f1'):.3f}"])
+tchk("Under the development-calibrated bias variant", [f"({_bZ['test_l14_dev_calibrated']['macro_f1']:.3f} for L/14 against {_bZ['test_b32_dev_calibrated']['macro_f1']:.3f} for B/32)"])
+
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
 uncovered = []
