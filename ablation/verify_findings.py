@@ -281,6 +281,45 @@ chk("The neighbour majority disagrees with the probe on",
     [f"{_e2['n_disagree']} of {_e2['n_test']} queries ({100 * _e2['disagreement_rate']:.1f}%)", f"({_e2['n_test'] - _e2['n_disagree']} queries) accuracy is {_e2['probe_acc_where_agree']:.3f}",
      f"the probe is right on {_e2['probe_acc_where_disagree']:.3f}", f"majority on {_e2['knn_acc_where_disagree']:.3f}"])
 
+# ── §9.4 C: calibration, recomputed from results/ablation/X/c_calibration_* ───────────────────────────────────────────
+_c3 = json.load(open(RES / "X" / "c_calibration_t3_probe_seed42.json"))
+_c2 = [json.load(open(RES / "X" / f"c_calibration_t2_L4a_seed{s_}.json")) for s_ in (42, 43, 44)]
+assert _c3["temperature_scaled"] and _c3["ece_before"] > 0.05 and all(r["temperature_scaled"] for r in _c2)
+chk("Task 3, logistic probe (fused, C = 1;", f"{_c3['n']} test queries")
+chk(f"| {_c3['accuracy']:.4f} | {_c3['mean_confidence']:.4f} |",
+    [f"| {_c3['ece_before']:.4f} | {_c3['temperature']:.3f} | {_c3['ece_after']:.4f} | {_c3['nll_before']:.4f} | {_c3['nll_after']:.4f} | {_c3['brier_before']:.4f} | {_c3['brier_after']:.4f} |"])
+for _sd, _r in zip((42, 43, 44), _c2):
+    chk(f"| {_sd} | {_r['accuracy']:.4f} | {_r['mean_confidence']:.4f} |",
+        [f"| {_r['ece_before']:.4f} | {'yes' if _r['exceeds_threshold'] else 'no'} | {_r['temperature']:.3f} | {_r['ece_after']:.4f} | {_r['nll_before']:.4f} | {_r['nll_after']:.4f} |"])
+_m = lambda k, d: f"{np.mean([r[k] for r in _c2]):.{d}f} ± {np.std([r[k] for r in _c2], ddof=1):.{d}f}"
+chk("| mean ± std (3 seeds) |", [_m("accuracy", 4), _m("mean_confidence", 4), _m("ece_before", 4), _m("temperature", 3), _m("ece_after", 4), _m("nll_before", 4), _m("nll_after", 4)])
+assert _c3["mean_confidence"] < _c3["accuracy"] and _c3["temperature"] < 1                  # "under-confident ... T < 1"
+assert all(r["mean_confidence"] > r["accuracy"] and r["temperature"] > 1 for r in _c2)      # "over-confident ... T > 1"
+assert _c3["ece_after"] < 0.05 and all(r["ece_after"] < 0.05 for r in _c2)                  # "brings ECE below 0.05"
+chk("The T3 probe is under-confident", [f"mean confidence {_c3['mean_confidence']:.3f} against accuracy {_c3['accuracy']:.3f}", f"T = {_c3['temperature']:.3f}",
+                                         f"mean confidence {np.mean([r['mean_confidence'] for r in _c2]):.3f} against accuracy {np.mean([r['accuracy'] for r in _c2]):.3f}",
+                                         f"T3 {_c3['ece_before']:.3f} to {_c3['ece_after']:.3f}",
+                                         f"T2 {np.mean([r['ece_before'] for r in _c2]):.3f} to {np.mean([r['ece_after'] for r in _c2]):.3f}"])
+_ag, _q, _x2 = _c3["by_agreement"], _c3["by_confidence_quintile"], _c3["agreement_x_confidence"]
+chk("| agree |", [f"{_ag['agree']['n']}", f"{_ag['agree']['accuracy']:.3f}"])
+chk("| disagree |", [f"{_ag['disagree']['n']}", f"{_ag['disagree']['accuracy']:.3f}"])
+for _x in _q:
+    chk(f"| Q{_x['quintile']} |", [f"{_x['n']}", f"{_x['conf_min']:.3f} to {_x['conf_max']:.3f}", f"{_x['mean_confidence']:.3f}", f"{_x['accuracy']:.3f}"])
+assert all(_q[i]["accuracy"] < _q[i + 1]["accuracy"] for i in range(4))                     # "rises monotonically"
+chk("| Agreement × confidence", [f"median {_c3['median_confidence']:.3f}"])
+for _k, _lab in (("agree_high_conf", "agree, high confidence"), ("agree_low_conf", "agree, low confidence"),
+                 ("disagree_high_conf", "disagree, high confidence"), ("disagree_low_conf", "disagree, low confidence")):
+    chk(f"| {_lab} |", [f"{_x2[_k]['n']}", f"{_x2[_k]['accuracy']:.3f}"])
+assert _c3["auroc_confidence_ci95"][0] > 0.5 and _c3["auroc_agreement_ci95"][0] > 0.5
+chk("Both signals track correctness", [f"{_q[0]['accuracy']:.3f} (Q1)", f"{_q[-1]['accuracy']:.3f} (Q5)", f"is {_ag['agree']['accuracy']:.3f}", f"against {_ag['disagree']['accuracy']:.3f}"])
+chk("AUROC for predicting a correct answer", [f"probe confidence {_c3['auroc_confidence']:.3f}", f"{_c3['auroc_confidence_ci95'][0]:.3f} to {_c3['auroc_confidence_ci95'][1]:.3f}",
+                                              f"agreement {_c3['auroc_agreement']:.3f}", f"{_c3['auroc_agreement_ci95'][0]:.3f} to {_c3['auroc_agreement_ci95'][1]:.3f}", f"{_c3['n_boot']:,} resamples"])
+chk("The signals are partly independent", [f"{_x2['agree_low_conf']['accuracy']:.3f} (low confidence) to {_x2['agree_high_conf']['accuracy']:.3f} (high)",
+                                           f"from {_x2['disagree_low_conf']['accuracy']:.3f} to {_x2['disagree_high_conf']['accuracy']:.3f}"])
+# cross-check: the agreement split here equals E2's
+_e2b = json.load(open(RES / "X" / "e2_hybrid_t3_seed42.json"))
+assert _ag["disagree"]["n"] == _e2b["n_disagree"] and abs(_ag["agree"]["accuracy"] - _e2b["probe_acc_where_agree"]) < 1e-12
+
 # ── neighbour-similarity spread (CPU faiss, v2 index): used by the findings doc and the .tex ──────────────────────────
 import os
 os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
