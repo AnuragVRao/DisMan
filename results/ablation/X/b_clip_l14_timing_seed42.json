@@ -1,0 +1,28 @@
+{
+ "task": "T2/T3",
+ "tier": "gpu-small",
+ "model": "openai/clip-vit-large-patch14",
+ "dtype": "fp16",
+ "n_unique_images": 18083,
+ "batch": 256,
+ "batches": 71,
+ "model_load_s": 25.057053565979004,
+ "open_s": 0.19761943817138672,
+ "processor_s": 1.8366611003875732,
+ "gpu_forward_s_runs": [
+  2.359410524368286,
+  2.3637912273406982,
+  2.364633798599243
+ ],
+ "gpu_forward_s_median": 2.3637912273406982,
+ "peak_vram_gib": 2.893646717071533,
+ "projected_sequential_min": 5.204384922981262,
+ "projected_overlapped_min": 2.7971529523531595,
+ "projected_gpu_only_min": 2.7971529523531595,
+ "limit_min": 40,
+ "within_limit": true,
+ "part": "X",
+ "config": "b_clip_l14_timing",
+ "seed": 42,
+ "git_commit": "9b2e323"
+}
