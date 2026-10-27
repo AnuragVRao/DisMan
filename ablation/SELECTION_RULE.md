@@ -96,3 +96,23 @@ The existing image-only B/32 (raw) and L/14 (normalised) runs must reproduce the
 One table: dev macro-F1, test macro-F1 (seed mean +- seed std), balanced accuracy, recall of injured-or-dead (test n = 10) and vehicle damage (test n = 36; dev n = 8 and 38), trainable parameters. Paired dev bootstraps and the rule's pick per decision.
 Test intervals are test-sampling intervals, for reporting only, separate from the seed std; they are never used to select. Labels as in findings 9.9: "better"/"worse" only where the paired CI excludes 0 (by more than 0.002; a bound within 0.002 is "borderline"), otherwise "not distinguishable"; the injured-or-dead recall is "not resolvable" only where its CI includes 0. Every recall comparison states its test n.
 No multiplicity correction is applied, and the report says so.
+
+---
+
+# Fine-tuned fusion addendum (written and committed before any fine-tuned fusion run of this addendum; the Day 2 results above had been seen)
+
+Scope: Task 2, fine-tuned fusion (the text encoder is trained together with the v2 head), compared with the frozen image-only head. Per-run JSONs in `results/ablation/G/` (L4a-L14 naming).
+Fixed for every arm: CLIP L/14 768-d L2-normalised cached image features (as L4a-L14), inverse-frequency class weights, seeds 42, 43, 44, the L4a recipe (AMP; max length 128; 10 epochs, batch 32; 3 warm-up epochs then cosine; AdamW wd 1e-4; text encoder at 0.1 x lr = 1e-5, every other module lr 1e-4; v2 head: d_model 256, 4 heads, dropout 0.2, the two cross-attention blocks),
+checkpoint = best dev macro-F1, test scored once with it. No hyperparameter tuning.
+
+## Candidates (fixed now; none is added after any test number of this addendum is seen)
+- **F1: pretrained DistilBERT** (`distilbert-base-uncased`): this is L4a-L14 `inv`, whose three runs already exist (`results/ablation/G/t2_L4a-L14_inv_seed{42,43,44}.json`, run before this addendum, their numbers seen). They are reused as they are, not re-run.
+- **F2: pretrained all-MiniLM-L6-v2** (`sentence-transformers/all-MiniLM-L6-v2`; 6 layers, 384-d, 22.7M; the Day 2 text-encoder pick) fine-tuned in the same head: **L4a-L14-MiniLM**, 3 new runs. Same code path as L4a-L14 (`ablation/t2_train.py`) with a new `--text minilm` switch that replaces only the text encoder, its tokenizer and the width of the text projection;
+  the head, optimiser, loss, schedule and selection are unchanged. Validation before the runs: the generalised model class, built with DistilBERT, must load the stored L4a-L14 `inv` seed-42 checkpoint and reproduce its stored test predictions exactly; the default code path of `t2_train.py` is unchanged.
+- **Comparators (existing, not re-run):** the frozen image-only L/14 head as picked by Day 2 (lr 1e-4, dropout 0.2, d_model 128; `results/ablation/H/d4_lr0.0001_do0.2_dm128_seed*.json`), and F1.
+At most 6 runs; 3 are planned (F2).
+
+## Rule and reporting
+Mean dev macro-F1 over the three seeds; paired dev bootstrap (2000 resamples, seed 20241025, seed-averaged difference, 95% percentile CI) of best minus each arm; an arm is tied if the CI includes 0; among the tied arms take the simplest (fewest trainable parameters, then the smaller frozen backbone), so a fine-tuned model is chosen over the frozen head only if the frozen head is resolvably worse on dev.
+Report dev and test side by side without choosing the stronger: macro-F1, balanced accuracy, recall of injured-or-dead (test n = 10, dev n = 8) and vehicle damage (test n = 36, dev n = 38), seed mean +- seed std, and the paired bootstrap of (fine-tuned arm minus the frozen image-only head) on dev (selection-eligible) and on test (reporting only; test-sampling CI, separate from the seed std).
+Labels as in findings 9.9 ("better"/"worse" only where the CI excludes 0 by more than 0.002, "borderline" within 0.002, "not distinguishable" otherwise; "not resolvable" only for a CI that includes 0 on the injured-or-dead class). No multiplicity correction, and the report says so. No documentation edits until the results are confirmed.
