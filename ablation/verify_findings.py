@@ -992,7 +992,9 @@ _gmiss_ct = {s_: int((_gy[s_] == _gMISS).sum()) for s_ in ("dev", "test")}; _gmi
 chk("Conventions. Macro-F1 is always computed", [f"({_gmiss_ct['train']} train / {_gmiss_ct['dev']} dev / {_gmiss_ct['test']} test rows)",
                                                 f"predicts it {_gmiss('b32')} times on B/32 and {_gmiss('l14')} times on L/14", f"7/8 = {7 / 8:.3f}", "(10,000 resamples;",
                                                 "excludes 0 by more than 0.002; a bound within 0.002 of zero is called \"borderline\" (weak evidence)",
-                                                "the word is \"not resolvable\": with 8 dev and 10 test rows", "which is not the same as no effect",
+                                                "The same rule applies to every comparison, including the recall of the small injured-or-dead class (8 dev and 10 test rows; per-run recall moves in steps of 0.125 on dev and 0.1 on test)",
+                                                "a CI that excludes 0 is called \"better\" or \"worse\", and the word \"not resolvable\" is reserved for a CI that includes 0 on that class",
+                                                "which is not the same as no effect. Every recall comparison states its row count n.",
                                                 "Pairwise comparisons were not corrected for multiple testing (about 10 arms on 2 backbones, several metrics), so isolated borderline exclusions should be read as weak evidence"])
 chk("Added after the presentation, in answer to three questions", ["checks every number in this section against the saved results", "not that the analysis design is right"])
 
@@ -1073,7 +1075,7 @@ chk("Outcome of the pre-set rule.", [f"B/32 selects `{_gSEL['b32']}`; L/14 selec
 assert len(_gX["b32"]["tied"]) == len(_gX["l14"]["tied"])
 
 # -- balanced accuracy and minority recall, none / inv / sqrt_inv --
-_gBR = _gJ("g_balacc_recall_boot_seed42")
+_gBR = _gJ("g_balacc_recall_boot_seed42"); _ginj = []
 _gsup = {s_: {n_: int((_gy[s_] == c_).sum()) for n_, c_ in (("inj", _gINJ), ("veh", _gVEH), ("mis", _gMISS))} for s_ in ("dev", "test")}
 chk("Balanced accuracy and minority recall, `none` / `inv` / `sqrt_inv`.", [f"{_gsup['dev']['inj']} injured or dead, {_gsup['dev']['veh']} vehicle damage, {_gsup['dev']['mis']} missing or found",
                                                                            f"{_gsup['test']['inj']}, {_gsup['test']['veh']}, {_gsup['test']['mis']}", "(selection-eligible; 2,000 resamples)" if False else "2,000 resamples", "10,000 resamples"])
@@ -1099,8 +1101,11 @@ for _f in _GF:
                 assert all(_gnear(_sr[q_], _r[q_]) for q_ in ("diff", "ci95_low", "ci95_high"))
         for _pr in ("inv-none", "sqrt_inv-none", "inv-sqrt_inv"):
             _a1, _b1 = _pr.split("-")
-            _vw = (lambda r_: "not resolvable") if _m == "recall_injured" else _gvd
-            chk(f"| {_GBB[_f]} | {_gMN[_m]} | `{_a1}` − `{_b1}` |", [f"{_gdci(_vv[('dev', _pr)])} {_vw(_vv[('dev', _pr)])} | {_gdci(_vv[('test', _pr)])} {_vw(_vv[('test', _pr)])} |"])
+            _vw = (lambda r_: "not resolvable" if _gvd(r_) == "not distinguishable" else _gvd(r_)) if _m == "recall_injured" else _gvd
+            _nn = (lambda sp_: "") if _m == "balanced_acc" else (lambda sp_: f" (n={_gsup[sp_]['inj' if _m == 'recall_injured' else 'veh']})")
+            chk(f"| {_GBB[_f]} | {_gMN[_m]} | `{_a1}` − `{_b1}` |", [f"{_gdci(_vv[('dev', _pr)])} {_vw(_vv[('dev', _pr)])}{_nn('dev')} | {_gdci(_vv[('test', _pr)])} {_vw(_vv[('test', _pr)])}{_nn('test')} |"])
+            if _m == "recall_injured":
+                _ginj.extend([_vv[("dev", _pr)], _vv[("test", _pr)]])
             if _m == "balanced_acc":
                 assert _vv[("dev", _pr)]["ci95_low"] > 0 and _vv[("test", _pr)]["ci95_low"] > 0
             if _m == "recall_vehicle" and _pr != "inv-sqrt_inv":
@@ -1110,7 +1115,9 @@ for _f in _GF:
         if _m == "recall_vehicle":
             assert not (_vv[("dev", "inv-sqrt_inv")]["ci95_low"] > 0) if _f == "l14" else _vv[("dev", "inv-sqrt_inv")]["ci95_low"] > 0
             assert _vv[("test", "inv-sqrt_inv")]["ci95_low"] > 0
-chk("Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy", [f"(all 18 comparisons: dev and test, both backbones, three pairs) are not resolvable at this sample size ({_gsup['dev']['inj']} dev / {_gsup['test']['inj']} test rows; "
+assert len(_ginj) == 12 and sum(1 for r_ in _ginj if r_["ci95_low"] == 0.0) == 11 and all(not (r_["ci95_low"] > 0 or r_["ci95_high"] < 0) for r_ in _ginj)
+chk("Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy", [f"all {len(_ginj)} comparisons (dev and test, both backbones, three pairs) have a CI that includes 0 (eleven of them with a lower bound of exactly 0)",
+                                                                           f"\"not resolvable\" at this sample size ({_gsup['dev']['inj']} dev / {_gsup['test']['inj']} test rows; "
                                                                            f"per-run recall moves in steps of {1 / _gsup['dev']['inj']:.3f} on dev and {1 / _gsup['test']['inj']:.1f} on test)", "neither evidence of an effect nor of no effect"])
 for _f in _GF:
     _rn, _ri = (_gmean(_f, a_, "test_bal") for a_ in ("none", "inv"))
@@ -1133,6 +1140,65 @@ chk("| (d) `sqrt_inv` as the midpoint reference", [f"(dev macro-F1 {_gsd['b32'][
                                                    f"tied: {'yes' if _gsd['b32'][2] else 'no'} | tied: {'yes' if _gsd['l14'][2] else 'no'}"])
 chk("No selection variant agrees across the two backbones", ["none < none_posthoc < focal1 < focal2 < sqrt_inv < eff_num < inv < focal2_inv < sampler < logit_adj", f"on L/14 it picks `{_gPH['l14']['c']}`"])
 
+# -- pre-registered fused check: `none` against `inv` on L4a-L14, recomputed from the stored predictions --
+_gFC = _gJ("g_fused_L4a-L14_none_vs_inv_seed42")
+_gval, _gsto = _gJ("t2_L4a_validate_seed42"), json.load(open(RES / "A" / "t2_L4a_seed42.json"))
+assert all(_gval[k_] == _gsto[k_] for k_ in ("dev_macro_f1", "test_acc", "test_macro_f1", "test_weighted_f1", "per_class_f1", "confusion_matrix", "best_epoch", "n_params"))
+_gFP = {}
+for _arm in ("inv", "none"):
+    for _s in _GS:
+        _rj = _gJ(f"t2_L4a-L14_{_arm}_seed{_s}")
+        assert _rj["flags"]["feat"] == "l14" and _rj["flags"]["loss"] == _arm and _rj["flags"]["bert"] == "pretrained" and _rj["part"] == "G" and _rj["seed"] == _s and _rj["n_params"] > 67_000_000
+        _pdv, _ptt = (np.array(_gFC["arms"][_arm][k_][str(_s)]) for k_ in ("pred_dev", "pred_test"))
+        assert len(_pdv) == len(_gy["dev"]) and len(_ptt) == len(_gy["test"])
+        # the stored predictions reproduce the training run's own test confusion matrix and its dev and test macro-F1
+        assert np.bincount(_gy["test"] * 8 + _ptt, minlength=64).reshape(8, 8).tolist() == _rj["confusion_matrix"]
+        assert _gnear(_gf1(_gy["dev"], _pdv, labels=_gALL, average="macro", zero_division=0), _rj["dev_macro_f1"]) and _gnear(_gf1(_gy["test"], _ptt, labels=_gALL, average="macro", zero_division=0), _rj["test_macro_f1"])
+        _gFP[(_arm, _s)] = dict(dev=_pdv, test=_ptt)
+_gFM = {}
+for _arm in ("inv", "none"):
+    for _sp in ("dev", "test"):
+        _yy = _gy[_sp]; _P = lambda s_: _gFP[(_arm, s_)][_sp]
+        _gFM[(_arm, _sp)] = dict(f1=[float(_gf1(_yy, _P(s_), labels=_gALL, average="macro", zero_division=0)) for s_ in _GS], bal=[float(_gba(_yy, _P(s_))) for s_ in _GS],
+                                 inj=[float(_grec(_yy, _P(s_), labels=[_gINJ], average="macro", zero_division=0)) for s_ in _GS], veh=[float(_grec(_yy, _P(s_), labels=[_gVEH], average="macro", zero_division=0)) for s_ in _GS],
+                                 mis=[float(_grec(_yy, _P(s_), labels=[_gMISS], average="macro", zero_division=0)) for s_ in _GS])
+        assert max(_gFM[(_arm, _sp)]["mis"]) == 0.0
+_gFD = {}
+for _sp, _idx in (("dev", _gDI), ("test", _gTI)):
+    _yy = _gy[_sp]; _vec = {}
+    for _arm in ("inv", "none"):
+        _rv = {s_: _gbu.recall_vec(_yy, _gFP[(_arm, s_)][_sp], 8, _idx)[0] for s_ in _GS}
+        _vec[_arm] = dict(f1={s_: _gbu.macro_f1_vec(_yy, _gFP[(_arm, s_)][_sp], 8, _idx) for s_ in _GS}, bal={s_: _gbu.balanced_acc_vec(_yy, _gFP[(_arm, s_)][_sp], 8, _idx) for s_ in _GS},
+                          inj={s_: _rv[s_][:, _gINJ] for s_ in _GS}, veh={s_: _rv[s_][:, _gVEH] for s_ in _GS})
+    for _m in ("f1", "bal", "inj", "veh"):
+        _r = _gbu.paired_diff_ci(_vec["none"][_m], _vec["inv"][_m], point_diff=float(np.mean(_gFM[("none", _sp)][_m]) - np.mean(_gFM[("inv", _sp)][_m])))
+        _v = _gvd(_r)
+        if _m == "inj" and _v == "not distinguishable":
+            _v = "not resolvable"
+        _gFD[(_sp, _m)] = (_r, _v)
+        _st = _gFC["pairs"][f"{_sp}:{_m}"]
+        assert all(_gnear(_st[q_], _r[q_]) for q_ in ("diff", "ci95_low", "ci95_high")) and _st["verdict"] == _v
+        if _m in ("inj", "veh"):
+            assert _st["n_rows"] == int((_yy == (_gINJ if _m == "inj" else _gVEH)).sum())
+assert [_gFD[(s_, m_)][1] for s_ in ("dev", "test") for m_ in ("f1", "bal", "inj", "veh")] == ["not distinguishable", "worse", "worse", "not distinguishable", "not distinguishable", "worse", "worse", "worse"]
+_gfn = lambda sp_, m_: f" (n={_gsup[sp_]['inj' if m_ == 'inj' else 'veh']})" if m_ in ("inj", "veh") else ""
+chk("Pre-registered fused check: `none` against `inv` on L4a-L14", ["seeds 42, 43, 44", "no other arm was run", "reproduces the stored L4a seed-42 result exactly",
+                                                                    "The first launch of the six runs failed on argument parsing (`--tag -L14_inv`) before producing any result; the relaunch used `--tag=...`; no result was seen or discarded"])
+for _lab, _m in (("macro-F1", "f1"), ("balanced accuracy", "bal"), ("recall, injured or dead", "inj"), ("recall, vehicle damage", "veh")):
+    _cells = {sp_: (_gm(_gFM[("inv", sp_)][_m]), _gm(_gFM[("none", sp_)][_m]), f"{_gdci(_gFD[(sp_, _m)][0])} {_gFD[(sp_, _m)][1]}{_gfn(sp_, _m)}") for sp_ in ("dev", "test")}
+    chk(f"| {_lab} | {_cells['dev'][0]} | {_cells['dev'][1]} |", [f"{_cells['dev'][2]} | {_cells['test'][0]} | {_cells['test'][1]} | {_cells['test'][2]} |"])
+_gdd = {m_: _gFD[("dev", m_)][0] for m_ in ("f1", "bal", "inj", "veh")}; _gtt = {m_: _gFD[("test", m_)][0] for m_ in ("f1", "bal", "inj", "veh")}
+_gsdt = [float(np.std(_gFM[(a_, "test")]["f1"], ddof=1)) for a_ in ("inv", "none")]
+chk("Dev (the only version eligible for selection) and test (reporting only", ["shown side by side and neither is preferred", "This is 8 comparisons (4 metrics on 2 splits), none corrected for multiplicity"])
+chk("Removing weighting lowers balanced accuracy (dev", [f"(dev {_gsg(_gdd['bal']['diff'])}, test {_gsg(_gtt['bal']['diff'])}; both intervals exclude 0)", f"lowers vehicle recall on test ({_gsg(_gtt['veh']['diff'])})",
+                                                         f"(dev {_gsg(_gdd['f1']['diff'])}, test {_gsg(_gtt['f1']['diff'])}; both intervals include 0; the test seed std is {min(_gsdt):.3f} to {max(_gsdt):.3f}, the same size as the {abs(_gtt['f1']['diff']):.3f} gap)",
+                                                         "Inverse-frequency weighting is retained as the headline loss, as pre-registered."])
+chk("Vehicle recall is not distinguishable on dev", [f"(interval upper bound {_gsg(_gdd['veh']['ci95_high'])})", "but worse on test", "Only dev counts for selection", "with 8 uncorrected comparisons the test result alone is weak evidence"])
+chk("Injured-or-dead recall is lower without weighting", [f"(\"worse\", n={_gsup['dev']['inj']} and n={_gsup['test']['inj']})"])
+chk("The sign of the macro-F1 difference differs from the image-only study", [f"(`inv` minus `none` {_gsg(_gX['b32']['tv']['inv']['vs_none']['diff'])} on B/32 and {_gsg(_gX['l14']['tv']['inv']['vs_none']['diff'])} on L/14)",
+                                                                              f"here `none` scores below `inv` ({_gsg(_gtt['f1']['diff'])})", "and the sign is read as noise"])
+assert _gX["b32"]["tv"]["inv"]["vs_none"]["diff"] < 0 and _gX["l14"]["tv"]["inv"]["vs_none"]["diff"] < 0 and _gtt["f1"]["diff"] < 0
+
 # -- bootstrap audit --
 _gBC = _gJ("g_bootstrap_check_seed42")
 _gzt, _gzd = int((np.sum(_gy["test"][_gTI] == _gMISS, axis=1) == 0).sum()), int((np.sum(_gy["dev"][_gDI] == _gMISS, axis=1) == 0).sum())
@@ -1146,7 +1212,7 @@ chk("Bootstrap audit.", [f"{_gzt} of 10,000 test resamples ({_gzt / 100:.2f}%; e
                          "(maximum difference 0.0)", "raised the bootstrap mean by about 0.004", "(maximum change 0) and 0 verdicts",
                          f"lies {abs(max(_ggap['b32'])):.4f} to {abs(min(_ggap['b32'])):.4f} below the point estimate on B/32 and {abs(max(_ggap['l14'])):.4f} to {abs(min(_ggap['l14'])):.4f} on L/14"])
 chk("Limitations. (1)", [f"has {_gmiss_ct['test']} test rows ({_gmiss_ct['dev']} dev, {_gmiss_ct['train']} train)", "cannot exceed 0.875", "about ±0.04 wide", "about 0.01",
-                         "a separate, pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md`)"])
+                         "rests on one pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md` and the section above), with 3 seeds and 8 uncorrected comparisons"])
 assert 0.039 < (_gMT["L4a"]["ci"]["ci95_high"] - _gMT["L4a"]["ci"]["ci95_low"]) / 2 < 0.043
 
 # -- the .tex paragraph --
@@ -1180,6 +1246,18 @@ for _a in _GARMS:
           f"{_gmean('l14', _a, 'dev_f1'):.3f}", f"{_gmean('l14', _a, 'test_f1'):.3f} ± {np.std(_gseeds('l14', _a, 'test_f1'), ddof=1):.3f}", f"{_gmean('l14', _a, 'test_bal'):.3f}"]
     tchk(f"{_gLAB[_a]} & {_c[0]} & ", _c[1:], cover_anchor=True)
 tchk("Task 2 class-imbalance treatments, image-only head on cached CLIP features", ["seeds 42, 43, 44"])
+tchk("Whether weighting matters inside a fusion model was fixed in advance", ["seeds 42, 43, 44"])
+tchk("Removing weighting lowers balanced accuracy (dev", [f"(dev {_gsg(_gdd['bal']['diff'])}, test {_gsg(_gtt['bal']['diff'])}; both intervals exclude zero)", f"on test ({_gsg(_gtt['veh']['diff'])})",
+                                                         f"(interval upper bound {_gsg(_gdd['veh']['ci95_high'])})",
+                                                         f"(test {_gsg(_gtt['f1']['diff'])}, interval {_gsg(_gtt['f1']['ci95_low'])} to {_gsg(_gtt['f1']['ci95_high'])}; seed std {min(_gsdt):.3f} to {max(_gsdt):.3f} on test, the same size as the {abs(_gtt['f1']['diff']):.3f} gap)"])
+tchk("Injured-or-dead recall is also lower without weighting", [f"with {_gsup['dev']['inj']} and {_gsup['test']['inj']} rows"])
+_gx4 = lambda x_: f"{x_:+.4f}"
+for _lab, _m in (("macro-F1", "f1"), ("balanced acc.", "bal"), ("recall, injured or dead", "inj"), ("recall, vehicle damage", "veh")):
+    _c = {sp_: (_gm(_gFM[("inv", sp_)][_m]), _gm(_gFM[("none", sp_)][_m]), f"{_gx4(_gFD[(sp_, _m)][0]['diff'])} [{_gx4(_gFD[(sp_, _m)][0]['ci95_low'])}, {_gx4(_gFD[(sp_, _m)][0]['ci95_high'])}]") for sp_ in ("dev", "test")}
+    tchk(f"{_lab} & {_c['dev'][0]} & ", [_c["dev"][1], _c["dev"][2], _c["test"][0], _c["test"][1], _c["test"][2]], cover_anchor=True)
+tchk("Metric & Dev inv & Dev none", ["Dev diff. [95% CI]", "Test diff. [95% CI]"])
+tchk("Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features", ["seeds 42, 43, 44", "paired 95% interval",
+                                                                                 f"Injured or dead has {_gsup['dev']['inj']} dev and {_gsup['test']['inj']} test rows, vehicle damage {_gsup['dev']['veh']} dev and {_gsup['test']['veh']} test rows"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]

@@ -687,8 +687,9 @@ OK  [Conventions. Macro-F1 is always computed] predicts it 33 times on B/32 and 
 OK  [Conventions. Macro-F1 is always computed] 7/8 = 0.875
 OK  [Conventions. Macro-F1 is always computed] (10,000 resamples;
 OK  [Conventions. Macro-F1 is always computed] excludes 0 by more than 0.002; a bound within 0.002 of zero is called "borderline" (weak evidence)
-OK  [Conventions. Macro-F1 is always computed] the word is "not resolvable": with 8 dev and 10 test rows
-OK  [Conventions. Macro-F1 is always computed] which is not the same as no effect
+OK  [Conventions. Macro-F1 is always computed] The same rule applies to every comparison, including the recall of the small injured-or-dead class (8 dev and 10 test rows; per-run recall moves in steps of 0.125 on dev and 0.1 on test)
+OK  [Conventions. Macro-F1 is always computed] a CI that excludes 0 is called "better" or "worse", and the word "not resolvable" is reserved for a CI that includes 0 on that class
+OK  [Conventions. Macro-F1 is always computed] which is not the same as no effect. Every recall comparison states its row count n.
 OK  [Conventions. Macro-F1 is always computed] Pairwise comparisons were not corrected for multiple testing (about 10 arms on 2 backbones, several metrics), so isolated borderline exclusions should be read as weak evidence
 OK  [Added after the presentation, in answer to three questions] checks every number in this section against the saved results
 OK  [Added after the presentation, in answer to three questions] not that the analysis design is right
@@ -810,22 +811,23 @@ OK  [Balanced accuracy and minority recall, `none` / `inv` / `sqrt_inv`.] 10,000
 OK  [| B/32 | balanced accuracy | `inv` − `none` |] +0.0651 [+0.0354, +0.1058] better | +0.0723 [+0.0462, +0.1001] better |
 OK  [| B/32 | balanced accuracy | `sqrt_inv` − `none` |] +0.0393 [+0.0220, +0.0592] better | +0.0474 [+0.0256, +0.0723] better |
 OK  [| B/32 | balanced accuracy | `inv` − `sqrt_inv` |] +0.0258 [+0.0082, +0.0518] better | +0.0249 [+0.0076, +0.0427] better |
-OK  [| B/32 | recall, injured or dead | `inv` − `none` |] +0.1250 [+0.0000, +0.4000] not resolvable | +0.1333 [+0.0000, +0.2917] not resolvable |
-OK  [| B/32 | recall, injured or dead | `sqrt_inv` − `none` |] +0.0417 [+0.0000, +0.1333] not resolvable | +0.1333 [+0.0000, +0.2917] not resolvable |
-OK  [| B/32 | recall, injured or dead | `inv` − `sqrt_inv` |] +0.0833 [+0.0000, +0.2667] not resolvable | +0.0000 [-0.1001, +0.1000] not resolvable |
-OK  [| B/32 | recall, vehicle damage | `inv` − `none` |] +0.2193 [+0.1032, +0.3452] better | +0.2222 [+0.1000, +0.3590] better |
-OK  [| B/32 | recall, vehicle damage | `sqrt_inv` − `none` |] +0.1667 [+0.0707, +0.2791] better | +0.1389 [+0.0430, +0.2549] better |
-OK  [| B/32 | recall, vehicle damage | `inv` − `sqrt_inv` |] +0.0526 [+0.0104, +0.1026] better | +0.0833 [+0.0167, +0.1667] better |
+OK  [| B/32 | recall, injured or dead | `inv` − `none` |] +0.1250 [+0.0000, +0.4000] not resolvable (n=8) | +0.1333 [+0.0000, +0.2917] not resolvable (n=10) |
+OK  [| B/32 | recall, injured or dead | `sqrt_inv` − `none` |] +0.0417 [+0.0000, +0.1333] not resolvable (n=8) | +0.1333 [+0.0000, +0.2917] not resolvable (n=10) |
+OK  [| B/32 | recall, injured or dead | `inv` − `sqrt_inv` |] +0.0833 [+0.0000, +0.2667] not resolvable (n=8) | +0.0000 [-0.1001, +0.1000] not resolvable (n=10) |
+OK  [| B/32 | recall, vehicle damage | `inv` − `none` |] +0.2193 [+0.1032, +0.3452] better (n=38) | +0.2222 [+0.1000, +0.3590] better (n=36) |
+OK  [| B/32 | recall, vehicle damage | `sqrt_inv` − `none` |] +0.1667 [+0.0707, +0.2791] better (n=38) | +0.1389 [+0.0430, +0.2549] better (n=36) |
+OK  [| B/32 | recall, vehicle damage | `inv` − `sqrt_inv` |] +0.0526 [+0.0104, +0.1026] better (n=38) | +0.0833 [+0.0167, +0.1667] better (n=36) |
 OK  [| L/14 | balanced accuracy | `inv` − `none` |] +0.0703 [+0.0399, +0.1129] better | +0.0566 [+0.0279, +0.0919] better |
 OK  [| L/14 | balanced accuracy | `sqrt_inv` − `none` |] +0.0553 [+0.0322, +0.0852] better | +0.0406 [+0.0154, +0.0739] better |
 OK  [| L/14 | balanced accuracy | `inv` − `sqrt_inv` |] +0.0151 [+0.0028, +0.0304] better | +0.0160 [+0.0077, +0.0255] better |
-OK  [| L/14 | recall, injured or dead | `inv` − `none` |] +0.2083 [+0.0000, +0.5000] not resolvable | +0.1667 [+0.0000, +0.4286] not resolvable |
-OK  [| L/14 | recall, injured or dead | `sqrt_inv` − `none` |] +0.1667 [+0.0000, +0.3668] not resolvable | +0.1667 [+0.0000, +0.4286] not resolvable |
-OK  [| L/14 | recall, injured or dead | `inv` − `sqrt_inv` |] +0.0417 [+0.0000, +0.1429] not resolvable | +0.0000 [+0.0000, +0.0000] not resolvable |
-OK  [| L/14 | recall, vehicle damage | `inv` − `none` |] +0.1930 [+0.1000, +0.2925] better | +0.1111 [+0.0247, +0.2130] better |
-OK  [| L/14 | recall, vehicle damage | `sqrt_inv` − `none` |] +0.1667 [+0.0889, +0.2569] better | +0.0556 [+0.0111, +0.1111] better |
-OK  [| L/14 | recall, vehicle damage | `inv` − `sqrt_inv` |] +0.0263 [-0.0209, +0.0833] not distinguishable | +0.0556 [+0.0115, +0.1111] better |
-OK  [Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy] (all 18 comparisons: dev and test, both backbones, three pairs) are not resolvable at this sample size (8 dev / 10 test rows; per-run recall moves in steps of 0.125 on dev and 0.1 on test)
+OK  [| L/14 | recall, injured or dead | `inv` − `none` |] +0.2083 [+0.0000, +0.5000] not resolvable (n=8) | +0.1667 [+0.0000, +0.4286] not resolvable (n=10) |
+OK  [| L/14 | recall, injured or dead | `sqrt_inv` − `none` |] +0.1667 [+0.0000, +0.3668] not resolvable (n=8) | +0.1667 [+0.0000, +0.4286] not resolvable (n=10) |
+OK  [| L/14 | recall, injured or dead | `inv` − `sqrt_inv` |] +0.0417 [+0.0000, +0.1429] not resolvable (n=8) | +0.0000 [+0.0000, +0.0000] not resolvable (n=10) |
+OK  [| L/14 | recall, vehicle damage | `inv` − `none` |] +0.1930 [+0.1000, +0.2925] better (n=38) | +0.1111 [+0.0247, +0.2130] better (n=36) |
+OK  [| L/14 | recall, vehicle damage | `sqrt_inv` − `none` |] +0.1667 [+0.0889, +0.2569] better (n=38) | +0.0556 [+0.0111, +0.1111] better (n=36) |
+OK  [| L/14 | recall, vehicle damage | `inv` − `sqrt_inv` |] +0.0263 [-0.0209, +0.0833] not distinguishable (n=38) | +0.0556 [+0.0115, +0.1111] better (n=36) |
+OK  [Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy] all 12 comparisons (dev and test, both backbones, three pairs) have a CI that includes 0 (eleven of them with a lower bound of exactly 0)
+OK  [Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy] "not resolvable" at this sample size (8 dev / 10 test rows; per-run recall moves in steps of 0.125 on dev and 0.1 on test)
 OK  [Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy] neither evidence of an effect nor of no effect
 OK  [Weighting raises the recall of this class on both backbones] (0.608 to 0.587)
 OK  [Weighting raises the recall of this class on both backbones] changes by +0.003 on L/14
@@ -836,6 +838,28 @@ OK  [| (d) `sqrt_inv` as the midpoint reference] (dev macro-F1 0.589 / 0.629; ga
 OK  [| (d) `sqrt_inv` as the midpoint reference] tied: yes | tied: yes
 OK  [No selection variant agrees across the two backbones] none < none_posthoc < focal1 < focal2 < sqrt_inv < eff_num < inv < focal2_inv < sampler < logit_adj
 OK  [No selection variant agrees across the two backbones] on L/14 it picks `none_posthoc`
+OK  [Pre-registered fused check: `none` against `inv` on L4a-L14] seeds 42, 43, 44
+OK  [Pre-registered fused check: `none` against `inv` on L4a-L14] no other arm was run
+OK  [Pre-registered fused check: `none` against `inv` on L4a-L14] reproduces the stored L4a seed-42 result exactly
+OK  [Pre-registered fused check: `none` against `inv` on L4a-L14] The first launch of the six runs failed on argument parsing (`--tag -L14_inv`) before producing any result; the relaunch used `--tag=...`; no result was seen or discarded
+OK  [| macro-F1 | 0.607 ± 0.010 | 0.604 ± 0.019 |] -0.0033 [-0.0232, +0.0186] not distinguishable | 0.635 ± 0.012 | 0.621 ± 0.010 | -0.0140 [-0.0398, +0.0093] not distinguishable |
+OK  [| balanced accuracy | 0.648 ± 0.027 | 0.598 ± 0.025 |] -0.0503 [-0.0700, -0.0303] worse | 0.657 ± 0.011 | 0.600 ± 0.014 | -0.0571 [-0.0833, -0.0334] worse |
+OK  [| recall, injured or dead | 0.792 ± 0.072 | 0.625 ± 0.125 |] -0.1667 [-0.2917, -0.0417] worse (n=8) | 0.767 ± 0.153 | 0.567 ± 0.058 | -0.2000 [-0.3889, -0.0333] worse (n=10) |
+OK  [| recall, vehicle damage | 0.632 ± 0.053 | 0.570 ± 0.040 |] -0.0614 [-0.1318, +0.0086] not distinguishable (n=38) | 0.611 ± 0.056 | 0.528 ± 0.028 | -0.0833 [-0.1410, -0.0333] worse (n=36) |
+OK  [Dev (the only version eligible for selection) and test (reporting only] shown side by side and neither is preferred
+OK  [Dev (the only version eligible for selection) and test (reporting only] This is 8 comparisons (4 metrics on 2 splits), none corrected for multiplicity
+OK  [Removing weighting lowers balanced accuracy (dev] (dev -0.0503, test -0.0571; both intervals exclude 0)
+OK  [Removing weighting lowers balanced accuracy (dev] lowers vehicle recall on test (-0.0833)
+OK  [Removing weighting lowers balanced accuracy (dev] (dev -0.0033, test -0.0140; both intervals include 0; the test seed std is 0.010 to 0.012, the same size as the 0.014 gap)
+OK  [Removing weighting lowers balanced accuracy (dev] Inverse-frequency weighting is retained as the headline loss, as pre-registered.
+OK  [Vehicle recall is not distinguishable on dev] (interval upper bound +0.0086)
+OK  [Vehicle recall is not distinguishable on dev] but worse on test
+OK  [Vehicle recall is not distinguishable on dev] Only dev counts for selection
+OK  [Vehicle recall is not distinguishable on dev] with 8 uncorrected comparisons the test result alone is weak evidence
+OK  [Injured-or-dead recall is lower without weighting] ("worse", n=8 and n=10)
+OK  [The sign of the macro-F1 difference differs from the image-only study] (`inv` minus `none` -0.0069 on B/32 and -0.0095 on L/14)
+OK  [The sign of the macro-F1 difference differs from the image-only study] here `none` scores below `inv` (-0.0140)
+OK  [The sign of the macro-F1 difference differs from the image-only study] and the sign is read as noise
 OK  [Bootstrap audit.] 511 of 10,000 test resamples (5.11%; expected 4.97%)
 OK  [Bootstrap audit.] 275 of 2,000 dev resamples (13.75%)
 OK  [Bootstrap audit.] (maximum difference 0.0)
@@ -846,7 +870,7 @@ OK  [Limitations. (1)] has 3 test rows (2 dev, 9 train)
 OK  [Limitations. (1)] cannot exceed 0.875
 OK  [Limitations. (1)] about ±0.04 wide
 OK  [Limitations. (1)] about 0.01
-OK  [Limitations. (1)] a separate, pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md`)
+OK  [Limitations. (1)] rests on one pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md` and the section above), with 3 seeds and 8 uncorrected comparisons
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
@@ -1346,3 +1370,34 @@ OK  [report/ablation_section.tex: none_posthoc & 0.596 & ] 0.627
 OK  [report/ablation_section.tex: none_posthoc & 0.596 & ] 0.651 ± 0.009
 OK  [report/ablation_section.tex: none_posthoc & 0.596 & ] 0.652
 OK  [report/ablation_section.tex: Task 2 class-imbalance treatments, image-only head on cached CLIP features] seeds 42, 43, 44
+OK  [report/ablation_section.tex: Whether weighting matters inside a fusion model was fixed in advance] seeds 42, 43, 44
+OK  [report/ablation_section.tex: Removing weighting lowers balanced accuracy (dev] (dev -0.0503, test -0.0571; both intervals exclude zero)
+OK  [report/ablation_section.tex: Removing weighting lowers balanced accuracy (dev] on test (-0.0833)
+OK  [report/ablation_section.tex: Removing weighting lowers balanced accuracy (dev] (interval upper bound +0.0086)
+OK  [report/ablation_section.tex: Removing weighting lowers balanced accuracy (dev] (test -0.0140, interval -0.0398 to +0.0093; seed std 0.010 to 0.012 on test, the same size as the 0.014 gap)
+OK  [report/ablation_section.tex: Injured-or-dead recall is also lower without weighting] with 8 and 10 rows
+OK  [report/ablation_section.tex: macro-F1 & 0.607 ± 0.010 & ] 0.604 ± 0.019
+OK  [report/ablation_section.tex: macro-F1 & 0.607 ± 0.010 & ] -0.0033 [-0.0232, +0.0186]
+OK  [report/ablation_section.tex: macro-F1 & 0.607 ± 0.010 & ] 0.635 ± 0.012
+OK  [report/ablation_section.tex: macro-F1 & 0.607 ± 0.010 & ] 0.621 ± 0.010
+OK  [report/ablation_section.tex: macro-F1 & 0.607 ± 0.010 & ] -0.0140 [-0.0398, +0.0093]
+OK  [report/ablation_section.tex: balanced acc. & 0.648 ± 0.027 & ] 0.598 ± 0.025
+OK  [report/ablation_section.tex: balanced acc. & 0.648 ± 0.027 & ] -0.0503 [-0.0700, -0.0303]
+OK  [report/ablation_section.tex: balanced acc. & 0.648 ± 0.027 & ] 0.657 ± 0.011
+OK  [report/ablation_section.tex: balanced acc. & 0.648 ± 0.027 & ] 0.600 ± 0.014
+OK  [report/ablation_section.tex: balanced acc. & 0.648 ± 0.027 & ] -0.0571 [-0.0833, -0.0334]
+OK  [report/ablation_section.tex: recall, injured or dead & 0.792 ± 0.072 & ] 0.625 ± 0.125
+OK  [report/ablation_section.tex: recall, injured or dead & 0.792 ± 0.072 & ] -0.1667 [-0.2917, -0.0417]
+OK  [report/ablation_section.tex: recall, injured or dead & 0.792 ± 0.072 & ] 0.767 ± 0.153
+OK  [report/ablation_section.tex: recall, injured or dead & 0.792 ± 0.072 & ] 0.567 ± 0.058
+OK  [report/ablation_section.tex: recall, injured or dead & 0.792 ± 0.072 & ] -0.2000 [-0.3889, -0.0333]
+OK  [report/ablation_section.tex: recall, vehicle damage & 0.632 ± 0.053 & ] 0.570 ± 0.040
+OK  [report/ablation_section.tex: recall, vehicle damage & 0.632 ± 0.053 & ] -0.0614 [-0.1318, +0.0086]
+OK  [report/ablation_section.tex: recall, vehicle damage & 0.632 ± 0.053 & ] 0.611 ± 0.056
+OK  [report/ablation_section.tex: recall, vehicle damage & 0.632 ± 0.053 & ] 0.528 ± 0.028
+OK  [report/ablation_section.tex: recall, vehicle damage & 0.632 ± 0.053 & ] -0.0833 [-0.1410, -0.0333]
+OK  [report/ablation_section.tex: Metric & Dev inv & Dev none] Dev diff. [95% CI]
+OK  [report/ablation_section.tex: Metric & Dev inv & Dev none] Test diff. [95% CI]
+OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] seeds 42, 43, 44
+OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] paired 95% interval
+OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows

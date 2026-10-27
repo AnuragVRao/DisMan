@@ -266,3 +266,22 @@ none\_posthoc & 0.596 & 0.610 $\pm$ 0.008 & 0.587 & 0.627 & 0.651 $\pm$ 0.009 & 
 \bottomrule
 \end{tabular}}
 \end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features, not a re-run of L4a), seeds 42, 43, 44: inverse-frequency weighting (inv) against no weighting (none), mean $\pm$ seed std. The difference is none minus inv with its paired 95\% interval: dev (the only version used for selection) and test (reporting only, test-sampling interval). Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows.}
+\label{tab:g_fused}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Metric & Dev inv & Dev none & Dev diff. [95\% CI] & Test inv & Test none & Test diff. [95\% CI] \\
+\midrule
+macro-F1 & 0.607 $\pm$ 0.010 & 0.604 $\pm$ 0.019 & -0.0033 [-0.0232, +0.0186] & 0.635 $\pm$ 0.012 & 0.621 $\pm$ 0.010 & -0.0140 [-0.0398, +0.0093] \\
+balanced acc. & 0.648 $\pm$ 0.027 & 0.598 $\pm$ 0.025 & -0.0503 [-0.0700, -0.0303] & 0.657 $\pm$ 0.011 & 0.600 $\pm$ 0.014 & -0.0571 [-0.0833, -0.0334] \\
+recall, injured or dead & 0.792 $\pm$ 0.072 & 0.625 $\pm$ 0.125 & -0.1667 [-0.2917, -0.0417] & 0.767 $\pm$ 0.153 & 0.567 $\pm$ 0.058 & -0.2000 [-0.3889, -0.0333] \\
+recall, vehicle damage & 0.632 $\pm$ 0.053 & 0.570 $\pm$ 0.040 & -0.0614 [-0.1318, +0.0086] & 0.611 $\pm$ 0.056 & 0.528 $\pm$ 0.028 & -0.0833 [-0.1410, -0.0333] \\
+\bottomrule
+\end{tabular}}
+\end{table}
