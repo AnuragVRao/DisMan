@@ -388,6 +388,32 @@ For the full model (L4a) the three-seed means are balanced accuracy 0.610, MCC 0
 Balancing helps the Task~1 text model (macro-F1 0.751 against 0.720, paired interval excluding zero) but not distinguishably the Task~3 fused probe (0.615 against 0.596); class-balanced against majority voting in the nearest-neighbour classifier gives 0.495 against 0.491, also not distinguishable.
 ``Missing or found people'' (9 training, 2 development and 3 test rows) has F1 = 0 under every treatment, so no loss-level treatment lifts the macro-F1 cap of 0.875.
 The bootstrap intervals use the fixed set of all eight classes, which we checked against scikit-learn on every run; the seed std and the test-sampling intervals are separate quantities.
+\paragraph{Weighting in a fusion model (pre-registered check).}
+Whether weighting matters inside a fusion model was fixed in advance as one check: inverse-frequency weighting against no weighting on L4a-L14, the L4a recipe with the CLIP L/14 image vector (a new model, not a re-run of L4a), seeds 42, 43, 44, with the same code path as the L4a runs.
+A first launch of these runs failed on argument parsing before producing any result and was repeated; no result was seen or discarded.
+Table~\ref{tab:g_fused} shows dev and test side by side; only dev counts for selection, and the test intervals are test-sampling intervals reported for information.
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features, not a re-run of L4a), seeds 42, 43, 44: inverse-frequency weighting (inv) against no weighting (none), mean $\pm$ seed std. The difference is none minus inv with its paired 95\% interval: dev (the only version used for selection) and test (reporting only, test-sampling interval). Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows.}
+\label{tab:g_fused}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Metric & Dev inv & Dev none & Dev diff. [95\% CI] & Test inv & Test none & Test diff. [95\% CI] \\
+\midrule
+macro-F1 & 0.607 $\pm$ 0.010 & 0.604 $\pm$ 0.019 & -0.0033 [-0.0232, +0.0186] & 0.635 $\pm$ 0.012 & 0.621 $\pm$ 0.010 & -0.0140 [-0.0398, +0.0093] \\
+balanced acc. & 0.648 $\pm$ 0.027 & 0.598 $\pm$ 0.025 & -0.0503 [-0.0700, -0.0303] & 0.657 $\pm$ 0.011 & 0.600 $\pm$ 0.014 & -0.0571 [-0.0833, -0.0334] \\
+recall, injured or dead & 0.792 $\pm$ 0.072 & 0.625 $\pm$ 0.125 & -0.1667 [-0.2917, -0.0417] & 0.767 $\pm$ 0.153 & 0.567 $\pm$ 0.058 & -0.2000 [-0.3889, -0.0333] \\
+recall, vehicle damage & 0.632 $\pm$ 0.053 & 0.570 $\pm$ 0.040 & -0.0614 [-0.1318, +0.0086] & 0.611 $\pm$ 0.056 & 0.528 $\pm$ 0.028 & -0.0833 [-0.1410, -0.0333] \\
+\bottomrule
+\end{tabular}}
+\end{table}
+Removing weighting lowers balanced accuracy (dev $-0.0503$, test $-0.0571$; both intervals exclude zero) and lowers vehicle-damage recall on test ($-0.0833$), but vehicle recall is not distinguishable on dev (interval upper bound $+0.0086$), and macro-F1 does not change beyond noise (test $-0.0140$, interval $-0.0398$ to $+0.0093$; seed std 0.010 to 0.012 on test, the same size as the 0.014 gap).
+Injured-or-dead recall is also lower without weighting (``worse'' on dev and test, with 8 and 10 rows).
+The macro-F1 sign differs from the image-only study, where no weighting scored above inverse-frequency weighting, and we read it as noise; this is eight uncorrected comparisons, so single results are weak evidence.
+Inverse-frequency weighting is retained.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.

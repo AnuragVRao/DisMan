@@ -47,3 +47,13 @@ CLIP L/14 image vector (768-d, L2-normalised) in place of B/32). Note: L4a-L14 i
    excludes 0; otherwise "not distinguishable".
 5. Nothing about the headline loss is changed on the basis of this one comparison; if `none` looks better, that is reported as an observation, and any change
    would require a new pre-registered decision.
+
+## Run log for the L4a-L14 check (added after the runs; the pre-registration above is unchanged)
+- The first launch of the six L4a-L14 runs (`inv` and `none`, seeds 42, 43, 44) failed on argument parsing (`--tag -L14_inv`: a value that starts with a dash is read as an
+  option) before producing any result. The relaunch used `--tag=-L14_inv` and `--tag=-L14_none`. No results were seen or discarded.
+- One validation run (B/32, `inv`, seed 42, saved as `results/ablation/G/t2_L4a_validate_seed42.json`) was made first to check that the new `--feat`, `--loss` and `--part`
+  flags of `ablation/t2_train.py` leave the old behaviour unchanged; it reproduced the stored L4a seed-42 result exactly (dev and test macro-F1, accuracy, per-class F1, confusion
+  matrix) and is kept.
+- While the six runs were going, the session reported the background wrapper as stopped for low memory; the training processes continued and all six completed. None was re-run or discarded.
+- Labelling, one rule for every comparison (the image-only study and L4a-L14): "better"/"worse" where the paired 95% CI excludes 0 by more than 0.002, "borderline" within 0.002 of
+  zero, otherwise "not distinguishable"; for the injured-or-dead recall (8 dev / 10 test rows) a CI that includes 0 is "not resolvable". Every recall comparison states its row count.

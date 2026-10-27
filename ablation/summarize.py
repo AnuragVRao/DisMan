@@ -300,6 +300,21 @@ if (RES / "G" / "g_imbalance_summary_seed42.json").exists():
     tex.append(table("Task 2 class-imbalance treatments, image-only head on cached CLIP features, seeds 42, 43, 44. Dev macro-F1 and balanced accuracy are seed means; "
                      "test macro-F1 is the seed mean $\\pm$ the seed std. The first group of columns is CLIP B/32, the second CLIP L/14.",
                      "tab:g_arms", ["Arm", "Dev F1", "Test F1", "Bal. acc.", "Dev F1", "Test F1", "Bal. acc."], body, "lrrrrrr", fit=True))
+# ── G: pre-registered fused check (L4a-L14, none against inv) ────────────────────────────────────────────────────────
+if (RES / "G" / "g_fused_L4a-L14_none_vs_inv_seed42.json").exists():
+    fz = json.load(open(RES / "G" / "g_fused_L4a-L14_none_vs_inv_seed42.json"))
+    sd_ = lambda arm, split, k: f"{np.mean(fz['arms'][arm]['point'][split][k]):.3f} $\\pm$ {np.std(fz['arms'][arm]['point'][split][k], ddof=1):.3f}"
+    body = []
+    for lab, k in (("macro-F1", "f1"), ("balanced acc.", "bal"), ("recall, injured or dead", "inj"), ("recall, vehicle damage", "veh")):
+        row = [lab]
+        for split in ("dev", "test"):
+            r = fz["pairs"][f"{split}:{k}"]
+            row += [sd_("inv", split, k), sd_("none", split, k), f"{r['diff']:+.4f} [{r['ci95_low']:+.4f}, {r['ci95_high']:+.4f}]"]
+        body.append(row)
+    tex.append(table("Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features, not a re-run of L4a), seeds 42, 43, 44: inverse-frequency weighting (inv) against no "
+                     "weighting (none), mean $\\pm$ seed std. The difference is none minus inv with its paired 95\\% interval: dev (the only version used for selection) and test "
+                     "(reporting only, test-sampling interval). Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows.",
+                     "tab:g_fused", ["Metric", "Dev inv", "Dev none", "Dev diff. [95\\% CI]", "Test inv", "Test none", "Test diff. [95\\% CI]"], body, "lrrrrrr", fit=True))
 (RES / "tables.tex").write_text("\n".join(tex), encoding="utf8")
 
 # ── figure: T2 ladder ─────────────────────────────────────────────────────────
