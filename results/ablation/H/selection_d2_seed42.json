@@ -1,0 +1,42 @@
+{
+ "decision": "D2",
+ "best": "d2_mpnet",
+ "tied": [
+  "d2_mpnet",
+  "d2_minilm"
+ ],
+ "pick": "d2_minilm",
+ "mean_dev_macro_f1": {
+  "d2_minilm": 0.28436116596280603,
+  "d2_mpnet": 0.2942190842160081
+ },
+ "seed_std_dev": {
+  "d2_minilm": 0.008780856247749517,
+  "d2_mpnet": 0.003943066158583807
+ },
+ "best_minus_arm": {
+  "d2_minilm": {
+   "diff": 0.009857918253202091,
+   "boot_mean_diff": 0.009947991792367761,
+   "ci95_low": -0.0021707630281739975,
+   "ci95_high": 0.021853512669880008,
+   "excludes_zero": false,
+   "n_boot": 2000
+  }
+ },
+ "key": {
+  "d2_minilm": [
+   166920,
+   22.7
+  ],
+  "d2_mpnet": [
+   265224,
+   109.5
+  ]
+ },
+ "n_boot": 2000,
+ "part": "H",
+ "config": "selection_d2",
+ "seed": 42,
+ "git_commit": "7bf4f6f"
+}
