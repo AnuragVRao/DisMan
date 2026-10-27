@@ -28,7 +28,7 @@ from PIL import Image
 import torchvision.transforms as T
 
 from common import ABL_ART, ART, DATA, SPLIT_DIR, cc, write_row
-from t2_models import VARIANTS, Variant, param_groups
+from t2_models import VARIANTS, FusionModel, Variant, param_groups
 
 PRESETS = {
     # bert = DistilBERT initialisation: v1 loaded the pretrained weights; v2's training cell builds DistilBertModel(config), i.e. RANDOM init
@@ -42,6 +42,7 @@ PRESETS = {
     "L4":  dict(data="full", clip="hf", tf="deterministic", epochs=10, cache=True, amp=True, bert="random"),   # = v2
 }
 T2_BATCH, T2_MAX_LEN, T2_LR, T2_WARMUP = 32, 128, 1e-4, 3
+MINILM = "sentence-transformers/all-MiniLM-L6-v2"
 MEAN, STD = (0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)
 
 
@@ -140,6 +141,7 @@ def main():
     ap.add_argument("--feat", choices=("b32", "l14"), default="b32")   # cached CLIP features: v2's B/32 (512-d, raw) or L/14 (768-d, L2-normalised)
     ap.add_argument("--loss", choices=("inv", "none"), default="inv")  # inverse-frequency class weights (all earlier runs) or unweighted cross-entropy
     ap.add_argument("--part", default=None)                            # result folder (default: A for the full model, B for the Part B variants)
+    ap.add_argument("--text", choices=("distilbert", "minilm"), default="distilbert")   # text encoder of the full model (fine-tuned fusion addendum); the default is every earlier run
     a = ap.parse_args()
     cfg = dict(PRESETS[a.config]); E = a.epochs or cfg["epochs"]
     device = torch.device("cuda")
@@ -153,7 +155,12 @@ def main():
     ALL = list(range(NC))
     assert set(dv.label) <= set(labels) and set(te.label) <= set(labels)
 
-    tok = DistilBertTokenizerFast.from_pretrained(ART / "tokenizer")
+    assert a.text == "distilbert" or (cfg["bert"] == "pretrained" and a.variant == "full"), "--text minilm needs a pretrained-encoder preset and the full model"
+    if a.text == "minilm":
+        from transformers import AutoTokenizer
+        tok = AutoTokenizer.from_pretrained(MINILM)
+    else:
+        tok = DistilBertTokenizerFast.from_pretrained(ART / "tokenizer")
     bert_cfg = DistilBertConfig.from_pretrained(ART / "distilbert_config")
     tokd, y = {}, {}
     for s, d in data.items():
@@ -185,8 +192,13 @@ def main():
     cc.seed_all(a.seed)  # same head init regardless of which CLIP implementation was loaded above
     bcfg = bert_cfg if cfg["bert"] == "random" else None
     img_dim = feats["train"].shape[1] if cfg["cache"] else 512
-    model = (cc.DualStreamClassifier(NC, bert_config=bcfg, img_dim=img_dim) if a.variant == "full"
-             else Variant(a.variant, NC, bert_config=bcfg)).to(device)
+    if a.text == "minilm":
+        from transformers import AutoModel
+        enc = AutoModel.from_pretrained(MINILM)
+        model = FusionModel(NC, enc, enc.config.hidden_size, img_dim=img_dim).to(device)
+    else:
+        model = (cc.DualStreamClassifier(NC, bert_config=bcfg, img_dim=img_dim) if a.variant == "full"
+                 else Variant(a.variant, NC, bert_config=bcfg)).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     cnt = tr["label"].map(l2i).value_counts().reindex(ALL).values.astype("float32")
     w = 1.0 / cnt; w /= w.sum() / NC
@@ -273,7 +285,7 @@ def main():
                test_weighted_f1=tm["weighted_f1"], per_class_f1=dict(zip(labels, map(float, pcf))),
                confusion_matrix=cm.tolist(), labels=labels, epochs_trained=len(hist), best_epoch=best_epoch,
                wall_clock_s=time.time() - t_start, n_train=len(tr), n_dev=len(dv), n_test=len(te), n_params=n_params,
-               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E, feat=a.feat, loss=a.loss), history=hist,
+               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E, feat=a.feat, loss=a.loss, text=a.text), history=hist,
                variant=a.variant, tier=a.tier, majority_baseline_macro_f1=maj_f1,
                below_majority_baseline=bool(tm["macro_f1"] < maj_f1))
     print(write_row(part, name, a.seed, row))
