@@ -1,0 +1,1099 @@
+{
+ "task": "T2",
+ "n_boot_dev": 2000,
+ "n_boot_test": 10000,
+ "missing_rows": {
+  "train": 9,
+  "dev": 2,
+  "test": 3
+ },
+ "selected": {
+  "b32": "inv",
+  "l14": "focal2_inv"
+ },
+ "adopt": null,
+ "feats": {
+  "b32": {
+   "arms": {
+    "none": {
+     "dev_f1": 0.5958217299169649,
+     "dev_bal_acc": 0.5833441361090931,
+     "test_f1": 0.6082837660181273,
+     "test_f1_seed_std": 0.006372971582136178,
+     "test_bal_acc": 0.5788591708615619,
+     "test_f1_excl_missing": 0.6951814468778595,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.5666666666666668,
+      "Vehicle damage": 0.39814814814814814,
+      "Affected individuals": 0.5340909090909091
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6288269693842449,
+      "Vehicle damage": 0.4724954462659381,
+      "Affected individuals": 0.6077604037395549
+     },
+     "test_ci": {
+      "mean": 0.6082837660181273,
+      "boot_mean": 0.6055012327457092,
+      "ci95_low": 0.5601347314041979,
+      "ci95_high": 0.6449303506462926
+     },
+     "test_vs_inv": {
+      "diff": 0.006909732120932488,
+      "boot_mean_diff": 0.006275073001906466,
+      "ci95_low": -0.023805783005247664,
+      "ci95_high": 0.03616887532923325,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.0,
+      "boot_mean_diff": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.005751327202810241,
+      "boot_mean_diff": 0.005593922705130893,
+      "ci95_low": -0.0029620780134491493,
+      "ci95_high": 0.015637239877419253,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "inv": {
+     "dev_f1": 0.5678662542586664,
+     "dev_bal_acc": 0.6484432417178337,
+     "test_f1": 0.6013740338971948,
+     "test_f1_seed_std": 0.005306671783400148,
+     "test_bal_acc": 0.6511467632796998,
+     "test_f1_excl_missing": 0.6872846101682226,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.6203703703703703,
+      "Affected individuals": 0.75
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.5701825013419217,
+      "Vehicle damage": 0.5492022085996261,
+      "Affected individuals": 0.5874018512292083
+     },
+     "test_ci": {
+      "mean": 0.6013740338971948,
+      "boot_mean": 0.5992261597438026,
+      "ci95_low": 0.5605446234607592,
+      "ci95_high": 0.6332155807538496
+     },
+     "test_vs_inv": {
+      "diff": 0.0,
+      "boot_mean_diff": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.006909732120932488,
+      "boot_mean_diff": -0.006275073001906466,
+      "ci95_low": -0.03616887532923325,
+      "ci95_high": 0.023805783005247633,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.03370680286110872,
+      "boot_mean_diff": 0.03342573629135179,
+      "ci95_low": -0.0018575774323850898,
+      "ci95_high": 0.06514750516147244,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "sqrt_inv": {
+     "dev_f1": 0.5888072530811003,
+     "dev_bal_acc": 0.6226521709296828,
+     "test_f1": 0.6136520154213835,
+     "test_f1_seed_std": 0.005649891984399366,
+     "test_bal_acc": 0.626250394067177,
+     "test_f1_excl_missing": 0.7013165890530098,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.5370370370370371,
+      "Affected individuals": 0.625
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6248196248196248,
+      "Vehicle damage": 0.5189214887913408,
+      "Affected individuals": 0.611981750784146
+     },
+     "test_ci": {
+      "mean": 0.6136520154213835,
+      "boot_mean": 0.6114380334025729,
+      "ci95_low": 0.5714516293811153,
+      "ci95_high": 0.6459490794949999
+     },
+     "test_vs_inv": {
+      "diff": 0.012277981524188686,
+      "boot_mean_diff": 0.012211873658770295,
+      "ci95_low": -0.0038394411146033163,
+      "ci95_high": 0.028563194642358646,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.005368249403256198,
+      "boot_mean_diff": 0.00593680065686383,
+      "ci95_low": -0.01792666306222431,
+      "ci95_high": 0.030521330095641366,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.012765804038674888,
+      "boot_mean_diff": 0.012618555084547473,
+      "ci95_low": -0.00716758574016632,
+      "ci95_high": 0.03419164018665431,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "eff_num": {
+     "dev_f1": 0.587387507040673,
+     "dev_bal_acc": 0.6268974106713268,
+     "test_f1": 0.6169704690129175,
+     "test_f1_seed_std": 0.0032277822679314624,
+     "test_bal_acc": 0.6287750088892726,
+     "test_f1_excl_missing": 0.7051091074433344,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7333333333333334,
+      "Vehicle damage": 0.5462962962962964,
+      "Affected individuals": 0.6553030303030303
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.626031746031746,
+      "Vehicle damage": 0.5314739396931177,
+      "Affected individuals": 0.623826901272011
+     },
+     "test_ci": {
+      "mean": 0.6169704690129175,
+      "boot_mean": 0.6147775892819628,
+      "ci95_low": 0.5757382729584428,
+      "ci95_high": 0.6488872534115
+     },
+     "test_vs_inv": {
+      "diff": 0.015596435115722729,
+      "boot_mean_diff": 0.015551429538160097,
+      "ci95_low": 0.00034837472862843974,
+      "ci95_high": 0.03098539304603753,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "better"
+     },
+     "test_vs_none": {
+      "diff": 0.00868670299479024,
+      "boot_mean_diff": 0.00927635653625363,
+      "ci95_low": -0.01703675895925182,
+      "ci95_high": 0.035706179634402896,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.01418555007910216,
+      "boot_mean_diff": 0.013903998269871556,
+      "ci95_low": -0.01917747465092218,
+      "ci95_high": 0.04300421374133681,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "focal1": {
+     "dev_f1": 0.5994783028889888,
+     "dev_bal_acc": 0.5889806669169173,
+     "test_f1": 0.6079349626537606,
+     "test_f1_seed_std": 0.00338990989110347,
+     "test_bal_acc": 0.5817250967762093,
+     "test_f1_excl_missing": 0.6947828144614406,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6,
+      "Vehicle damage": 0.3703703703703704,
+      "Affected individuals": 0.5378787878787878
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6432748538011696,
+      "Vehicle damage": 0.44934086629001885,
+      "Affected individuals": 0.6068159066864314
+     },
+     "test_ci": {
+      "mean": 0.6079349626537606,
+      "boot_mean": 0.6052252293980356,
+      "ci95_low": 0.5617836452280386,
+      "ci95_high": 0.6433586923596367
+     },
+     "test_vs_inv": {
+      "diff": 0.006560928756565776,
+      "boot_mean_diff": 0.00599906965423287,
+      "ci95_low": -0.02037221129170723,
+      "ci95_high": 0.03365187797696262,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.0003488033643667121,
+      "boot_mean_diff": -0.0002760033476735964,
+      "ci95_low": -0.01483613631155859,
+      "ci95_high": 0.017680337973408115,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.002094754230786311,
+      "boot_mean_diff": 0.0019758256258324957,
+      "ci95_low": -0.0024925942666586235,
+      "ci95_high": 0.00668900363787218,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "focal2": {
+     "dev_f1": 0.6015730571197752,
+     "dev_bal_acc": 0.5908405057180967,
+     "test_f1": 0.612177723170948,
+     "test_f1_seed_std": 0.0029906904787568933,
+     "test_bal_acc": 0.5898582089264232,
+     "test_f1_excl_missing": 0.6996316836239406,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6666666666666666,
+      "Vehicle damage": 0.3703703703703704,
+      "Affected individuals": 0.5416666666666666
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6771929824561402,
+      "Vehicle damage": 0.44702886247877754,
+      "Affected individuals": 0.6134347011150563
+     },
+     "test_ci": {
+      "mean": 0.612177723170948,
+      "boot_mean": 0.6096344896943262,
+      "ci95_low": 0.5664398056641574,
+      "ci95_high": 0.6469606463467245
+     },
+     "test_vs_inv": {
+      "diff": 0.010803689273753192,
+      "boot_mean_diff": 0.010408329950523546,
+      "ci95_low": -0.014219449813970105,
+      "ci95_high": 0.0367481044211102,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.003893957152820704,
+      "boot_mean_diff": 0.00413325694861708,
+      "ci95_low": -0.011036030105532373,
+      "ci95_high": 0.02184755839623789,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     }
+    },
+    "focal2_inv": {
+     "dev_f1": 0.5468435217393988,
+     "dev_bal_acc": 0.648895579953475,
+     "test_f1": 0.5790158706111525,
+     "test_f1_seed_std": 0.003467244878420677,
+     "test_bal_acc": 0.6534975329252841,
+     "test_f1_excl_missing": 0.6617324235556028,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.6574074074074073,
+      "Affected individuals": 0.7954545454545454
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.4734195402298851,
+      "Vehicle damage": 0.5175705064634549,
+      "Affected individuals": 0.5652902720243681
+     },
+     "test_ci": {
+      "mean": 0.5790158706111525,
+      "boot_mean": 0.5770928823333974,
+      "ci95_low": 0.5396602047378044,
+      "ci95_high": 0.6110778940544701
+     },
+     "test_vs_inv": {
+      "diff": -0.022358163286042343,
+      "boot_mean_diff": -0.022133277410405258,
+      "ci95_low": -0.040704360854552896,
+      "ci95_high": -0.003578615660160182,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.02926789540697483,
+      "boot_mean_diff": -0.028408350412311722,
+      "ci95_low": -0.06287679936476538,
+      "ci95_high": 0.0077429186548262745,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.05472953538037639,
+      "boot_mean_diff": 0.05433393651584966,
+      "ci95_low": 0.018020116130944216,
+      "ci95_high": 0.08819331576393802,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "sampler": {
+     "dev_f1": 0.5541061104157149,
+     "dev_bal_acc": 0.6504127977036843,
+     "test_f1": 0.5766248358702567,
+     "test_f1_seed_std": 0.0030239995341809554,
+     "test_bal_acc": 0.6499294169279309,
+     "test_f1_excl_missing": 0.6589998124231505,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.6481481481481481,
+      "Affected individuals": 0.7727272727272728
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.46199480904708934,
+      "Vehicle damage": 0.5286064425770308,
+      "Affected individuals": 0.5489985461337584
+     },
+     "test_ci": {
+      "mean": 0.5766248358702567,
+      "boot_mean": 0.5747116508555231,
+      "ci95_low": 0.5382171604690661,
+      "ci95_high": 0.609237736266463
+     },
+     "test_vs_inv": {
+      "diff": -0.02474919802693809,
+      "boot_mean_diff": -0.024514508888279635,
+      "ci95_low": -0.04431794634903435,
+      "ci95_high": -0.004289531087062285,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.03165893014787058,
+      "boot_mean_diff": -0.030789581890186105,
+      "ci95_low": -0.06490883875229497,
+      "ci95_high": 0.004761596273048179,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.047466946704060264,
+      "boot_mean_diff": 0.047070615449225146,
+      "ci95_low": 0.011865750396091003,
+      "ci95_high": 0.0815356233154648,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "logit_adj": {
+     "dev_f1": 0.5229626500113751,
+     "dev_bal_acc": 0.6433813271917025,
+     "test_f1": 0.5622875927132673,
+     "test_f1_seed_std": 0.0025409807598466456,
+     "test_bal_acc": 0.667367078994796,
+     "test_f1_excl_missing": 0.6426143916723054,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.8333333333333334,
+      "Vehicle damage": 0.6851851851851851,
+      "Affected individuals": 0.7348484848484849
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.3446599385695481,
+      "Vehicle damage": 0.48444004703209415,
+      "Affected individuals": 0.555
+     },
+     "test_ci": {
+      "mean": 0.5622875927132673,
+      "boot_mean": 0.5608539488942869,
+      "ci95_low": 0.5312972403479203,
+      "ci95_high": 0.5894912581008118
+     },
+     "test_vs_inv": {
+      "diff": -0.039086441183927456,
+      "boot_mean_diff": -0.03837221084951592,
+      "ci95_low": -0.06004071728591472,
+      "ci95_high": -0.017482973994171386,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.045996173304859944,
+      "boot_mean_diff": -0.04464728385142239,
+      "ci95_low": -0.08231974448501232,
+      "ci95_high": -0.00630032111032291,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.07861040710840006,
+      "boot_mean_diff": 0.07752985300997742,
+      "ci95_low": 0.04087091717248553,
+      "ci95_high": 0.11417650298893385,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "none_posthoc": {
+     "dev_f1": 0.596084169035614,
+     "dev_bal_acc": 0.5907627672919765,
+     "test_f1": 0.6098446367670898,
+     "test_f1_seed_std": 0.008175152688202113,
+     "test_bal_acc": 0.5869536818400037,
+     "test_f1_excl_missing": 0.6969652991623884,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.5666666666666668,
+      "Vehicle damage": 0.4259259259259259,
+      "Affected individuals": 0.5643939393939394
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6087768440709617,
+      "Vehicle damage": 0.49037920185461176,
+      "Affected individuals": 0.6203424253713503
+     },
+     "test_ci": {
+      "mean": 0.6098446367670898,
+      "boot_mean": 0.6071343213101715,
+      "ci95_low": 0.5624391314242878,
+      "ci95_high": 0.6452747010272065
+     },
+     "test_vs_inv": {
+      "diff": 0.008470602869894983,
+      "boot_mean_diff": 0.007908161566368832,
+      "ci95_low": -0.019654285940063868,
+      "ci95_high": 0.03583018156850535,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.0015608707489624951,
+      "boot_mean_diff": 0.001633088564462366,
+      "ci95_low": -0.004834799602248543,
+      "ci95_high": 0.007473110457601883,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.005488888084161148,
+      "boot_mean_diff": 0.005328577317552648,
+      "ci95_low": -0.004019037163127278,
+      "ci95_high": 0.01667937797792796,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    }
+   },
+   "order": [
+    "focal2",
+    "focal1",
+    "none_posthoc",
+    "none",
+    "sqrt_inv",
+    "eff_num",
+    "inv",
+    "sampler",
+    "focal2_inv",
+    "logit_adj"
+   ],
+   "dev_best": "focal2",
+   "tied": [
+    "focal2",
+    "focal1",
+    "none_posthoc",
+    "none",
+    "sqrt_inv",
+    "eff_num",
+    "inv"
+   ],
+   "selected": "inv"
+  },
+  "l14": {
+   "arms": {
+    "none": {
+     "dev_f1": 0.6237386626771447,
+     "dev_bal_acc": 0.6196744242471048,
+     "test_f1": 0.6532638592180281,
+     "test_f1_seed_std": 0.002434047889987445,
+     "test_bal_acc": 0.6362237669600233,
+     "test_f1_excl_missing": 0.7465872676777464,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.601851851851852,
+      "Affected individuals": 0.5909090909090908
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7245614035087719,
+      "Vehicle damage": 0.6504629629629629,
+      "Affected individuals": 0.6313994647327981
+     },
+     "test_ci": {
+      "mean": 0.6532638592180281,
+      "boot_mean": 0.6508503754338639,
+      "ci95_low": 0.6096752142343376,
+      "ci95_high": 0.6855477336704306
+     },
+     "test_vs_inv": {
+      "diff": 0.009504540693335506,
+      "boot_mean_diff": 0.00906558088927641,
+      "ci95_low": -0.020375829220079213,
+      "ci95_high": 0.03628576983403021,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.0,
+      "boot_mean_diff": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.008354186355180704,
+      "boot_mean_diff": 0.008663856063747992,
+      "ci95_low": 0.0005790577466927599,
+      "ci95_high": 0.019481620625989834,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "inv": {
+     "dev_f1": 0.6124031616319225,
+     "dev_bal_acc": 0.6900210959147267,
+     "test_f1": 0.6437593185246926,
+     "test_f1_seed_std": 0.008948496834103719,
+     "test_bal_acc": 0.692801202092503,
+     "test_f1_excl_missing": 0.7357249354567915,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.8666666666666667,
+      "Vehicle damage": 0.7129629629629629,
+      "Affected individuals": 0.7234848484848485
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7126532887402451,
+      "Vehicle damage": 0.6063861356757078,
+      "Affected individuals": 0.6342763883820207
+     },
+     "test_ci": {
+      "mean": 0.6437593185246926,
+      "boot_mean": 0.6417847945445874,
+      "ci95_low": 0.6054437303524505,
+      "ci95_high": 0.6731680823088751
+     },
+     "test_vs_inv": {
+      "diff": 0.0,
+      "boot_mean_diff": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.0,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.009504540693335506,
+      "boot_mean_diff": -0.00906558088927641,
+      "ci95_low": -0.036285769834030215,
+      "ci95_high": 0.02037582922007921,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.01968968740040289,
+      "boot_mean_diff": 0.018950086899716157,
+      "ci95_low": -0.012163625283373544,
+      "ci95_high": 0.047958005227308344,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "sqrt_inv": {
+     "dev_f1": 0.628587101404208,
+     "dev_bal_acc": 0.6749329032485023,
+     "test_f1": 0.6542859361898055,
+     "test_f1_seed_std": 0.007960259759162664,
+     "test_bal_acc": 0.6768191221589271,
+     "test_f1_excl_missing": 0.747755355645492,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.8666666666666667,
+      "Vehicle damage": 0.6574074074074074,
+      "Affected individuals": 0.6439393939393939
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7532938076416338,
+      "Vehicle damage": 0.6137183695323231,
+      "Affected individuals": 0.6441784129354118
+     },
+     "test_ci": {
+      "mean": 0.6542859361898055,
+      "boot_mean": 0.6523181089669029,
+      "ci95_low": 0.6173238778225906,
+      "ci95_high": 0.6824158173751858
+     },
+     "test_vs_inv": {
+      "diff": 0.01052661766511287,
+      "boot_mean_diff": 0.010533314422315506,
+      "ci95_low": -0.003732513273409735,
+      "ci95_high": 0.024704780389821254,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": 0.0010220769717773637,
+      "boot_mean_diff": 0.0014677335330390935,
+      "ci95_low": -0.020375028304623195,
+      "ci95_high": 0.027198141400393158,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.003505747628117395,
+      "boot_mean_diff": 0.002810022520966854,
+      "ci95_low": -0.0216504388708117,
+      "ci95_high": 0.026228296047919448,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "eff_num": {
+     "dev_f1": 0.6293638712488557,
+     "dev_bal_acc": 0.6728212274258535,
+     "test_f1": 0.6558785858477122,
+     "test_f1_seed_std": 0.008836061553956838,
+     "test_bal_acc": 0.6757250479306194,
+     "test_f1_excl_missing": 0.7495755266830996,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.8666666666666667,
+      "Vehicle damage": 0.6851851851851851,
+      "Affected individuals": 0.662878787878788
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.753623188405797,
+      "Vehicle damage": 0.6172331131680725,
+      "Affected individuals": 0.6454680669677676
+     },
+     "test_ci": {
+      "mean": 0.6558785858477122,
+      "boot_mean": 0.6539166682907921,
+      "ci95_low": 0.6188448101223422,
+      "ci95_high": 0.6842810505511135
+     },
+     "test_vs_inv": {
+      "diff": 0.0121192673230196,
+      "boot_mean_diff": 0.012131873746204622,
+      "ci95_low": 0.000988380815834587,
+      "ci95_high": 0.024269597913352002,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "better"
+     },
+     "test_vs_none": {
+      "diff": 0.0026147266296840943,
+      "boot_mean_diff": 0.0030662928569282094,
+      "ci95_low": -0.02000406199111966,
+      "ci95_high": 0.029996806436170587,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.0027289777834696993,
+      "boot_mean_diff": 0.0020095599738902373,
+      "ci95_low": -0.022722577129942818,
+      "ci95_high": 0.026464431146274833,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "focal1": {
+     "dev_f1": 0.6320928490323254,
+     "dev_bal_acc": 0.6325197732951059,
+     "test_f1": 0.6520965196225571,
+     "test_f1_seed_std": 0.00478573138472789,
+     "test_bal_acc": 0.6370730331007731,
+     "test_f1_excl_missing": 0.7452531652829224,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.601851851851852,
+      "Affected individuals": 0.5909090909090909
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7368421052631579,
+      "Vehicle damage": 0.6408148928696874,
+      "Affected individuals": 0.6168395968129449
+     },
+     "test_ci": {
+      "mean": 0.6520965196225571,
+      "boot_mean": 0.6496684335624446,
+      "ci95_low": 0.608164156730948,
+      "ci95_high": 0.6843579671203481
+     },
+     "test_vs_inv": {
+      "diff": 0.00833720109786451,
+      "boot_mean_diff": 0.007883639017857123,
+      "ci95_low": -0.02122329393954504,
+      "ci95_high": 0.03517604583195815,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.0011673395954709953,
+      "boot_mean_diff": -0.0011819418714192876,
+      "ci95_low": -0.008509927383946403,
+      "ci95_high": 0.006500521541119625,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     }
+    },
+    "focal2": {
+     "dev_f1": 0.6296604406294334,
+     "dev_bal_acc": 0.6335030613621556,
+     "test_f1": 0.6518964740140661,
+     "test_f1_seed_std": 0.004395399699150002,
+     "test_bal_acc": 0.6381558886716939,
+     "test_f1_excl_missing": 0.7450245417303613,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6999999999999998,
+      "Vehicle damage": 0.5925925925925926,
+      "Affected individuals": 0.6022727272727274
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7368421052631579,
+      "Vehicle damage": 0.6333260853808799,
+      "Affected individuals": 0.6213116189475527
+     },
+     "test_ci": {
+      "mean": 0.6518964740140661,
+      "boot_mean": 0.6494644183440796,
+      "ci95_low": 0.6083039688659203,
+      "ci95_high": 0.6840184317191051
+     },
+     "test_vs_inv": {
+      "diff": 0.008137155489373549,
+      "boot_mean_diff": 0.0076796237994921825,
+      "ci95_low": -0.0211072256523915,
+      "ci95_high": 0.035225658944531876,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.0013673852039619572,
+      "boot_mean_diff": -0.0013859570897842295,
+      "ci95_low": -0.009970226789786358,
+      "ci95_high": 0.007889976307533105,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.00243240840289205,
+      "boot_mean_diff": 0.0023337141925555025,
+      "ci95_low": -0.002013506311905588,
+      "ci95_high": 0.007124550452189392,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "focal2_inv": {
+     "dev_f1": 0.6064752747538434,
+     "dev_bal_acc": 0.7078735509689791,
+     "test_f1": 0.6082577385548817,
+     "test_f1_seed_std": 0.0008097454214440415,
+     "test_bal_acc": 0.701725152333056,
+     "test_f1_excl_missing": 0.6951517012055791,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.9,
+      "Vehicle damage": 0.7777777777777778,
+      "Affected individuals": 0.7840909090909091
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.5822631206390939,
+      "Vehicle damage": 0.5233799672302347,
+      "Affected individuals": 0.6061829948150169
+     },
+     "test_ci": {
+      "mean": 0.6082577385548817,
+      "boot_mean": 0.6065158786931375,
+      "ci95_low": 0.5714134145226006,
+      "ci95_high": 0.6381647563372294
+     },
+     "test_vs_inv": {
+      "diff": -0.03550157996981085,
+      "boot_mean_diff": -0.035268915851449756,
+      "ci95_low": -0.05283527316624129,
+      "ci95_high": -0.019619044217392793,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.045006120663146354,
+      "boot_mean_diff": -0.04433449674072617,
+      "ci95_low": -0.0783562687269117,
+      "ci95_high": -0.00945516836916792,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.02561757427848199,
+      "boot_mean_diff": 0.03235548964266152,
+      "ci95_low": -0.013792768978134598,
+      "ci95_high": 0.08185673545690064,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    },
+    "sampler": {
+     "dev_f1": 0.5894533397696776,
+     "dev_bal_acc": 0.6719831487295216,
+     "test_f1": 0.6195011116686749,
+     "test_f1_seed_std": 0.009553416013157772,
+     "test_bal_acc": 0.6962821393549338,
+     "test_f1_excl_missing": 0.7080012704784857,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.9,
+      "Vehicle damage": 0.7592592592592592,
+      "Affected individuals": 0.7083333333333334
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.6147306531066264,
+      "Vehicle damage": 0.5595839345839345,
+      "Affected individuals": 0.6277042933932095
+     },
+     "test_ci": {
+      "mean": 0.6195011116686749,
+      "boot_mean": 0.6176314173975059,
+      "ci95_low": 0.5822833983079091,
+      "ci95_high": 0.6489596331880798
+     },
+     "test_vs_inv": {
+      "diff": -0.02425820685601765,
+      "boot_mean_diff": -0.024153377147081507,
+      "ci95_low": -0.041549758826933014,
+      "ci95_high": -0.008354654072543502,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.033762747549353156,
+      "boot_mean_diff": -0.033218958036357916,
+      "ci95_low": -0.06588337776503539,
+      "ci95_high": 0.00042985696610929136,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.04263950926264781,
+      "boot_mean_diff": 0.04221227102512684,
+      "ci95_low": 0.01588402585964956,
+      "ci95_high": 0.07102363585779384,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "logit_adj": {
+     "dev_f1": 0.5717500017196978,
+     "dev_bal_acc": 0.6916431533682067,
+     "test_f1": 0.5929740166421774,
+     "test_f1_seed_std": 0.005438242690972404,
+     "test_bal_acc": 0.6906048266145026,
+     "test_f1_excl_missing": 0.6776845904482028,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.8333333333333334,
+      "Vehicle damage": 0.7685185185185185,
+      "Affected individuals": 0.7462121212121212
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.41470606687997996,
+      "Vehicle damage": 0.5442363094104956,
+      "Affected individuals": 0.603185838143859
+     },
+     "test_ci": {
+      "mean": 0.5929740166421774,
+      "boot_mean": 0.5913220342599511,
+      "ci95_low": 0.5595448557955055,
+      "ci95_high": 0.6208759628647116
+     },
+     "test_vs_inv": {
+      "diff": -0.05078530188251518,
+      "boot_mean_diff": -0.05046276028463633,
+      "ci95_low": -0.07111732797800834,
+      "ci95_high": -0.03224500146305595,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "test_vs_none": {
+      "diff": -0.06028984257585068,
+      "boot_mean_diff": -0.05952834117391274,
+      "ci95_low": -0.09061932843802818,
+      "ci95_high": -0.029402179062531446,
+      "excludes_zero": true,
+      "n_boot": 10000,
+      "verdict": "worse"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.06034284731262762,
+      "boot_mean_diff": 0.059204730999901214,
+      "ci95_low": 0.02642276859378854,
+      "ci95_high": 0.0928154445473761,
+      "excludes_zero": true,
+      "n_boot": 2000
+     }
+    },
+    "none_posthoc": {
+     "dev_f1": 0.6272951293538043,
+     "dev_bal_acc": 0.6452510521871394,
+     "test_f1": 0.6508279252209933,
+     "test_f1_seed_std": 0.00901709691824329,
+     "test_bal_acc": 0.6522287485681765,
+     "test_f1_excl_missing": 0.7438033431097066,
+     "recall": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7666666666666666,
+      "Vehicle damage": 0.6296296296296297,
+      "Affected individuals": 0.6212121212121211
+     },
+     "f1": {
+      "Missing or found people": 0.0,
+      "Injured or dead people": 0.7398169336384438,
+      "Vehicle damage": 0.6232569165551093,
+      "Affected individuals": 0.6254293921511097
+     },
+     "test_ci": {
+      "mean": 0.6508279252209933,
+      "boot_mean": 0.6486018086001513,
+      "ci95_low": 0.6114620600394994,
+      "ci95_high": 0.6801505390834937
+     },
+     "test_vs_inv": {
+      "diff": 0.007068606696300717,
+      "boot_mean_diff": 0.006817014055563807,
+      "ci95_low": -0.01602724499280636,
+      "ci95_high": 0.029748089453515265,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "test_vs_none": {
+      "diff": -0.0024359339970347893,
+      "boot_mean_diff": -0.0022485668337126055,
+      "ci95_low": -0.01220734919754546,
+      "ci95_high": 0.008502409738977512,
+      "excludes_zero": false,
+      "n_boot": 10000,
+      "verdict": "not distinguishable"
+     },
+     "dev_best_minus_arm": {
+      "diff": 0.004797719678521162,
+      "boot_mean_diff": 0.004581746502069136,
+      "ci95_low": -0.007831721856582485,
+      "ci95_high": 0.016818786790982754,
+      "excludes_zero": false,
+      "n_boot": 2000
+     }
+    }
+   },
+   "order": [
+    "focal1",
+    "focal2",
+    "eff_num",
+    "sqrt_inv",
+    "none_posthoc",
+    "none",
+    "inv",
+    "focal2_inv",
+    "sampler",
+    "logit_adj"
+   ],
+   "dev_best": "focal1",
+   "tied": [
+    "focal1",
+    "focal2",
+    "eff_num",
+    "sqrt_inv",
+    "none_posthoc",
+    "inv",
+    "focal2_inv"
+   ],
+   "selected": "focal2_inv"
+  }
+ },
+ "part": "G",
+ "config": "g_imbalance_summary",
+ "seed": 42,
+ "git_commit": "3a0cf7d"
+}

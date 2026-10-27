@@ -1,0 +1,66 @@
+{
+ "task": "T2",
+ "POSTHOC": true,
+ "simplicity_order": [
+  "none",
+  "none_posthoc",
+  "focal1",
+  "focal2",
+  "sqrt_inv",
+  "eff_num",
+  "inv",
+  "focal2_inv",
+  "sampler",
+  "logit_adj"
+ ],
+ "feats": {
+  "b32": {
+   "a_best_dev_macro_f1": "focal2",
+   "b_original_rule": "inv",
+   "c_simplest_among_tied": "none",
+   "d_sqrt_inv_reference": {
+    "arm": "sqrt_inv",
+    "dev_f1": 0.5888072530811003,
+    "gap_to_best": 0.012765804038674888,
+    "tied_with_best": true
+   },
+   "tied_set": [
+    "focal2",
+    "focal1",
+    "none_posthoc",
+    "none",
+    "sqrt_inv",
+    "eff_num",
+    "inv"
+   ],
+   "tied_set_size": 7,
+   "n_arms": 10
+  },
+  "l14": {
+   "a_best_dev_macro_f1": "focal1",
+   "b_original_rule": "focal2_inv",
+   "c_simplest_among_tied": "none_posthoc",
+   "d_sqrt_inv_reference": {
+    "arm": "sqrt_inv",
+    "dev_f1": 0.628587101404208,
+    "gap_to_best": 0.003505747628117395,
+    "tied_with_best": true
+   },
+   "tied_set": [
+    "focal1",
+    "focal2",
+    "eff_num",
+    "sqrt_inv",
+    "none_posthoc",
+    "inv",
+    "focal2_inv"
+   ],
+   "tied_set_size": 7,
+   "n_arms": 10
+  }
+ },
+ "part": "G",
+ "config": "g_POSTHOC_selection_sensitivity",
+ "seed": 42,
+ "git_commit": "3a0cf7d"
+}
