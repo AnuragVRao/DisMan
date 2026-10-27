@@ -433,3 +433,184 @@ Example pairs, Task 2:
 | `909432584333078528_0` | agree and correct (live example) | no | 0.7278 | 0.8665 |
 | `916095924321046529_0` | disagree (live example) | no | 0.5914 | 0.8131 |
 | `871251322279911429_0` | T2 non-infrastructure (live example) | no | 0.4008 | 0.5507 |
+
+### 9.9 G: class imbalance, extended metrics and the loss comparison (image-only head on cached CLIP features; CPU re-scoring and under a minute per GPU run)
+
+Added after the presentation, in answer to three questions: is there class imbalance and what is done about it, which metrics beyond macro-F1 support the conclusions, and how each design choice is evidenced. This section covers the first two for Task 2 (and a lighter treatment of Tasks 1 and 3); the architecture comparison is a separate section. Nothing in sections 1 to 9.8 changes. The selection rule was written and committed (`ablation/SELECTION_RULE.md`) before any L/14 imbalance run; the B/32 runs and their test numbers had been seen when it was written, so for B/32 the rule is applied to dev scores only. `ablation/verify_findings.py` checks every number in this section against the saved results (it recomputes them from the saved logits and result files); it checks that the text matches the results, not that the analysis design is right.
+
+**Class counts (train / dev / test, the splits the models use).**
+
+| Task | Class | Train | Dev | Test |
+|---|---|---|---|---|
+| T1 | informative | 9,638 | 1,612 | 1,612 |
+| T1 | not_informative | 3,970 | 625 | 625 |
+| T2 | Not humanitarian | 6,565 | 1,088 | 1,055 |
+| T2 | Infrastructure and utility damage | 2,761 | 405 | 458 |
+| T2 | Other relevant information | 1,860 | 338 | 331 |
+| T2 | Rescue, volunteering or donation effort | 1,694 | 281 | 256 |
+| T2 | Affected individuals | 397 | 77 | 88 |
+| T2 | Vehicle damage | 230 | 38 | 36 |
+| T2 | Injured or dead people | 92 | 8 | 10 |
+| T2 | Missing or found people | 9 | 2 | 3 |
+| T3 | Severe damage | 1,548 | 332 | 332 |
+| T3 | Mild damage | 587 | 126 | 126 |
+| T3 | Little or no damage | 333 | 71 | 71 |
+
+Largest-to-smallest class ratio, train: T1 2.4:1, T2 729.4:1, T3 4.6:1; test: T1 2.6:1, T2 351.7:1, T3 4.7:1. Task 2 is severely imbalanced; Tasks 1 and 3 are moderately so. Dev and test share no image id (checked for all three tasks); their class counts coincide exactly for T1 and T3 and almost for T2, which looks like stratified splitting (how the split files were built was not inspected).
+
+**Imbalance handling that existed before this study, and what had not been shown.** Task 1: logistic regression with `class_weight="balanced"`. Task 2: cross-entropy with inverse-frequency class weights rescaled to mean 1. Task 3: a balanced logistic probe and, in the voting ablation, class-balanced voting. Macro-F1 is the headline because it does not reward predicting the majority class. None of these treatments had been compared against not using it, or against alternatives.
+
+**Conventions.** Macro-F1 is always computed over the fixed set of all 8 classes with `zero_division=0`. "Missing or found people" (9 train / 2 dev / 3 test rows) has F1 = 0 in every arm on both backbones (the model predicts it 33 times on B/32 and 20 times on L/14 over all arms and seeds, always wrongly), so no loss-level treatment fixes it: macro-F1 is capped at 7/8 = 0.875, and the macro-F1 over the other seven classes is the macro-F1 times 8/7. **Seed std** is the sample std (ddof 1) over seeds 42, 43, 44. The **test-sampling 95% CI** is a percentile bootstrap over the test rows (10,000 resamples; the same resampled rows for every arm and seed; the CI is for the seed-averaged quantity) and is a different quantity from the seed std; it is for reporting only and is never used to select. Selection uses dev only. "Better" and "worse" are used only where the paired 95% CI excludes 0 by more than 0.002; a bound within 0.002 of zero is called "borderline" (weak evidence), and otherwise the difference is "not distinguishable". For the recall of the injured-or-dead class the word is "not resolvable": with 8 dev and 10 test rows (per-run recall moves in steps of 0.125 on dev and 0.1 on test) the data cannot resolve a difference, which is not the same as no effect. Pairwise comparisons were not corrected for multiple testing (about 10 arms on 2 backbones, several metrics), so isolated borderline exclusions should be read as weak evidence.
+
+**Extended metrics for the existing Task 2 models** (inference only on the saved checkpoints; accuracy and macro-F1 reproduce the stored results exactly; mean ± std over seeds 42, 43, 44; ROC-AUC and PR-AUC are one-vs-rest means over the 8 classes).
+
+| Model | Acc. | Macro-F1 | Balanced acc. | MCC | Macro ROC-AUC | Macro PR-AUC | Macro-F1 test-sampling 95% CI (seed 42) |
+|---|---|---|---|---|---|---|---|
+| T2 full model (L4a) | 0.799 ± 0.006 | 0.598 ± 0.010 | 0.610 ± 0.008 | 0.717 ± 0.009 | 0.953 ± 0.004 | 0.651 ± 0.023 | [0.562, 0.644] |
+| T2 v2 (L4) | 0.793 ± 0.005 | 0.587 ± 0.001 | 0.613 ± 0.023 | 0.711 ± 0.003 | 0.956 ± 0.006 | 0.653 ± 0.004 | [0.540, 0.624] |
+| T2 image only | 0.788 ± 0.002 | 0.601 ± 0.005 | 0.651 ± 0.002 | 0.708 ± 0.002 | 0.950 ± 0.006 | 0.658 ± 0.001 | [0.562, 0.642] |
+| T2 concat, no attention | 0.796 ± 0.007 | 0.595 ± 0.009 | 0.598 ± 0.016 | 0.710 ± 0.009 | 0.953 ± 0.004 | 0.630 ± 0.012 | [0.537, 0.631] |
+| T2 no text→image attention | 0.795 ± 0.005 | 0.570 ± 0.014 | 0.577 ± 0.020 | 0.709 ± 0.006 | 0.943 ± 0.006 | 0.619 ± 0.006 | [0.509, 0.598] |
+| T2 text only | 0.486 ± 0.010 | 0.294 ± 0.014 | 0.320 ± 0.020 | 0.308 ± 0.010 | 0.761 ± 0.003 | 0.289 ± 0.010 | [0.275, 0.339] |
+
+* The macro-F1 interval of the full model at seed 42 is [0.562, 0.644], about ±0.04 wide, against differences of about 0.01 between the full, concat and image-only models: those differences cannot be resolved with this test set. Image-only has the highest balanced accuracy of the six models (0.651 ± 0.002, against 0.610 ± 0.008 for the full model) while its macro-F1 (0.601 ± 0.005) is within 0.003 of the full model's (0.598 ± 0.010).
+
+**Tasks 1 and 3: balanced against unweighted (CPU, deterministic single runs, so no seed std).** Task 1: TF-IDF + logistic regression, C = 1. Task 3: logistic probe on the tweet-disjoint index rows, C tuned on dev per arm over {0.01, 0.1, 1, 10, 100}. The CI is the test-sampling 95% CI of macro-F1.
+
+| Task / input | Weights | C | Acc. | Macro-F1 | Test-sampling 95% CI | Balanced acc. | MCC | Macro PR-AUC | Lowest class recall |
+|---|---|---|---|---|---|---|---|---|---|
+| T1 text (TF-IDF) | balanced | 1 | 0.794 | 0.751 | [0.731, 0.771] | 0.758 | 0.504 | 0.824 | 0.677 |
+| T1 text (TF-IDF) | none | 1 | 0.810 | 0.720 | [0.698, 0.742] | 0.696 | 0.485 | 0.825 | 0.438 |
+| T3 fused probe | balanced | 1 | 0.684 | 0.615 | [0.567, 0.661] | 0.643 | 0.448 | 0.625 | 0.532 |
+| T3 fused probe | none | 10 | 0.709 | 0.596 | [0.543, 0.646] | 0.582 | 0.422 | 0.606 | 0.405 |
+| T3 image probe | balanced | 1 | 0.673 | 0.595 | [0.548, 0.640] | 0.620 | 0.427 | 0.621 | 0.500 |
+| T3 image probe | none | 10 | 0.698 | 0.584 | [0.531, 0.633] | 0.568 | 0.398 | 0.606 | 0.365 |
+| T3 text probe | balanced | 0.01 | 0.509 | 0.463 | [0.418, 0.507] | 0.516 | 0.226 | 0.494 | 0.405 |
+| T3 text probe | none | 10 | 0.603 | 0.425 | [0.375, 0.474] | 0.421 | 0.157 | 0.457 | 0.183 |
+
+* Task 1: balanced minus unweighted macro-F1 is +0.0307 [+0.0099, +0.0512] (paired, 10,000 resamples): better. Balancing raises the recall of the minority class and balanced accuracy and lowers accuracy.
+* Task 3, fused probe: balanced minus unweighted macro-F1 is +0.0186 [-0.0246, +0.0620]: not distinguishable.
+* Task 3, image probe: balanced minus unweighted macro-F1 is +0.0107 [-0.0328, +0.0530]: not distinguishable.
+* Task 3, text probe: balanced minus unweighted macro-F1 is +0.0381 [-0.0163, +0.0930]: not distinguishable.
+* Task 3 5-NN on the fused embedding, class-balanced against majority voting (macro-F1 0.4954 against 0.4914; the two votes differ on 152 of 529 test queries): difference +0.0039 [-0.0442, +0.0554] (paired, 10,000 resamples over the 529 queries): not distinguishable.
+
+**Task 2 imbalance treatments (image-only head, the recipe of the Part B image-only run: 10 epochs, lr 1e-4, AdamW, batch 32, seeds 42, 43, 44; checkpoint = best dev macro-F1).** Arms: `none` (unweighted), `inv` (current: inverse frequency), `sqrt_inv` (1/√count), `eff_num` (effective-number weights, β = 0.999), `focal1` / `focal2` (focal loss γ = 1 / 2, unweighted), `focal2_inv` (γ = 2 with inverse-frequency α), `sampler` (weighted sampling with replacement), `logit_adj` (logit-adjusted loss, τ = 1) and `none_posthoc` (the `none` model with a post-hoc logit shift whose τ was chosen on dev). On B/32 the `inv` arm reproduces the stored image-only runs exactly (maximum difference 0 at all three seeds); on L/14 it reproduces the stored L/14 normalised runs.
+
+**B/32: dev (used for selection; 2,000 paired resamples of the dev rows, difference of the seed-averaged macro-F1).**
+
+| Arm | Dev macro-F1 | Dev balanced acc. | Best arm minus this arm | 95% CI | Tied with the best |
+|---|---|---|---|---|---|
+| `focal2` | 0.602 | 0.591 | best arm | | yes |
+| `focal1` | 0.599 | 0.589 | +0.0021 | [-0.0025, +0.0067] | yes |
+| `none_posthoc` | 0.596 | 0.591 | +0.0055 | [-0.0040, +0.0167] | yes |
+| `none` (unweighted) | 0.596 | 0.583 | +0.0058 | [-0.0030, +0.0156] | yes |
+| `sqrt_inv` | 0.589 | 0.623 | +0.0128 | [-0.0072, +0.0342] | yes |
+| `eff_num` | 0.587 | 0.627 | +0.0142 | [-0.0192, +0.0430] | yes |
+| `inv` (current) | 0.568 | 0.648 | +0.0337 | [-0.0019, +0.0651] | yes |
+| `sampler` | 0.554 | 0.650 | +0.0475 | [+0.0119, +0.0815] | no |
+| `focal2_inv` | 0.547 | 0.649 | +0.0547 | [+0.0180, +0.0882] | no |
+| `logit_adj` | 0.523 | 0.643 | +0.0786 | [+0.0409, +0.1142] | no |
+
+**B/32: test (reporting only; seed std and test-sampling CI are separate quantities).** Differences are paired over the test rows (10,000 resamples); the verdict uses the rule above.
+
+| Arm | Test macro-F1 (seed mean ± std) | Test-sampling 95% CI | Balanced acc. | Recall injured or dead | Recall vehicle damage | vs `inv`: difference [95% CI] | vs `none`: difference [95% CI] |
+|---|---|---|---|---|---|---|---|
+| `focal2` | 0.612 ± 0.003 | [0.566, 0.647] | 0.590 | 0.667 | 0.370 | +0.0108 [-0.0142, +0.0367] not distinguishable | +0.0039 [-0.0110, +0.0218] not distinguishable |
+| `focal1` | 0.608 ± 0.003 | [0.562, 0.643] | 0.582 | 0.600 | 0.370 | +0.0066 [-0.0204, +0.0337] not distinguishable | -0.0003 [-0.0148, +0.0177] not distinguishable |
+| `none_posthoc` | 0.610 ± 0.008 | [0.562, 0.645] | 0.587 | 0.567 | 0.426 | +0.0085 [-0.0197, +0.0358] not distinguishable | +0.0016 [-0.0048, +0.0075] not distinguishable |
+| `none` (unweighted) | 0.608 ± 0.006 | [0.560, 0.645] | 0.579 | 0.567 | 0.398 | +0.0069 [-0.0238, +0.0362] not distinguishable | -- |
+| `sqrt_inv` | 0.614 ± 0.006 | [0.571, 0.646] | 0.626 | 0.700 | 0.537 | +0.0123 [-0.0038, +0.0286] not distinguishable | +0.0054 [-0.0179, +0.0305] not distinguishable |
+| `eff_num` | 0.617 ± 0.003 | [0.576, 0.649] | 0.629 | 0.733 | 0.546 | +0.0156 [+0.0003, +0.0310] borderline | +0.0087 [-0.0170, +0.0357] not distinguishable |
+| `inv` (current) | 0.601 ± 0.005 | [0.561, 0.633] | 0.651 | 0.700 | 0.620 | -- | -0.0069 [-0.0362, +0.0238] not distinguishable |
+| `sampler` | 0.577 ± 0.003 | [0.538, 0.609] | 0.650 | 0.700 | 0.648 | -0.0247 [-0.0443, -0.0043] worse | -0.0317 [-0.0649, +0.0048] not distinguishable |
+| `focal2_inv` | 0.579 ± 0.003 | [0.540, 0.611] | 0.653 | 0.700 | 0.657 | -0.0224 [-0.0407, -0.0036] worse | -0.0293 [-0.0629, +0.0077] not distinguishable |
+| `logit_adj` | 0.562 ± 0.003 | [0.531, 0.589] | 0.667 | 0.833 | 0.685 | -0.0391 [-0.0600, -0.0175] worse | -0.0460 [-0.0823, -0.0063] worse |
+
+* Dev: the best arm is `focal2` (0.602); 7 of the 10 arms (the best and 6 others) are tied with it; the rule's tie-break (highest dev balanced accuracy among the tied) selects `inv`. `inv` ranks 7 of 10 on dev macro-F1. The dev score of `none_posthoc` is optimistically biased because its τ was fitted on dev.
+* `inv` is in the tied set by a narrow margin: the lower bound of the best-minus-`inv` interval is -0.0019. The rule's selection of `inv` on B/32 depends on it; without it the rule would select `eff_num` (dev balanced accuracy 0.627).
+* Test: the highest point estimate is `eff_num` (0.617). It was not selected on dev (dev rank 6 of 10), and against `none` it is not distinguishable (+0.0087 [-0.0170, +0.0357]); against `inv` the paired interval excludes 0 only marginally (+0.0156 [+0.0003, +0.0310]): a borderline exclusion (lower bound +0.0003) that is not robust and was not corrected for multiple comparisons across about 10 arms on 2 backbones, so we do not treat it as evidence that `eff_num` outperforms `inv`.
+
+**L/14: dev (used for selection; 2,000 paired resamples of the dev rows, difference of the seed-averaged macro-F1).**
+
+| Arm | Dev macro-F1 | Dev balanced acc. | Best arm minus this arm | 95% CI | Tied with the best |
+|---|---|---|---|---|---|
+| `focal1` | 0.632 | 0.633 | best arm | | yes |
+| `focal2` | 0.630 | 0.634 | +0.0024 | [-0.0020, +0.0071] | yes |
+| `eff_num` | 0.629 | 0.673 | +0.0027 | [-0.0227, +0.0265] | yes |
+| `sqrt_inv` | 0.629 | 0.675 | +0.0035 | [-0.0217, +0.0262] | yes |
+| `none_posthoc` | 0.627 | 0.645 | +0.0048 | [-0.0078, +0.0168] | yes |
+| `none` (unweighted) | 0.624 | 0.620 | +0.0084 | [+0.0006, +0.0195] | no |
+| `inv` (current) | 0.612 | 0.690 | +0.0197 | [-0.0122, +0.0480] | yes |
+| `focal2_inv` | 0.606 | 0.708 | +0.0256 | [-0.0138, +0.0819] | yes |
+| `sampler` | 0.589 | 0.672 | +0.0426 | [+0.0159, +0.0710] | no |
+| `logit_adj` | 0.572 | 0.692 | +0.0603 | [+0.0264, +0.0928] | no |
+
+**L/14: test (reporting only; seed std and test-sampling CI are separate quantities).** Differences are paired over the test rows (10,000 resamples); the verdict uses the rule above.
+
+| Arm | Test macro-F1 (seed mean ± std) | Test-sampling 95% CI | Balanced acc. | Recall injured or dead | Recall vehicle damage | vs `inv`: difference [95% CI] | vs `none`: difference [95% CI] |
+|---|---|---|---|---|---|---|---|
+| `focal1` | 0.652 ± 0.005 | [0.608, 0.684] | 0.637 | 0.700 | 0.602 | +0.0083 [-0.0212, +0.0352] not distinguishable | -0.0012 [-0.0085, +0.0065] not distinguishable |
+| `focal2` | 0.652 ± 0.004 | [0.608, 0.684] | 0.638 | 0.700 | 0.593 | +0.0081 [-0.0211, +0.0352] not distinguishable | -0.0014 [-0.0100, +0.0079] not distinguishable |
+| `eff_num` | 0.656 ± 0.009 | [0.619, 0.684] | 0.676 | 0.867 | 0.685 | +0.0121 [+0.0010, +0.0243] borderline | +0.0026 [-0.0200, +0.0300] not distinguishable |
+| `sqrt_inv` | 0.654 ± 0.008 | [0.617, 0.682] | 0.677 | 0.867 | 0.657 | +0.0105 [-0.0037, +0.0247] not distinguishable | +0.0010 [-0.0204, +0.0272] not distinguishable |
+| `none_posthoc` | 0.651 ± 0.009 | [0.611, 0.680] | 0.652 | 0.767 | 0.630 | +0.0071 [-0.0160, +0.0297] not distinguishable | -0.0024 [-0.0122, +0.0085] not distinguishable |
+| `none` (unweighted) | 0.653 ± 0.002 | [0.610, 0.686] | 0.636 | 0.700 | 0.602 | +0.0095 [-0.0204, +0.0363] not distinguishable | -- |
+| `inv` (current) | 0.644 ± 0.009 | [0.605, 0.673] | 0.693 | 0.867 | 0.713 | -- | -0.0095 [-0.0363, +0.0204] not distinguishable |
+| `focal2_inv` | 0.608 ± 0.001 | [0.571, 0.638] | 0.702 | 0.900 | 0.778 | -0.0355 [-0.0528, -0.0196] worse | -0.0450 [-0.0784, -0.0095] worse |
+| `sampler` | 0.620 ± 0.010 | [0.582, 0.649] | 0.696 | 0.900 | 0.759 | -0.0243 [-0.0415, -0.0084] worse | -0.0338 [-0.0659, +0.0004] not distinguishable |
+| `logit_adj` | 0.593 ± 0.005 | [0.560, 0.621] | 0.691 | 0.833 | 0.769 | -0.0508 [-0.0711, -0.0322] worse | -0.0603 [-0.0906, -0.0294] worse |
+
+* Dev: the best arm is `focal1` (0.632); 7 of the 10 arms (the best and 6 others) are tied with it; the rule's tie-break (highest dev balanced accuracy among the tied) selects `focal2_inv`. `inv` ranks 7 of 10 on dev macro-F1. The dev score of `none_posthoc` is optimistically biased because its τ was fitted on dev.
+* `none` is excluded from the tied set only by a borderline interval (lower bound +0.0006); including it would not change the selection, because its dev balanced accuracy (0.620) is below that of `focal2_inv` (0.708).
+* Test: the highest point estimate is `eff_num` (0.656). It was not selected on dev (dev rank 3 of 10), and against `none` it is not distinguishable (+0.0026 [-0.0200, +0.0300]); against `inv` the paired interval excludes 0 only marginally (+0.0121 [+0.0010, +0.0243]): a borderline exclusion (lower bound +0.0010) that is not robust and was not corrected for multiple comparisons across about 10 arms on 2 backbones, so we do not treat it as evidence that `eff_num` outperforms `inv`.
+
+**Balanced accuracy and minority recall, `none` / `inv` / `sqrt_inv`.** Dev rows (selection-eligible; 2,000 resamples): 8 injured or dead, 38 vehicle damage, 2 missing or found. Test rows (reporting only, test-sampling CIs; 10,000 resamples): 10, 36, 3. Recall of "Missing or found people" is 0 in every arm, so it is not bootstrapped. Balanced accuracy uses all 8 classes (a class absent from a resample counts as recall 0); no resample lacked a true row of the injured or vehicle class.
+
+| Backbone | Metric | Pair | Dev difference [95% CI] | Test difference [95% CI] (test-sampling) |
+|---|---|---|---|---|
+| B/32 | balanced accuracy | `inv` − `none` | +0.0651 [+0.0354, +0.1058] better | +0.0723 [+0.0462, +0.1001] better |
+| B/32 | balanced accuracy | `sqrt_inv` − `none` | +0.0393 [+0.0220, +0.0592] better | +0.0474 [+0.0256, +0.0723] better |
+| B/32 | balanced accuracy | `inv` − `sqrt_inv` | +0.0258 [+0.0082, +0.0518] better | +0.0249 [+0.0076, +0.0427] better |
+| B/32 | recall, injured or dead | `inv` − `none` | +0.1250 [+0.0000, +0.4000] not resolvable | +0.1333 [+0.0000, +0.2917] not resolvable |
+| B/32 | recall, injured or dead | `sqrt_inv` − `none` | +0.0417 [+0.0000, +0.1333] not resolvable | +0.1333 [+0.0000, +0.2917] not resolvable |
+| B/32 | recall, injured or dead | `inv` − `sqrt_inv` | +0.0833 [+0.0000, +0.2667] not resolvable | +0.0000 [-0.1001, +0.1000] not resolvable |
+| B/32 | recall, vehicle damage | `inv` − `none` | +0.2193 [+0.1032, +0.3452] better | +0.2222 [+0.1000, +0.3590] better |
+| B/32 | recall, vehicle damage | `sqrt_inv` − `none` | +0.1667 [+0.0707, +0.2791] better | +0.1389 [+0.0430, +0.2549] better |
+| B/32 | recall, vehicle damage | `inv` − `sqrt_inv` | +0.0526 [+0.0104, +0.1026] better | +0.0833 [+0.0167, +0.1667] better |
+| L/14 | balanced accuracy | `inv` − `none` | +0.0703 [+0.0399, +0.1129] better | +0.0566 [+0.0279, +0.0919] better |
+| L/14 | balanced accuracy | `sqrt_inv` − `none` | +0.0553 [+0.0322, +0.0852] better | +0.0406 [+0.0154, +0.0739] better |
+| L/14 | balanced accuracy | `inv` − `sqrt_inv` | +0.0151 [+0.0028, +0.0304] better | +0.0160 [+0.0077, +0.0255] better |
+| L/14 | recall, injured or dead | `inv` − `none` | +0.2083 [+0.0000, +0.5000] not resolvable | +0.1667 [+0.0000, +0.4286] not resolvable |
+| L/14 | recall, injured or dead | `sqrt_inv` − `none` | +0.1667 [+0.0000, +0.3668] not resolvable | +0.1667 [+0.0000, +0.4286] not resolvable |
+| L/14 | recall, injured or dead | `inv` − `sqrt_inv` | +0.0417 [+0.0000, +0.1429] not resolvable | +0.0000 [+0.0000, +0.0000] not resolvable |
+| L/14 | recall, vehicle damage | `inv` − `none` | +0.1930 [+0.1000, +0.2925] better | +0.1111 [+0.0247, +0.2130] better |
+| L/14 | recall, vehicle damage | `sqrt_inv` − `none` | +0.1667 [+0.0889, +0.2569] better | +0.0556 [+0.0111, +0.1111] better |
+| L/14 | recall, vehicle damage | `inv` − `sqrt_inv` | +0.0263 [-0.0209, +0.0833] not distinguishable | +0.0556 [+0.0115, +0.1111] better |
+
+* Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy and vehicle recall on both backbones, on dev and on test (every interval excludes 0), and `inv` also exceeds `sqrt_inv` in balanced accuracy everywhere. `inv` exceeds `sqrt_inv` in vehicle recall everywhere except on L/14 dev. The injured-or-dead recall differences (all 18 comparisons: dev and test, both backbones, three pairs) are not resolvable at this sample size (8 dev / 10 test rows; per-run recall moves in steps of 0.125 on dev and 0.1 on test); they are neither evidence of an effect nor of no effect.
+
+**"Affected individuals" under `none` and `inv`.**
+
+| Backbone | Recall `none` | Recall `inv` | F1 `none` | F1 `inv` |
+|---|---|---|---|---|
+| B/32 | 0.534 | 0.750 | 0.608 | 0.587 |
+| L/14 | 0.591 | 0.723 | 0.631 | 0.634 |
+
+* Weighting raises the recall of this class on both backbones; its F1 falls on B/32 (0.608 to 0.587) and changes by +0.003 on L/14, so the recall-for-F1 trade holds on B/32 only.
+
+**Outcome of the pre-set rule.** B/32 selects `inv`; L/14 selects `focal2_inv`. The backbones disagree, so the pre-set rule did not adopt a new loss. No treatment is established as better on macro-F1; inverse-frequency is retained for its recall and balanced-accuracy profile. The rule has low power: dev has 8 injured-or-dead and 2 missing-or-found rows, and on both backbones 7 of the 10 arms (the best arm and 6 others) are tied with the best, so "keep `inv`" does not mean that `inv` is best. In test macro-F1 the only arms distinguishable from `none` are `logit_adj` (worse, on both backbones) and `focal2_inv` (worse, on L/14 only), and `sampler`, `focal2_inv` and `logit_adj` are each worse than `inv` on both backbones.
+
+**POST-HOC sensitivity of the selection (defined after the outcome was known; it does not change the headline).** Winner of each variant on each backbone, all variants shown:
+
+| Variant (POST-HOC) | B/32 | L/14 | Same on both |
+|---|---|---|---|
+| (a) best mean dev macro-F1 | `focal2` | `focal1` | no |
+| (b) original rule: highest dev balanced accuracy among the tied | `inv` | `focal2_inv` | no |
+| (c) simplest arm among the tied (closest to unweighted) | `none` | `none_posthoc` | no |
+| (d) `sqrt_inv` as the midpoint reference (dev macro-F1 0.589 / 0.629; gap to the best arm 0.013 / 0.004) | tied: yes | tied: yes | -- |
+
+* No selection variant agrees across the two backbones; the choice among the tied arms is not stable. Variant (c) uses the fixed order none < none_posthoc < focal1 < focal2 < sqrt_inv < eff_num < inv < focal2_inv < sampler < logit_adj, written before the output was seen; on L/14 it picks `none_posthoc`, whose τ was fitted on dev.
+
+**Bootstrap audit.** 511 of 10,000 test resamples (5.11%; expected 4.97%) and 275 of 2,000 dev resamples (13.75%) contain no true row of "Missing or found people". Macro-F1 over the fixed 8 classes is unaffected by this (that class contributes 0 either way); the vectorised implementation equals scikit-learn's `f1_score(labels=all 8, zero_division=0)` on 300 resamples of every one of the 60 arm, seed and backbone runs (maximum difference 0.0). A "present classes only" average would have raised the bootstrap mean by about 0.004 and is not used. Recomputing every paired test difference changed no CI endpoint (maximum change 0) and 0 verdicts. The bootstrap mean of seed-averaged macro-F1 lies 0.0014 to 0.0028 below the point estimate on B/32 and 0.0017 to 0.0024 on L/14: a property of a ratio statistic on rare classes (mostly injured or dead, 10 test rows), not of the zero-support handling. The tables therefore show the point estimate with the percentile interval.
+
+**Limitations.** (1) "Missing or found people" has 3 test rows (2 dev, 9 train) and F1 = 0 in every arm; the headline cannot exceed 0.875 whatever the loss. (2) The test-sampling interval of a macro-F1 is about ±0.04 wide, against differences between losses of about 0.01, so only the large gaps are resolved. (3) Everything above uses the image-only head on frozen CLIP features; whether weighting matters inside the fusion model is a separate, pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md`). (4) Dev is small for the minority classes, so the selection rule has little power.

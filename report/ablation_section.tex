@@ -346,6 +346,48 @@ The two signals are partly independent, so combining them, for example in a conf
 Hashing every image file finds 181 groups of byte-identical files, 175 of them spanning different tweet ids.
 Of the 529 Task~3 test images, 9 have an identical file in the Task~3 index and 24 have an index image at CLIP B/32 cosine of at least 0.98; of the 2,237 Task~2 test images, 68 have an identical file in the training or development split and 136 have a training image at that cosine.
 Scoring the stored predictions without the flagged test rows (24 and 142) moves no macro-F1 by more than 0.005 (Task~3 hybrid 0.615 to 0.619, 5-NN 0.491 to 0.496; Task~2 mean over three seeds, L4a 0.599 to 0.597, image-only 0.601 to 0.599), and none of the five live demo images has an identical file in the index.
+\paragraph{Class imbalance and extended metrics.}
+Task~2 is severely imbalanced: the largest training class (``Not humanitarian'') has 6,565 rows and the smallest (``Missing or found people'') has 9, a ratio of 729.4:1 (Task~1: 2.4:1, Task~3: 4.6:1).
+The treatments used before this study (balanced logistic regression for the Task~1 text model and the Task~3 probe, inverse-frequency class weights for Task~2) had never been compared with not using them.
+Table~\ref{tab:g_arms} compares ten treatments with the image-only head on frozen CLIP features, for both image encoders, each scored once on the test split.
+We select on the development split only: in a paired bootstrap on dev (2,000 resamples) seven of the ten arms are tied with the best arm on both encoders, and the rule fixed in advance (highest dev balanced accuracy among the tied arms) picks inverse-frequency weighting on B/32 and focal loss with inverse-frequency weights on L/14.
+The encoders disagree, so the rule adopts no new loss: no treatment is established as better on macro-F1, and inverse-frequency weighting is retained for its recall and balanced-accuracy profile.
+The rule has little power, since dev holds 8 injured-or-dead and 2 missing-or-found rows, so this does not show that inverse-frequency weighting is the best choice.
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Task 2 class-imbalance treatments, image-only head on cached CLIP features, seeds 42, 43, 44. Dev macro-F1 and balanced accuracy are seed means; test macro-F1 is the seed mean $\pm$ the seed std. The first group of columns is CLIP B/32, the second CLIP L/14.}
+\label{tab:g_arms}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Arm & Dev F1 & Test F1 & Bal. acc. & Dev F1 & Test F1 & Bal. acc. \\
+\midrule
+none & 0.596 & 0.608 $\pm$ 0.006 & 0.579 & 0.624 & 0.653 $\pm$ 0.002 & 0.636 \\
+inv (current) & 0.568 & 0.601 $\pm$ 0.005 & 0.651 & 0.612 & 0.644 $\pm$ 0.009 & 0.693 \\
+sqrt\_inv & 0.589 & 0.614 $\pm$ 0.006 & 0.626 & 0.629 & 0.654 $\pm$ 0.008 & 0.677 \\
+eff\_num & 0.587 & 0.617 $\pm$ 0.003 & 0.629 & 0.629 & 0.656 $\pm$ 0.009 & 0.676 \\
+focal1 & 0.599 & 0.608 $\pm$ 0.003 & 0.582 & 0.632 & 0.652 $\pm$ 0.005 & 0.637 \\
+focal2 & 0.602 & 0.612 $\pm$ 0.003 & 0.590 & 0.630 & 0.652 $\pm$ 0.004 & 0.638 \\
+focal2\_inv & 0.547 & 0.579 $\pm$ 0.003 & 0.653 & 0.606 & 0.608 $\pm$ 0.001 & 0.702 \\
+sampler & 0.554 & 0.577 $\pm$ 0.003 & 0.650 & 0.589 & 0.620 $\pm$ 0.010 & 0.696 \\
+logit\_adj & 0.523 & 0.562 $\pm$ 0.003 & 0.667 & 0.572 & 0.593 $\pm$ 0.005 & 0.691 \\
+none\_posthoc & 0.596 & 0.610 $\pm$ 0.008 & 0.587 & 0.627 & 0.651 $\pm$ 0.009 & 0.652 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+Against no weighting, inverse-frequency weighting raises test balanced accuracy by $+0.072$ (B/32) and $+0.057$ (L/14) and vehicle-damage recall by $+0.222$ and $+0.111$, with paired test-sampling intervals that exclude zero, while the macro-F1 difference is not distinguishable ($-0.007$ and $-0.010$).
+Weighted sampling, focal loss with inverse-frequency weights and the logit-adjusted loss are each worse than inverse-frequency weighting in macro-F1 on both encoders.
+The effective-number weights have the highest test macro-F1 (0.617 and 0.656) but were not selected on dev and are not distinguishable from no weighting.
+Against inverse-frequency weighting their paired interval excludes zero only marginally (lower bounds $+0.0003$ and $+0.0010$), a borderline result that is not robust, so we do not read it as an improvement.
+Pairwise comparisons were not corrected for multiple testing across about ten arms and two encoders, so isolated borderline exclusions should be read as weak evidence.
+None of three post-hoc variants of the selection rule picks the same arm on both encoders.
+Beyond macro-F1 we report balanced accuracy, the Matthews correlation coefficient (MCC) and macro-averaged one-vs-rest ROC-AUC and PR-AUC.
+For the full model (L4a) the three-seed means are balanced accuracy 0.610, MCC 0.717, ROC-AUC 0.953 and PR-AUC 0.651, and the 95\% test-sampling interval of its macro-F1 at seed 42 is 0.562 to 0.644, about $\pm 0.04$ wide and larger than the differences of about 0.01 among the full, concatenation and image-only models.
+Balancing helps the Task~1 text model (macro-F1 0.751 against 0.720, paired interval excluding zero) but not distinguishably the Task~3 fused probe (0.615 against 0.596); class-balanced against majority voting in the nearest-neighbour classifier gives 0.495 against 0.491, also not distinguishable.
+``Missing or found people'' (9 training, 2 development and 3 test rows) has F1 = 0 under every treatment, so no loss-level treatment lifts the macro-F1 cap of 0.875.
+The bootstrap intervals use the fixed set of all eight classes, which we checked against scikit-learn on every run; the seed std and the test-sampling intervals are separate quantities.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.
