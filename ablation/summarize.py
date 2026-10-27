@@ -330,6 +330,18 @@ if (RES / "H" / "report_seed42.json").exists():
                      "interval is about $\\pm 0.04$ wide and is not shown). Tied: no difference from the best arm of the decision is resolvable on dev; pick: the pre-registered rule's choice. "
                      "D3 image-only and the D4 default are the same runs as D1 CLIP L/14, and D3 text-only is the same runs as D2 MiniLM, so they are not listed again.",
                      "tab:h_arch", ["Arm", "Dev F1", "Test F1", "Bal. acc.", "Trainable params", "Tied", "Pick"], body, "lrrrrcc"))
+# ── G: fine-tuned fusion against the frozen image-only head (pre-registered fine-tuned fusion addendum) ───────────────
+if (RES / "G" / "g_finetune_compare_seed42.json").exists():
+    ft = json.load(open(RES / "G" / "g_finetune_compare_seed42.json"))
+    FT_LAB = {"frozen": "Frozen image-only head", "f1_distilbert": "DistilBERT fine-tuned (reused runs)", "f2_minilm": "MiniLM fine-tuned"}
+    body = []
+    for a in ft["arms"]:
+        d, t = ft["point"][a]["dev"], ft["point"][a]["test"]
+        body.append([FT_LAB[a], f"{ft['n_params'][a]:,}".replace(",", "\\,"), f"{np.mean(d['f1']):.4f} $\\pm$ {np.std(d['f1'], ddof=1):.4f}", f"{np.mean(d['bal']):.3f}",
+                     f"{np.mean(t['f1']):.4f} $\\pm$ {np.std(t['f1'], ddof=1):.4f}", f"{np.mean(t['bal']):.3f}"])
+    tex.append(table("Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features, inverse-frequency loss), seeds 42, 43, 44; mean $\\pm$ seed std. The arms differ in more "
+                     "than the text (trainable parameters, head, recipe). The DistilBERT arm reuses earlier runs. Test columns are reporting only.",
+                     "tab:h_ft", ["Arm", "Trainable params", "Dev F1", "Dev bal. acc.", "Test F1", "Test bal. acc."], body, "lrrrrr", fit=True))
 (RES / "tables.tex").write_text("\n".join(tex), encoding="utf8")
 
 # ── figure: T2 ladder ─────────────────────────────────────────────────────────

@@ -1411,7 +1411,116 @@ tchk("The text-only against image-only comparison confounds modality", ["a froze
 tchk("Concatenation has a higher test macro-F1", [f"({np.mean(_hc['test']):.4f})", f"({np.mean(_hc['inj']):.3f}, test n = 10)"])
 tchk("The configuration with the best dev score in the grid", [f"(d_model 512, test {np.mean(_hb['test']):.4f})", f"on test ({np.mean(_hdf['test']):.4f})"])
 tchk("The final frozen pipeline (test macro-F1", [f"test macro-F1 {np.mean(_hf['test']):.4f}, test-sampling interval {_hTV[_h4['pick']]['ci95_low']:.3f} to {_hTV[_h4['pick']]['ci95_high']:.3f}", "about ± 0.04 wide"])
-tchk("There are 38 arm slots", [f"There are {_hN} arm slots (27, 5, 2 and 4 per decision) and {_hNd} distinct trained configurations"])
+tchk("There are 38 arm slots (27, 5, 2 and 4 per decision)", [f"There are {_hN} arm slots (27, 5, 2 and 4 per decision) and {_hNd} distinct trained configurations"])
+
+# 4l. Fine-tuned fusion against the frozen image-only head (docs 9.10.1 and the .tex paragraph), recomputed from the stored predictions of the three arms.
+from transformers import AutoConfig as _lAC, AutoModel as _lAM, DistilBertConfig as _lDC, DistilBertModel as _lDM
+from t2_models import FusionModel as _lFM
+
+_lFT = _gJ("g_finetune_compare_seed42")
+_lARMS = ("frozen", "f1_distilbert", "f2_minilm")
+_lLAB = {"frozen": "FT frozen image-only head (Day 2 pick)", "f1_distilbert": "FT DistilBERT fine-tuned (L4a-L14, reused runs)", "f2_minilm": "FT MiniLM fine-tuned (L4a-L14-MiniLM)"}
+_lML = {"f1": "macro-F1", "bal": "balanced accuracy", "inj": "recall, injured or dead", "veh": "recall, vehicle damage"}
+_lP = {a_: {} for a_ in _lARMS}
+_lwc = []
+for _i, _s in enumerate(_GS):
+    _fr = _hR["d4_lr0.0001_do0.2_dm128"][_i]
+    _lP["frozen"][_s] = (np.array(_fr["pred_dev"]), np.array(_fr["pred_test"]))
+    _lP["f1_distilbert"][_s] = (_gFP[("inv", _s)]["dev"], _gFP[("inv", _s)]["test"])
+    _rj = _gJ(f"t2_L4a-L14-MiniLM_inv_seed{_s}")
+    assert _rj["flags"]["feat"] == "l14" and _rj["flags"]["loss"] == "inv" and _rj["flags"]["text"] == "minilm" and _rj["flags"]["bert"] == "pretrained" and _rj["part"] == "G" and _rj["seed"] == _s
+    _lP["f2_minilm"][_s] = (np.array(_lFT["pred"]["f2_minilm"]["dev"][str(_s)]), np.array(_lFT["pred"]["f2_minilm"]["test"][str(_s)]))
+    assert np.bincount(_gy["test"] * 8 + _lP["f2_minilm"][_s][1], minlength=64).reshape(8, 8).tolist() == _rj["confusion_matrix"]
+    assert _gnear(_gf1(_gy["dev"], _lP["f2_minilm"][_s][0], labels=_gALL, average="macro", zero_division=0), _rj["dev_macro_f1"]) and _gnear(_gf1(_gy["test"], _lP["f2_minilm"][_s][1], labels=_gALL, average="macro", zero_division=0), _rj["test_macro_f1"])
+    _lwc.append(_rj["wall_clock_s"])
+_lbc = _lDC.from_pretrained(_ART / "distilbert_config")
+_lref, _lnew = _cc.DualStreamClassifier(8, bert_config=_lbc, img_dim=768), _lFM(8, _lDM(_lbc), _lbc.dim, img_dim=768)
+assert [(k_, tuple(v_.shape)) for k_, v_ in _lref.state_dict().items()] == [(k_, tuple(v_.shape)) for k_, v_ in _lnew.state_dict().items()] and len(_lnew.state_dict()) == 124
+_lmenc = _lAM.from_config(_lAC.from_pretrained("sentence-transformers/all-MiniLM-L6-v2"))
+_lN = {"frozen": _hM["d4_lr0.0001_do0.2_dm128"]["n_params"], "f1_distilbert": sum(p_.numel() for p_ in _lnew.parameters()), "f2_minilm": sum(p_.numel() for p_ in _lFM(8, _lmenc, _lmenc.config.hidden_size, img_dim=768).parameters())}
+assert _lN == _lFT["n_params"] and _gJ("t2_L4a-L14_inv_seed42")["n_params"] == _lN["f1_distilbert"] and _gJ("t2_L4a-L14-MiniLM_inv_seed42")["n_params"] == _lN["f2_minilm"]
+assert len(_gy["dev"]) == len(_gy["test"]) == 2237
+_lM = {a_: {sp_: dict(f1=[float(_gf1(_gy[sp_], _lP[a_][s_][k_], labels=_gALL, average="macro", zero_division=0)) for s_ in _GS], bal=[float(_gba(_gy[sp_], _lP[a_][s_][k_])) for s_ in _GS],
+                      inj=[float(_grec(_gy[sp_], _lP[a_][s_][k_], labels=[_gINJ], average="macro", zero_division=0)) for s_ in _GS],
+                      veh=[float(_grec(_gy[sp_], _lP[a_][s_][k_], labels=[_gVEH], average="macro", zero_division=0)) for s_ in _GS]) for sp_, k_ in (("dev", 0), ("test", 1))} for a_ in _lARMS}
+assert all(_gnear(_lM[a_][sp_][m_][i_], _lFT["point"][a_][sp_][m_][i_]) for a_ in _lARMS for sp_ in ("dev", "test") for m_ in ("f1", "bal", "inj", "veh") for i_ in range(3))
+assert _lP["f1_distilbert"][42][1].tolist() != _lP["frozen"][42][1].tolist()
+# rule on dev, pairs on dev and test, test-sampling CIs
+_lvd = {a_: {s_: _gbu.macro_f1_vec(_gy["dev"], _lP[a_][s_][0], 8, _gDI) for s_ in _GS} for a_ in _lARMS}
+_lmean = {a_: float(np.mean(_lM[a_]["dev"]["f1"])) for a_ in _lARMS}; _lbest = max(_lARMS, key=lambda a_: _lmean[a_])
+_ldf = {a_: _gbu.paired_diff_ci(_lvd[_lbest], _lvd[a_], point_diff=_lmean[_lbest] - _lmean[a_]) for a_ in _lARMS if a_ != _lbest}
+_ltied = [_lbest] + [a_ for a_ in _lARMS if a_ != _lbest and not (_ldf[a_]["ci95_low"] > 0 or _ldf[a_]["ci95_high"] < 0)]
+_lpick = min(_ltied, key=lambda a_: (_lN[a_], 304.0))
+assert _lbest == "f2_minilm" and set(_ltied) == set(_lARMS) and _lpick == "frozen" and _lFT["rule"]["pick"] == "frozen" and _lFT["rule"]["tied"] == _ltied
+assert all(_gnear(_lFT["rule"]["best_minus_arm"][a_][q_], _ldf[a_][q_]) for a_ in _ldf for q_ in ("diff", "ci95_low", "ci95_high"))
+_lPR = {}
+for _sp, _idx in (("dev", _gDI), ("test", _gTI)):
+    _vec = {}
+    _k = 0 if _sp == "dev" else 1
+    for _a in _lARMS:
+        _rv = {s_: _gbu.recall_vec(_gy[_sp], _lP[_a][s_][_k], 8, _idx)[0] for s_ in _GS}
+        _vec[_a] = dict(f1={s_: _gbu.macro_f1_vec(_gy[_sp], _lP[_a][s_][_k], 8, _idx) for s_ in _GS}, bal={s_: _gbu.balanced_acc_vec(_gy[_sp], _lP[_a][s_][_k], 8, _idx) for s_ in _GS},
+                        inj={s_: _rv[s_][:, _gINJ] for s_ in _GS}, veh={s_: _rv[s_][:, _gVEH] for s_ in _GS})
+    for _a in ("f1_distilbert", "f2_minilm"):
+        for _m in ("f1", "bal", "inj", "veh"):
+            _r = _gbu.paired_diff_ci(_vec[_a][_m], _vec["frozen"][_m], point_diff=float(np.mean(_lM[_a][_sp][_m]) - np.mean(_lM["frozen"][_sp][_m])))
+            _v = _gvd(_r)
+            if _m == "inj" and _v == "not distinguishable":
+                _v = "not resolvable"
+            _lPR[(_sp, _a, _m)] = (_r, _v)
+            _st = _lFT["pairs"][f"{_sp}:{_a}:{_m}"]
+            assert all(_gnear(_st[q_], _r[q_]) for q_ in ("diff", "ci95_low", "ci95_high")) and _st["verdict"] == _v
+    if _sp == "test":
+        _ltci = {a_: _gbu.mean_ci(_vec[a_]["f1"], point=float(np.mean(_lM[a_]["test"]["f1"]))) for a_ in _lARMS}
+        assert all(_gnear(_lFT["test_ci"][a_]["ci95_low"], _ltci[a_]["ci95_low"]) and _gnear(_lFT["test_ci"][a_]["ci95_high"], _ltci[a_]["ci95_high"]) for a_ in _lARMS)
+assert len(_lPR) == 16 == len(_lFT["pairs"])
+_lnn = lambda sp_, m_: f" (n={_gsup[sp_]['inj' if m_ == 'inj' else 'veh']})" if m_ in ("inj", "veh") else ""
+_ldc = lambda r_: f"{_gsg(r_['diff'])} [{_gsg(r_['ci95_low'])}, {_gsg(r_['ci95_high'])}]"
+assert all(_lPR[(sp_, a_, "f1")][1] == "not distinguishable" for sp_ in ("dev", "test") for a_ in ("f1_distilbert", "f2_minilm"))
+assert [_lPR[("dev", "f1_distilbert", "bal")][1], _lPR[("dev", "f1_distilbert", "veh")][1], _lPR[("test", "f1_distilbert", "veh")][1], _lPR[("test", "f1_distilbert", "bal")][1]] == ["worse", "worse", "worse", "not distinguishable"]
+assert 0 < _lPR[("test", "f1_distilbert", "bal")][0]["ci95_high"] < 0.002 and all(_lPR[(sp_, a_, "inj")][1] == "not resolvable" for sp_ in ("dev", "test") for a_ in ("f1_distilbert", "f2_minilm"))
+chk("Pre-registered in the fine-tuned fusion addendum", ["The DistilBERT arm reuses the existing L4a-L14 `inv` runs of 9.9", "so this is not a blind comparison", "only the MiniLM arm (3 new runs) was run after it"])
+chk("Setup: CLIP L/14 768-d L2-normalised cached features", [f"trainable parameters ({_lN['frozen']:,} for the frozen head against {_lN['f2_minilm']:,} and {_lN['f1_distilbert']:,})", "The arms differ in more than the text", "The comparison does not isolate the text."])
+chk("Validation: `FusionModel` built with DistilBERT", ["the same 124 state-dict tensors (names and shapes) as `DualStreamClassifier`", "on all 2,237 rows each", f"took {min(_lwc):.0f} to {max(_lwc):.0f} s each inside the training script, about {sum(_lwc) / 60:.0f} minutes in total"])
+for _a in _lARMS:
+    _d, _t = _lM[_a]["dev"], _lM[_a]["test"]
+    chk(f"| {_lLAB[_a]} | {_lN[_a]:,} | {_gm(_d['f1'], 4)} | {np.mean(_d['bal']):.3f} | {_gm(_t['f1'], 4)} | {_gci3(_ltci[_a]['ci95_low'], _ltci[_a]['ci95_high'])} |",
+        [f"{np.mean(_t['bal']):.3f} | {np.mean(_t['inj']):.3f} | {np.mean(_t['veh']):.3f} |"])
+chk("Rule (dev only): the best arm on dev is", [f"({_lmean[_lbest]:.4f}); its paired dev difference from the frozen head is {_ldc(_ldf['frozen'])} and from DistilBERT {_ldc(_ldf['f1_distilbert'])}",
+                                                "so all three arms are tied (no difference resolvable at this n, not equal)", f"the frozen image-only head ({_lN['frozen']:,} trainable parameters)"])
+for _a in ("f1_distilbert", "f2_minilm"):
+    for _m in ("f1", "bal", "inj", "veh"):
+        _cells = " | ".join(f"{_ldc(_lPR[(sp_, _a, _m)][0])} {_lPR[(sp_, _a, _m)][1]}{_lnn(sp_, _m)}" for sp_ in ("dev", "test"))
+        chk(f"| {_lLAB[_a]} | {_lML[_m]} |", [f"{_cells} |"])
+chk("In these two setups fine-tuned text fusion showed no detectable benefit", ["This does not show that text is useless", "the arms differ in more than the text (trainable parameters, head and recipe, see above), and the test is underpowered"])
+chk("Macro-F1 is not distinguishable from the frozen head for both fine-tuned models", [f"on dev (DistilBERT {_ldc(_lPR[('dev', 'f1_distilbert', 'f1')][0])}, MiniLM {_ldc(_lPR[('dev', 'f2_minilm', 'f1')][0])})",
+                                                                                           f"on test (DistilBERT {_ldc(_lPR[('test', 'f1_distilbert', 'f1')][0])}, MiniLM {_ldc(_lPR[('test', 'f2_minilm', 'f1')][0])})"])
+chk("For DistilBERT, balanced accuracy (", [f"balanced accuracy ({_ldc(_lPR[('dev', 'f1_distilbert', 'bal')][0])}) and vehicle recall ({_ldc(_lPR[('dev', 'f1_distilbert', 'veh')][0])}, n = {_gsup['dev']['veh']}) are worse than the frozen head on dev",
+                                            f"on test vehicle recall is also worse ({_ldc(_lPR[('test', 'f1_distilbert', 'veh')][0])}, n = {_gsup['test']['veh']})",
+                                            f"upper bound of {_gsg(_lPR[('test', 'f1_distilbert', 'bal')][0]['ci95_high'])} (it touches zero; not distinguishable)", "These come from 16 uncorrected comparisons, so they are weak evidence in either direction"])
+chk("All four injured-or-dead recall comparisons", [f"(n = {_gsup['dev']['inj']} dev, n = {_gsup['test']['inj']} test) have a CI that includes 0", "\"not resolvable\" under the existing rule"])
+chk("The MiniLM test columns in the table are reporting only", ["They are not selection results, and no claim here rests on them."])
+chk("The DistilBERT arm and the frozen head share the same test mean", [f"({np.mean(_lM['f1_distilbert']['test']['f1']):.4f}) by coincidence"])
+assert f"{np.mean(_lM['f1_distilbert']['test']['f1']):.4f}" == f"{np.mean(_lM['frozen']['test']['f1']):.4f}"
+chk("Multiplicity: 9.10 has", [f"{_hN} arm slots ({_hNd} distinct trained configurations)", f"{len(_lPR)} pairwise comparisons (2 arms x 4 metrics x 2 splits)", "neither set is corrected for multiplicity"])
+chk("Under the pre-registered rule the pick is the frozen image-only head", ["the simplest model within noise of the best under the pre-registered rule; fine-tuned text fusion showed no detectable benefit; the test is underpowered"])
+# --- tex ---
+_lTL = {"frozen": "Frozen image-only head", "f1_distilbert": "DistilBERT fine-tuned (reused runs)", "f2_minilm": "MiniLM fine-tuned"}
+for _a in _lARMS:
+    _d, _t = _lM[_a]["dev"], _lM[_a]["test"]
+    tchk(f"{_lTL[_a]} & {_lN[_a]:,} & ", [_gm(_d["f1"], 4), f"{np.mean(_d['bal']):.3f}", _gm(_t["f1"], 4), f"{np.mean(_t['bal']):.3f}"], cover_anchor=True)
+tchk("Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features", ["seeds 42, 43, 44"])
+tchk("Fine-tuned fusion was compared with the frozen image-only head under a rule fixed in advance", ["seeds 42, 43, 44"])
+tchk("The arms differ in more than the text: the frozen head has", [f"has {_lN['frozen']:,} trainable parameters and the fine-tuned models {_lN['f2_minilm']:,} and {_lN['f1_distilbert']:,}"])
+tchk("On dev all three arms are tied", [f"by {_gsg(_ldf['frozen']['diff'])} with interval {_gsg(_ldf['frozen']['ci95_low'])} to {_gsg(_ldf['frozen']['ci95_high'])}"])
+_lt = {a_: _lPR[("test", a_, "f1")][0] for a_ in ("f1_distilbert", "f2_minilm")}
+tchk("Macro-F1 is not distinguishable from the frozen head for either fine-tuned model", [f"(test differences {_gsg(_lt['f1_distilbert']['diff'])} and {_gsg(_lt['f2_minilm']['diff'])}, intervals {_gsg(_lt['f1_distilbert']['ci95_low'])} to {_gsg(_lt['f1_distilbert']['ci95_high'])} and {_gsg(_lt['f2_minilm']['ci95_low'])} to {_gsg(_lt['f2_minilm']['ci95_high'])})"])
+tchk("For DistilBERT, balanced accuracy (", [f"balanced accuracy ({_gsg(_lPR[('dev', 'f1_distilbert', 'bal')][0]['diff'])}) and vehicle recall ({_gsg(_lPR[('dev', 'f1_distilbert', 'veh')][0]['diff'])}, n = {_gsup['dev']['veh']})",
+                                           f"upper bound of {_gsg(_lPR[('test', 'f1_distilbert', 'bal')][0]['ci95_high'])}"])
+tchk("These come from 16 uncorrected comparisons", ["16 uncorrected comparisons"])
+tchk("The test columns are reporting only and none is a selection result", [f"({_gsup['dev']['inj']} dev and {_gsup['test']['inj']} test rows)"])
+tchk("There are 38 arm slots (35 distinct configurations) and, separately", [f"There are {_hN} arm slots ({_hNd} distinct configurations) and, separately, {len(_lPR)} pairwise comparisons here"])
+tchk("The three MiniLM runs took about", [f"about {sum(_lwc) / 60:.0f} minutes in total"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]

@@ -448,6 +448,35 @@ The configuration with the best dev score in the grid (d_model 512, test 0.6338)
 The final frozen pipeline (test macro-F1 0.6350, test-sampling interval 0.598 to 0.663) is not a win over v2 or L4a: the intervals overlap (about $\pm 0.04$ wide) and the setups differ.
 The picks are the simplest model within noise of the best under the pre-registered rule; no benefit from text, attention or tuning was detected; the test is underpowered.
 There are 38 arm slots (27, 5, 2 and 4 per decision) and 35 distinct trained configurations; no multiplicity correction was applied.
+\paragraph{Fine-tuned fusion against the frozen head (pre-registered).}
+Fine-tuned fusion was compared with the frozen image-only head under a rule fixed in advance (Table~\ref{tab:h_ft}): pretrained DistilBERT (the existing L4a-L14 runs, reused from an earlier check and disclosed in the pre-registration, so not a blind comparison) and pretrained MiniLM (three new runs), both on CLIP L/14 features with inverse-frequency weighting and seeds 42, 43, 44.
+The arms differ in more than the text: the frozen head has 116,232 trainable parameters and the fine-tuned models 23,670,408 and 67,418,376, with a different head and recipe.
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features, inverse-frequency loss), seeds 42, 43, 44; mean $\pm$ seed std. The arms differ in more than the text (trainable parameters, head, recipe). The DistilBERT arm reuses earlier runs. Test columns are reporting only.}
+\label{tab:h_ft}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Arm & Trainable params & Dev F1 & Dev bal. acc. & Test F1 & Test bal. acc. \\
+\midrule
+Frozen image-only head & 116\,232 & 0.6083 $\pm$ 0.0052 & 0.679 & 0.6350 $\pm$ 0.0040 & 0.687 \\
+DistilBERT fine-tuned (reused runs) & 67\,418\,376 & 0.6072 $\pm$ 0.0097 & 0.648 & 0.6350 $\pm$ 0.0120 & 0.657 \\
+MiniLM fine-tuned & 23\,670\,408 & 0.6104 $\pm$ 0.0093 & 0.663 & 0.6483 $\pm$ 0.0079 & 0.684 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+On dev all three arms are tied (the best, MiniLM, exceeds the frozen head by $+0.0022$ with interval $-0.0162$ to $+0.0202$), so the rule keeps the simplest, the frozen head.
+Macro-F1 is not distinguishable from the frozen head for either fine-tuned model on dev or test (test differences $-0.0001$ and $+0.0133$, intervals $-0.0224$ to $+0.0228$ and $-0.0085$ to $+0.0381$).
+For DistilBERT, balanced accuracy ($-0.0313$) and vehicle recall ($-0.1053$, n = 38) are worse on dev, while on test the balanced-accuracy interval has an upper bound of $+0.0009$ and is not distinguishable.
+These come from 16 uncorrected comparisons and are weak evidence in either direction.
+In these two setups fine-tuned text fusion showed no detectable benefit over the frozen image-only head; this does not show that text is useless.
+The test columns are reporting only and none is a selection result; the injured-or-dead recall comparisons (8 dev and 10 test rows) are not resolvable.
+There are 38 arm slots (35 distinct configurations) and, separately, 16 pairwise comparisons here; neither set is corrected.
+The pick is the simplest model within noise of the best under the pre-registered rule; fine-tuned text fusion showed no detectable benefit; the test is underpowered.
+The three MiniLM runs took about 17 minutes in total.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.
