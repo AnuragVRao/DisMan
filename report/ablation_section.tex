@@ -477,6 +477,35 @@ The test columns are reporting only and none is a selection result; the injured-
 There are 38 arm slots (35 distinct configurations) and, separately, 16 pairwise comparisons here; neither set is corrected.
 The pick is the simplest model within noise of the best under the pre-registered rule; fine-tuned text fusion showed no detectable benefit; the test is underpowered.
 The three MiniLM runs took about 17 minutes in total.
+\paragraph{Consolidated choices.}
+Table~\ref{tab:h_choices} collects, for each architectural decision, the pick of the pre-registered rule and whether it was resolvable or a tie-break; nothing new was run for it.
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Consolidated choices (Task 2): for each decision, the pick of the pre-registered rule, the best arm on dev (mean dev macro-F1 over three seeds), the best arm minus the pick with its paired dev 95\% interval, and whether the pick was resolvable or a tie-break. The loss row compares the image-only head on L/14 (the imbalance study used its own rule). (a) The hyperparameter pick (dev 0.6083, test 0.6350) is nominally below the default d\_model 256 (dev 0.6124, test 0.6438) and was chosen on simplicity, not improvement.}
+\label{tab:h_choices}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lllll}
+\toprule
+Decision & Pick & Best arm on dev & Best minus pick [95\% CI] & Basis \\
+\midrule
+Image backbone & CLIP L/14 & CLIP L/14 (0.6124) & best arm & resolvable \\
+Text encoder & MiniLM & MPNet (0.2942) & +0.0099 [-0.0022, +0.0219] & tie-break \\
+Head & image-only & image-only (0.6124) & best arm & tie-break (heads tied) \\
+Loss & inverse-frequency & focal loss (0.6321, L/14) & +0.0197 [-0.0122, +0.0480] & no resolvable difference, default kept, not shown worse \\
+Hyperparameters & lr 0.0001, dropout 0.2, d\_model 128 & lr 0.0003, dropout 0.1, d\_model 512 (0.6200) & +0.0117 [-0.0113, +0.0349] & tie-break, not an improvement (a) \\
+Fine-tuned vs frozen & frozen head & MiniLM fine-tuned (0.6104) & +0.0022 [-0.0162, +0.0202] & tie-break \\
+\bottomrule
+\end{tabular}}
+\end{table}
+D1 (the image backbone) is the only pick that is resolvable on dev (every alternative is worse); every other pick is a simplicity or tie-break choice among arms with no resolvable difference or, for the loss, the retained default.
+For the loss, inverse-frequency weighting is nominally among the lowest of the arms tied with the best on dev (gaps $+0.0337$ on B/32 and $+0.0197$ on L/14) but the paired intervals include zero: it is not shown worse, which does not make it as good.
+The hyperparameter pick is nominally below the default d\_model 256 (dev 0.6083 against 0.6124, test 0.6350 against 0.6438); it was chosen on simplicity, not improvement.
+The loss row used the earlier rule of the imbalance study (tie-break by dev balanced accuracy) and the other rows the simplicity rule.
+The picks add up to frozen CLIP L/14 features with an image-only head and the inverse-frequency loss; the picked text encoder (MiniLM) is not part of this final pipeline, whose test macro-F1 is 0.6350 with test-sampling interval 0.598 to 0.663.
+It is the simplest model within noise of the best under the pre-registered rules, no benefit from text, attention, tuning or fine-tuned text fusion was detected, and the test is underpowered.
+Limitations: the minority class has 9 training, 2 development and 3 test rows and F1 = 0 in every arm, so macro-F1 cannot exceed 0.875; the test-sampling interval of a macro-F1 is about $\pm 0.04$ wide against gaps between arms of about 0.01; there are three seeds per arm; no multiplicity correction was applied; and the simplicity tie-break favours the simplest model whenever power is low, so no benefit detected means not resolvable at this n, not absent.
 \paragraph{What is established.}
 With three seeds and a noise floor of about 0.01 macro-F1, we regard only the following as established: the path-fix gain ($+0.095$), the collapse of the text-only model, the collapse of every Task~2 model without its image, the accuracy gain of the full model over image-only on the rows where the text and image labels agree, and the fall of the original Task~3 score once self-retrieval is removed.
 Differences of about 0.01 between configurations are not established; this includes the effect of the random initialisation in v2 and of mixed precision, the comparison between image-only, concatenation and the full model, with a subset-dependent effect (A1), and all differences among the Task~3 rungs from L2 to L4.

@@ -342,6 +342,24 @@ if (RES / "G" / "g_finetune_compare_seed42.json").exists():
     tex.append(table("Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features, inverse-frequency loss), seeds 42, 43, 44; mean $\\pm$ seed std. The arms differ in more "
                      "than the text (trainable parameters, head, recipe). The DistilBERT arm reuses earlier runs. Test columns are reporting only.",
                      "tab:h_ft", ["Arm", "Trainable params", "Dev F1", "Dev bal. acc.", "Test F1", "Test bal. acc."], body, "lrrrrr", fit=True))
+# ── Day 3: consolidated best set of choices (one row per decision; numbers repeated from the G and H result files) ─────────────
+if all((RES / x).exists() for x in ("H/report_seed42.json", "G/g_finetune_compare_seed42.json", "G/g_imbalance_summary_seed42.json")):
+    cs = {d: json.load(open(RES / "H" / f"selection_{d}_seed42.json")) for d in ("d1", "d2", "d3", "d4")}
+    cf = json.load(open(RES / "G" / "g_finetune_compare_seed42.json")); cg = json.load(open(RES / "G" / "g_imbalance_summary_seed42.json"))["feats"]
+    g4 = lambda r: f"{r['diff']:+.4f} [{r['ci95_low']:+.4f}, {r['ci95_high']:+.4f}]"
+    mm = lambda d, a: cs[d]["mean_dev_macro_f1"][a]
+    body = [["Image backbone", "CLIP L/14", f"CLIP L/14 ({mm('d1', 'd1_clip_l14'):.4f})", "best arm", "resolvable"],
+            ["Text encoder", "MiniLM", f"MPNet ({mm('d2', 'd2_mpnet'):.4f})", g4(cs["d2"]["best_minus_arm"]["d2_minilm"]), "tie-break"],
+            ["Head", "image-only", f"image-only ({mm('d3', 'd3_image_only'):.4f})", "best arm", "tie-break (heads tied)"],
+            ["Loss", "inverse-frequency", f"focal loss ({cg['l14']['arms']['focal1']['dev_f1']:.4f}, L/14)", g4(cg["l14"]["arms"]["inv"]["dev_best_minus_arm"]), "no resolvable difference, default kept, not shown worse"],
+            ["Hyperparameters", "lr 0.0001, dropout 0.2, d\\_model 128", f"lr 0.0003, dropout 0.1, d\\_model 512 ({mm('d4', 'd4_lr0.0003_do0.1_dm512'):.4f})", g4(cs["d4"]["best_minus_arm"]["d4_lr0.0001_do0.2_dm128"]), "tie-break, not an improvement (a)"],
+            ["Fine-tuned vs frozen", "frozen head", f"MiniLM fine-tuned ({cf['rule']['mean_dev_macro_f1']['f2_minilm']:.4f})", g4(cf["rule"]["best_minus_arm"]["frozen"]), "tie-break"]]
+    hp_ = json.load(open(RES / "H" / "report_seed42.json"))["decisions"]["d4"]["rows"]
+    tex.append(table("Consolidated choices (Task 2): for each decision, the pick of the pre-registered rule, the best arm on dev (mean dev macro-F1 over three seeds), the best arm minus the pick "
+                     "with its paired dev 95\\% interval, and whether the pick was resolvable or a tie-break. The loss row compares the image-only head on L/14 (the imbalance study used its own rule). "
+                     f"(a) The hyperparameter pick (dev {mm('d4', 'd4_lr0.0001_do0.2_dm128'):.4f}, test {hp_['d4_lr0.0001_do0.2_dm128']['test']:.4f}) is nominally below the default d\\_model 256 "
+                     f"(dev {mm('d4', 'd4_lr0.0001_do0.2_dm256'):.4f}, test {hp_['d4_lr0.0001_do0.2_dm256']['test']:.4f}) and was chosen on simplicity, not improvement.",
+                     "tab:h_choices", ["Decision", "Pick", "Best arm on dev", "Best minus pick [95\\% CI]", "Basis"], body, "lllll", fit=True))
 (RES / "tables.tex").write_text("\n".join(tex), encoding="utf8")
 
 # ── figure: T2 ladder ─────────────────────────────────────────────────────────
