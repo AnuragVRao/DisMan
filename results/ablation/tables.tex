@@ -327,3 +327,24 @@ MiniLM fine-tuned & 23\,670\,408 & 0.6104 $\pm$ 0.0093 & 0.663 & 0.6483 $\pm$ 0.
 \bottomrule
 \end{tabular}}
 \end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Consolidated choices (Task 2): for each decision, the pick of the pre-registered rule, the best arm on dev (mean dev macro-F1 over three seeds), the best arm minus the pick with its paired dev 95\% interval, and whether the pick was resolvable or a tie-break. The loss row compares the image-only head on L/14 (the imbalance study used its own rule). (a) The hyperparameter pick (dev 0.6083, test 0.6350) is nominally below the default d\_model 256 (dev 0.6124, test 0.6438) and was chosen on simplicity, not improvement.}
+\label{tab:h_choices}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lllll}
+\toprule
+Decision & Pick & Best arm on dev & Best minus pick [95\% CI] & Basis \\
+\midrule
+Image backbone & CLIP L/14 & CLIP L/14 (0.6124) & best arm & resolvable \\
+Text encoder & MiniLM & MPNet (0.2942) & +0.0099 [-0.0022, +0.0219] & tie-break \\
+Head & image-only & image-only (0.6124) & best arm & tie-break (heads tied) \\
+Loss & inverse-frequency & focal loss (0.6321, L/14) & +0.0197 [-0.0122, +0.0480] & no resolvable difference, default kept, not shown worse \\
+Hyperparameters & lr 0.0001, dropout 0.2, d\_model 128 & lr 0.0003, dropout 0.1, d\_model 512 (0.6200) & +0.0117 [-0.0113, +0.0349] & tie-break, not an improvement (a) \\
+Fine-tuned vs frozen & frozen head & MiniLM fine-tuned (0.6104) & +0.0022 [-0.0162, +0.0202] & tie-break \\
+\bottomrule
+\end{tabular}}
+\end{table}

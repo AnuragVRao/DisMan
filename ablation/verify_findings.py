@@ -1522,6 +1522,72 @@ tchk("The test columns are reporting only and none is a selection result", [f"({
 tchk("There are 38 arm slots (35 distinct configurations) and, separately", [f"There are {_hN} arm slots ({_hNd} distinct configurations) and, separately, {len(_lPR)} pairwise comparisons here"])
 tchk("The three MiniLM runs took about", [f"about {sum(_lwc) / 60:.0f} minutes in total"])
 
+# 4m. Day 3: consolidated best set of choices (docs 9.11 and the .tex paragraph and table). Every number is repeated from 9.9, 9.10 and 9.10.1 and is re-derived above (recomputed dev means, paired dev CIs, ties, picks).
+_mh = lambda d_, a_: _hsel[d_]["mean"][a_]
+_mdf = lambda d_, a_: _hsel[d_]["df"][a_]
+_LOSSN = {"none": "unweighted", "inv": "inverse-frequency", "sqrt_inv": "sqrt-inverse", "eff_num": "effective-number", "focal1": "focal loss (gamma 1)", "focal2": "focal loss (gamma 2)",
+          "focal2_inv": "focal loss (gamma 2) with inverse-frequency weights", "sampler": "weighted sampler", "logit_adj": "logit-adjusted loss", "none_posthoc": "post-hoc logit adjustment"}
+_gl, _gb = _gX["l14"], _gX["b32"]
+assert _gl["best"] == "focal1" and _gb["best"] == "focal2" and _gSEL == {"b32": "inv", "l14": "focal2_inv"} and len(_gl["tied"]) == len(_gb["tied"]) == 7 and len(_gl["order"]) == 10
+_d4 = _hsel["d4"]["mean"]; _d4p, _d4b, _d4u, _d4d = "d4_lr0.0001_do0.2_dm128", "d4_lr0.0003_do0.1_dm512", "d4_lr3e-05_do0.4_dm128", "d4_lr0.0001_do0.2_dm256"
+assert _hsel["d4"]["pick"] == _d4p and _hsel["d4"]["best"] == _d4b and [a_ for a_ in _d4 if a_ not in _hsel["d4"]["tied"]] == [_d4u]
+_d3m = _hsel["d3"]["df"]
+_ROWS = [("Image backbone (9.10, D1)",
+          f"CLIP L/14 {_mh('d1', 'd1_clip_l14'):.4f}; DINOv2 {_mh('d1', 'd1_dinov2'):.4f}; CLIP B/32 {_mh('d1', 'd1_clip_b32'):.4f}; ResNet-50 {_mh('d1', 'd1_resnet50'):.4f}", "CLIP L/14",
+          f"best arm; best minus DINOv2 {_ldc(_mdf('d1', 'd1_dinov2'))}, CLIP B/32 {_ldc(_mdf('d1', 'd1_clip_b32'))}, ResNet-50 {_ldc(_mdf('d1', 'd1_resnet50'))}", "resolvable: every alternative is worse on dev"),
+         ("Text encoder (9.10, D2)", f"MPNet {_mh('d2', 'd2_mpnet'):.4f}; MiniLM {_mh('d2', 'd2_minilm'):.4f}", "MiniLM", f"best (MPNet) minus MiniLM {_ldc(_mdf('d2', 'd2_minilm'))}",
+          "tie-break (simplicity): no resolvable difference; the picked head does not use a text encoder"),
+         ("Head (9.10, D3)", f"image-only {_mh('d3', 'd3_image_only'):.4f}; concat {_mh('d3', 'd3_concat'):.4f}; gated-late {_mh('d3', 'd3_gated_late'):.4f}; cross-attention {_mh('d3', 'd3_cross_attention'):.4f}; text-only {_mh('d3', 'd3_text_only'):.4f}",
+          "image-only head", f"best (image-only) minus concat {_ldc(_d3m['d3_concat'])}, gated-late {_ldc(_d3m['d3_gated_late'])}, cross-attention {_ldc(_d3m['d3_cross_attention'])}, text-only {_ldc(_d3m['d3_text_only'])}",
+          "tie-break: image-only is the best arm and three heads are tied with it; text-only is resolvably worse (confounded: frozen MiniLM against CLIP L/14)"),
+         ("Loss / imbalance treatment (9.9)",
+          f"{len(_gl['order'])} arms; on L/14 the best is {_LOSSN[_gl['best']]} {_gmean('l14', _gl['best'], 'dev_f1'):.4f}, unweighted {_gmean('l14', 'none', 'dev_f1'):.4f}, inverse-frequency {_gmean('l14', 'inv', 'dev_f1'):.4f}; on B/32 the best is {_LOSSN[_gb['best']]} {_gmean('b32', _gb['best'], 'dev_f1'):.4f} and inverse-frequency {_gmean('b32', 'inv', 'dev_f1'):.4f}",
+          "inverse-frequency (retained; no new loss adopted)",
+          f"best minus inverse-frequency: B/32 {_ldc(_gb['dd']['inv'])}, L/14 {_ldc(_gl['dd']['inv'])}; {len(_gl['tied'])} of {len(_gl['order'])} arms tied with the best on both backbones",
+          "not resolvable: under the 9.9 rule (tie-break by dev balanced accuracy, not simplicity) the backbones pick different arms (inverse-frequency on B/32, focal loss (gamma 2) with inverse-frequency weights on L/14), so the default is kept (note b)"),
+         ("Hyperparameters (9.10, D4)",
+          f"{len(_d4)} configurations (lr x dropout x d_model); dev {min(_d4.values()):.4f} to {max(_d4.values()):.4f}; best lr 3e-4, dropout 0.1, d_model 512 {_d4[_d4b]:.4f}; default (lr 1e-4, dropout 0.2, d_model 256) {_d4[_d4d]:.4f}",
+          f"lr 1e-4, dropout 0.2, d_model 128 (dev {_d4[_d4p]:.4f})",
+          f"best minus pick {_ldc(_mdf('d4', _d4p))}; {len(_hsel['d4']['tied'])} of {len(_d4)} configurations tied; only lr 3e-5, dropout 0.4, d_model 128 is worse ({_ldc(_mdf('d4', _d4u))})",
+          "tie-break (simplicity): no resolvable difference; the pick is nominally below the default, not an improvement (note a)"),
+         ("Fine-tuned vs frozen (9.10.1)", f"frozen image-only head {_lmean['frozen']:.4f}; DistilBERT fine-tuned {_lmean['f1_distilbert']:.4f}; MiniLM fine-tuned {_lmean['f2_minilm']:.4f}", "frozen image-only head",
+          f"best (MiniLM) minus frozen {_ldc(_ldf['frozen'])}, minus DistilBERT {_ldc(_ldf['f1_distilbert'])}", "tie-break (simplicity): no resolvable difference")]
+for _dn, _c, _p, _e, _b in _ROWS:
+    chk(f"| {_dn} |", [f"| {_c} | {_p} | {_e} | {_b} |"])
+chk("One row per architectural decision", ["Nothing new was run for this table", "mean dev macro-F1 over three seeds", "paired dev bootstrap of the best arm minus the candidate (95% CI)"])
+# notes (a) and (b)
+_np_ = lambda a_: (float(np.mean(_hM[a_]["test"])), float(np.std(_hM[a_]["test"], ddof=1)), _hTV[a_]["ci95_low"], _hTV[a_]["ci95_high"])
+_pk_t, _df_t = _np_(_d4p), _np_(_d4d)
+assert _d4[_d4p] < _d4[_d4d] and _pk_t[0] < _df_t[0]
+chk("Note (a): The picked configuration", [f"(lr 1e-4, dropout 0.2, d_model 128; dev {_d4[_d4p]:.4f}, test {_pk_t[0]:.4f} ± {_pk_t[1]:.4f}, test-sampling 95% CI [{_pk_t[2]:.3f}, {_pk_t[3]:.3f}])",
+                                           f"is nominally below the default d_model 256 (dev {_d4[_d4d]:.4f}, test {_df_t[0]:.4f} ± {_df_t[1]:.4f}, test-sampling 95% CI [{_df_t[2]:.3f}, {_df_t[3]:.3f}])", "It was chosen on simplicity, not improvement."])
+assert all(_gmean("b32", "inv", "dev_f1") <= _gmean("b32", a_, "dev_f1") for a_ in _gb["tied"]) and [a_ for a_ in _gl["tied"] if _gmean("l14", a_, "dev_f1") < _gmean("l14", "inv", "dev_f1")] == ["focal2_inv"]
+assert all(not (_gx_["dd"]["inv"]["ci95_low"] > 0 or _gx_["dd"]["inv"]["ci95_high"] < 0) for _gx_ in (_gb, _gl))
+chk("Note (b): On dev, inverse-frequency is nominally", ["the lowest of the arms tied with the best on B/32 and the second lowest on L/14 (only focal loss (gamma 2) with inverse-frequency weights is lower)",
+                                                         f"with gaps to the best of {_gsg(_gb['dd']['inv']['diff'])} (B/32) and {_gsg(_gl['dd']['inv']['diff'])} (L/14), but the paired CIs include 0; this is a power limit",
+                                                         "Inverse-frequency is \"not shown worse\", not \"as good\"."])
+chk("What the picks add up to.", [f"The picked text encoder (MiniLM) is not part of this final pipeline: the picked head is image-only and uses no text.",
+                                  f"Its test macro-F1 is {np.mean(_hf['test']):.4f} ± {np.std(_hf['test'], ddof=1):.4f} (test-sampling 95% CI [{_hTV[_h4['pick']]['ci95_low']:.3f}, {_hTV[_h4['pick']]['ci95_high']:.3f}]",
+                                  "D1 (the image backbone) is the only pick that is resolvable on dev", "no benefit from text, attention, tuning or fine-tuned text fusion was detected; the test is underpowered",
+                                  "The loss row used the earlier rule of 9.9 (tie-break by dev balanced accuracy)"])
+chk("Limitations of this table.", [f"has {_gmiss_ct['train']} train / {_gmiss_ct['dev']} dev / {_gmiss_ct['test']} test rows", "capped at 0.875", "about ±0.04 wide, against gaps between arms of about 0.01", "(3) Three seeds per arm",
+                                   f"{_hN} arm slots ({_hNd} distinct configurations) in 9.10, {len(_lPR)} comparisons in 9.10.1", f"has {_gsup['dev']['inj']} injured-or-dead and {_gsup['dev']['mis']} missing-or-found rows",
+                                   "(6) The simplicity tie-break favours the simplest model whenever power is low, so \"no benefit detected\" means \"not resolvable at this n\", not \"absent\"."])
+# --- tex ---
+_g4 = lambda r_: f"{r_['diff']:+.4f} [{r_['ci95_low']:+.4f}, {r_['ci95_high']:+.4f}]"
+tchk(f"Image backbone & CLIP L/14 & CLIP L/14 ({_mh('d1', 'd1_clip_l14'):.4f}) &", ["best arm", "resolvable"], cover_anchor=True)
+tchk(f"Text encoder & MiniLM & MPNet ({_mh('d2', 'd2_mpnet'):.4f}) &", [_g4(_mdf("d2", "d2_minilm")), "tie-break"], cover_anchor=True)
+tchk(f"Head & image-only & image-only ({_mh('d3', 'd3_image_only'):.4f}) &", ["best arm", "tie-break (heads tied)"], cover_anchor=True)
+tchk(f"Loss & inverse-frequency & focal loss ({_gmean('l14', 'focal1', 'dev_f1'):.4f}, L/14) &", [_g4(_gl["dd"]["inv"]), "no resolvable difference, default kept, not shown worse"], cover_anchor=True)
+tchk(f"Hyperparameters & lr 0.0001, dropout 0.2, d_model 128 & lr 0.0003, dropout 0.1, d_model 512 ({_d4[_d4b]:.4f}) &", [_g4(_mdf("d4", _d4p)), "tie-break, not an improvement (a)"], cover_anchor=True)
+tchk(f"Fine-tuned vs frozen & frozen head & MiniLM fine-tuned ({_lmean['f2_minilm']:.4f}) &", [_g4(_ldf["frozen"]), "tie-break"], cover_anchor=True)
+tchk("Decision & Pick & Best arm on dev", ["[95% CI]"])
+tchk("Consolidated choices (Task 2): for each decision", ["paired dev 95% interval", f"(dev {_d4[_d4p]:.4f}, test {_pk_t[0]:.4f}) is nominally below the default d_model 256 (dev {_d4[_d4d]:.4f}, test {_df_t[0]:.4f})"])
+tchk("For the loss, inverse-frequency weighting is nominally", [f"(gaps {_gsg(_gb['dd']['inv']['diff'])} on B/32 and {_gsg(_gl['dd']['inv']['diff'])} on L/14)"])
+tchk("The hyperparameter pick is nominally below the default", [f"below the default d_model 256 (dev {_d4[_d4p]:.4f} against {_d4[_d4d]:.4f}, test {_pk_t[0]:.4f} against {_df_t[0]:.4f})"])
+tchk("The picks add up to frozen CLIP L/14 features", [f"whose test macro-F1 is {np.mean(_hf['test']):.4f} with test-sampling interval {_hTV[_h4['pick']]['ci95_low']:.3f} to {_hTV[_h4['pick']]['ci95_high']:.3f}"])
+tchk("Limitations: the minority class has", [f"has {_gmiss_ct['train']} training, {_gmiss_ct['dev']} development and {_gmiss_ct['test']} test rows", "F1 = 0 in every arm", "cannot exceed 0.875", "about ± 0.04 wide against gaps between arms of about 0.01"])
+
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]
 uncovered = []
