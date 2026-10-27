@@ -871,6 +871,92 @@ OK  [Limitations. (1)] cannot exceed 0.875
 OK  [Limitations. (1)] about ±0.04 wide
 OK  [Limitations. (1)] about 0.01
 OK  [Limitations. (1)] rests on one pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md` and the section above), with 3 seeds and 8 uncorrected comparisons
+OK  [| D1 CLIP L/14 | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] |] 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | best | yes | pick |  |
+OK  [| D1 DINOv2 ViT-B/14 | 0.5758 ± 0.0050 | 0.5851 ± 0.0063 | [0.546, 0.617] |] 0.655 | 0.800 | 0.731 | 265,224 | 86.6 | +0.0366 [+0.0126, +0.0618] | no |  |  |
+OK  [| D1 CLIP B/32 | 0.5679 ± 0.0083 | 0.6014 ± 0.0053 | [0.561, 0.633] |] 0.651 | 0.700 | 0.620 | 199,688 | 87.8 | +0.0445 [+0.0111, +0.0797] | no |  |  |
+OK  [| D1 ResNet-50 | 0.5418 ± 0.0020 | 0.5265 ± 0.0025 | [0.486, 0.561] |] 0.564 | 0.533 | 0.444 | 592,904 | 23.5 | +0.0706 [+0.0372, +0.1084] | no |  |  |
+OK  [D1: the best arm on dev is D1 CLIP L/14 (0.6124)] no other arm is tied with it
+OK  [D1: the best arm on dev is D1 CLIP L/14 (0.6124)] the rule's pick is D1 CLIP L/14
+OK  [| D2 MPNet | 0.2942 ± 0.0039 | 0.2991 ± 0.0030 | [0.276, 0.321] |] 0.373 | 0.567 | 0.241 | 265,224 | 109.5 | best | yes |  |  |
+OK  [| D2 MiniLM | 0.2844 ± 0.0088 | 0.2847 ± 0.0094 | [0.263, 0.305] |] 0.379 | 0.700 | 0.250 | 166,920 | 22.7 | +0.0099 [-0.0022, +0.0219] | yes | pick |  |
+OK  [D2: the best arm on dev is D2 MPNet (0.2942)] 2 of the 2 arms are tied with it (the best and 1 other arm)
+OK  [D2: the best arm on dev is D2 MPNet (0.2942)] the rule's pick is D2 MiniLM
+OK  [| D3 image-only | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] |] 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | best | yes | pick | same runs as D1 CLIP L/14 (not a separate arm) |
+OK  [| D3 concat | 0.6097 ± 0.0037 | 0.6541 ± 0.0101 | [0.619, 0.681] |] 0.698 | 0.967 | 0.694 | 429,832 | 326.7 | +0.0027 [-0.0100, +0.0162] | yes |  |  |
+OK  [| D3 gated-late | 0.6093 ± 0.0049 | 0.6404 ± 0.0015 | [0.602, 0.670] |] 0.702 | 0.900 | 0.741 | 432,657 | 326.7 | +0.0031 [-0.0063, +0.0150] | yes |  |  |
+OK  [| D3 cross-attention | 0.6078 ± 0.0011 | 0.6388 ± 0.0079 | [0.603, 0.666] |] 0.701 | 0.933 | 0.722 | 957,192 | 326.7 | +0.0046 [-0.0095, +0.0200] | yes |  |  |
+OK  [| D3 text-only | 0.2844 ± 0.0088 | 0.2847 ± 0.0094 | [0.263, 0.305] |] 0.379 | 0.700 | 0.250 | 166,920 | 22.7 | +0.3280 [+0.2922, +0.3618] | no |  | same runs as D2 MiniLM (not a separate arm) |
+OK  [D3: the best arm on dev is D3 image-only (0.6124)] 4 of the 5 arms are tied with it (the best and 3 other arms)
+OK  [D3: the best arm on dev is D3 image-only (0.6124)] the rule's pick is D3 image-only
+OK  [| D4 lr 3e-4, dropout 0.1, d_model 512 | 0.6200 ± 0.0104 | 0.6338 ± 0.0119 | [0.596, 0.663] |] 0.677 | 0.900 | 0.657 | 661,512 | 304.0 | best | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.2, d_model 512 | 0.6176 ± 0.0047 | 0.6478 ± 0.0124 | [0.610, 0.677] |] 0.689 | 0.900 | 0.685 | 661,512 | 304.0 | +0.0024 [-0.0197, +0.0231] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.1, d_model 512 | 0.6169 ± 0.0082 | 0.6406 ± 0.0120 | [0.603, 0.670] |] 0.684 | 0.900 | 0.667 | 661,512 | 304.0 | +0.0030 [-0.0248, +0.0261] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.2, d_model 512 | 0.6168 ± 0.0112 | 0.6417 ± 0.0130 | [0.605, 0.669] |] 0.670 | 0.867 | 0.648 | 661,512 | 304.0 | +0.0032 [-0.0058, +0.0129] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.2, d_model 256 | 0.6159 ± 0.0118 | 0.6401 ± 0.0159 | [0.603, 0.669] |] 0.687 | 0.900 | 0.667 | 265,224 | 304.0 | +0.0041 [-0.0056, +0.0159] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.4, d_model 256 | 0.6149 ± 0.0100 | 0.6517 ± 0.0071 | [0.615, 0.680] |] 0.688 | 0.867 | 0.704 | 265,224 | 304.0 | +0.0051 [-0.0175, +0.0272] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.1, d_model 256 | 0.6146 ± 0.0014 | 0.6478 ± 0.0062 | [0.610, 0.677] |] 0.690 | 0.867 | 0.694 | 265,224 | 304.0 | +0.0054 [-0.0234, +0.0299] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.1, d_model 256 | 0.6144 ± 0.0132 | 0.6413 ± 0.0143 | [0.604, 0.670] |] 0.684 | 0.900 | 0.667 | 265,224 | 304.0 | +0.0056 [-0.0036, +0.0165] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.2, d_model 128 | 0.6125 ± 0.0151 | 0.6394 ± 0.0245 | [0.603, 0.667] |] 0.685 | 0.900 | 0.676 | 116,232 | 304.0 | +0.0074 [-0.0146, +0.0291] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.2, d_model 256 | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] |] 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | +0.0076 [-0.0210, +0.0320] | yes |  | same runs as D1 CLIP L/14 (not a separate arm) |
+OK  [| D4 lr 3e-4, dropout 0.4, d_model 512 | 0.6121 ± 0.0111 | 0.6454 ± 0.0115 | [0.609, 0.673] |] 0.689 | 0.900 | 0.685 | 661,512 | 304.0 | +0.0078 [-0.0028, +0.0209] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.4, d_model 512 | 0.6117 ± 0.0017 | 0.6471 ± 0.0039 | [0.610, 0.676] |] 0.697 | 0.867 | 0.722 | 661,512 | 304.0 | +0.0083 [-0.0194, +0.0330] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.1, d_model 128 | 0.6087 ± 0.0140 | 0.6399 ± 0.0182 | [0.603, 0.668] |] 0.679 | 0.900 | 0.657 | 116,232 | 304.0 | +0.0113 [-0.0023, +0.0267] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.2, d_model 128 | 0.6083 ± 0.0052 | 0.6350 ± 0.0040 | [0.598, 0.663] |] 0.687 | 0.833 | 0.685 | 116,232 | 304.0 | +0.0117 [-0.0113, +0.0349] | yes | pick |  |
+OK  [| D4 lr 1e-4, dropout 0.4, d_model 256 | 0.6068 ± 0.0039 | 0.6415 ± 0.0160 | [0.604, 0.670] |] 0.696 | 0.867 | 0.722 | 265,224 | 304.0 | +0.0132 [-0.0155, +0.0396] | yes |  |  |
+OK  [| D4 lr 3e-4, dropout 0.4, d_model 128 | 0.6054 ± 0.0092 | 0.6441 ± 0.0111 | [0.607, 0.673] |] 0.698 | 0.900 | 0.713 | 116,232 | 304.0 | +0.0146 [-0.0082, +0.0363] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.1, d_model 128 | 0.6053 ± 0.0076 | 0.6365 ± 0.0072 | [0.599, 0.666] |] 0.694 | 0.867 | 0.713 | 116,232 | 304.0 | +0.0146 [-0.0078, +0.0374] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.1, d_model 512 | 0.6045 ± 0.0006 | 0.6352 ± 0.0072 | [0.597, 0.665] |] 0.689 | 0.833 | 0.731 | 661,512 | 304.0 | +0.0154 [-0.0141, +0.0425] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.2, d_model 512 | 0.6039 ± 0.0016 | 0.6353 ± 0.0060 | [0.597, 0.665] |] 0.690 | 0.833 | 0.731 | 661,512 | 304.0 | +0.0160 [-0.0137, +0.0435] | yes |  |  |
+OK  [| D4 lr 1e-4, dropout 0.4, d_model 128 | 0.6035 ± 0.0034 | 0.6268 ± 0.0066 | [0.590, 0.655] |] 0.689 | 0.833 | 0.731 | 116,232 | 304.0 | +0.0165 [-0.0126, +0.0433] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.1, d_model 256 | 0.6012 ± 0.0011 | 0.6263 ± 0.0079 | [0.586, 0.657] |] 0.680 | 0.733 | 0.741 | 265,224 | 304.0 | +0.0187 [-0.0141, +0.0477] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.1, d_model 128 | 0.5999 ± 0.0041 | 0.6158 ± 0.0049 | [0.575, 0.648] |] 0.670 | 0.733 | 0.676 | 116,232 | 304.0 | +0.0200 [-0.0144, +0.0509] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.2, d_model 256 | 0.5999 ± 0.0034 | 0.6225 ± 0.0050 | [0.580, 0.655] |] 0.677 | 0.700 | 0.741 | 265,224 | 304.0 | +0.0201 [-0.0135, +0.0506] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.4, d_model 512 | 0.5985 ± 0.0056 | 0.6191 ± 0.0084 | [0.578, 0.652] |] 0.677 | 0.700 | 0.731 | 661,512 | 304.0 | +0.0215 [-0.0094, +0.0497] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.2, d_model 128 | 0.5963 ± 0.0065 | 0.6100 ± 0.0043 | [0.568, 0.643] |] 0.663 | 0.700 | 0.648 | 116,232 | 304.0 | +0.0237 [-0.0102, +0.0552] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.4, d_model 256 | 0.5935 ± 0.0039 | 0.6165 ± 0.0041 | [0.574, 0.649] |] 0.676 | 0.700 | 0.741 | 265,224 | 304.0 | +0.0265 [-0.0076, +0.0566] | yes |  |  |
+OK  [| D4 lr 3e-5, dropout 0.4, d_model 128 | 0.5804 ± 0.0067 | 0.6031 ± 0.0055 | [0.562, 0.636] |] 0.653 | 0.667 | 0.620 | 116,232 | 304.0 | +0.0396 [+0.0129, +0.0686] | no |  |  |
+OK  [D4: the best arm on dev is D4 lr 3e-4, dropout 0.1, d_model 512 (0.6200)] 26 of the 27 arms are tied with it (the best and 25 other arms)
+OK  [D4: the best arm on dev is D4 lr 3e-4, dropout 0.1, d_model 512 (0.6200)] the rule's pick is D4 lr 1e-4, dropout 0.2, d_model 128
+OK  [CLIP L/14 is better than each alternative on dev] all three paired intervals exclude 0
+OK  [CLIP L/14 is better than each alternative on dev] none is tied with it
+OK  [CLIP L/14 is better than each alternative on dev] L/14 is better than B/32
+OK  [MPNet has the higher dev mean but is not distinguishable from MiniLM] (+0.0099 [-0.0022, +0.0219])
+OK  [MPNet has the higher dev mean but is not distinguishable from MiniLM] so the rule takes the simpler MiniLM
+OK  [Text-only is far below image-only on dev] (best minus arm +0.3280 [+0.2922, +0.3618])
+OK  [Text-only is far below image-only on dev] a frozen 384-d MiniLM sentence embedding with CLIP L/14 image features
+OK  [Text-only is far below image-only on dev] confounds modality with encoder and feature quality
+OK  [Text-only is far below image-only on dev] (test macro-F1 0.294 ± 0.014, §4) points the same way, but it is a separate setup
+OK  [Concat, gated-late and cross-attention are tied with image-only on dev] no resolvable difference at this n; a power limit, not evidence that fusion or attention adds nothing
+OK  [Concat, gated-late and cross-attention are tied with image-only on dev] applies to frozen MiniLM token features only; it does not test fine-tuned text
+OK  [Concat has a higher test macro-F1] (0.6541) and injured-or-dead recall (0.967, test n = 10)
+OK  [Concat has a higher test macro-F1] not selection results (dev is tied; test is never used to select)
+OK  [Concat has a higher test macro-F1] they are not findings
+OK  [25 of the other 26 configurations are tied with the best on dev] a power limit, not evidence that hyperparameters do not matter
+OK  [25 of the other 26 configurations are tied with the best on dev] only D4 lr 3e-5, dropout 0.4, d_model 128 is distinguishable (worse)
+OK  [The best-on-dev configuration (] has test macro-F1 0.6338, below the default's 0.6438
+OK  [The best-on-dev configuration (] consistent with selecting on dev noise
+OK  [Picks and what they support.] the simplest model within noise of the best under the pre-registered rule; no benefit from text, attention or tuning was detected; the test is underpowered
+OK  [Picks and what they support.] scores test macro-F1 0.6350 ± 0.0040 (test-sampling interval [0.598, 0.663])
+OK  [Picks and what they support.] This is not a win over v2 or L4a (0.587 and 0.598)
+OK  [Picks and what they support.] the intervals overlap (they are about ±0.04 wide)
+OK  [Multiplicity and limitations.] 38 arm slots (27 + 5 + 2 + 4), 35 distinct trained configurations, no multiplicity correction
+OK  [Multiplicity and limitations.] 8 injured-or-dead and 2 missing-or-found dev rows
+OK  [Multiplicity and limitations.] about ±0.04 wide against dev differences of about 0.01 to 0.03
+OK  [What "tied" means.] (25 of the other 26 grid configurations, and 3 of the other 4 heads) are a power limit
+OK  [What "tied" means.] 2,237 dev rows, 3 seeds; 8 injured-or-dead and 2 missing-or-found dev rows
+OK  [What "tied" means.] not that the arms are equal
+OK  [Candidates (frozen features, cached] CLIP ViT-B/32 (512-d raw, 87.8M parameters)
+OK  [Candidates (frozen features, cached] CLIP ViT-L/14 (768-d L2-normalised, 304.0M)
+OK  [Candidates (frozen features, cached] 86.6M) and ResNet-50 (`microsoft/resnet-50`, 2048-d pooled, 23.5M)
+OK  [Candidates (frozen features, cached] (384-d sentence embedding, 22.7M)
+OK  [Candidates (frozen features, cached] (768-d, 109.5M)
+OK  [Candidates (frozen features, cached] 0.04% of the training tweets are longer, none in dev or test
+OK  [Validation. Under the Day 2 trainer] 6 of 6 runs
+OK  [Validation. Under the Day 2 trainer] (3 of 3)
+OK  [Counting. The decision tables contain] 38 arm slots (D1 4, D2 2, D3 5, D4 27) but 35 distinct trained configurations
+OK  [Table conventions (as in 9.9).] n = 10 injured-or-dead and n = 36 vehicle-damage rows (8 and 38 on dev)
+OK  [Table conventions (as in 9.9).] 10,000 resamples of the test rows
+OK  [Table conventions (as in 9.9).] 2,000 resamples of the dev rows
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
@@ -1401,3 +1487,70 @@ OK  [report/ablation_section.tex: Metric & Dev inv & Dev none] Test diff. [95% C
 OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] seeds 42, 43, 44
 OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] paired 95% interval
 OK  [report/ablation_section.tex: Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features] Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows
+OK  [report/ablation_section.tex: D1 CLIP L/14 & 0.6124 & ] 0.6438 ± 0.0089
+OK  [report/ablation_section.tex: D1 CLIP L/14 & 0.6124 & ] 0.693
+OK  [report/ablation_section.tex: D1 CLIP L/14 & 0.6124 & ] 265,224
+OK  [report/ablation_section.tex: D1 CLIP L/14 & 0.6124 & ] yes
+OK  [report/ablation_section.tex: D1 CLIP L/14 & 0.6124 & ] yes
+OK  [report/ablation_section.tex: D1 DINOv2 & 0.5758 & ] 0.5851 ± 0.0063
+OK  [report/ablation_section.tex: D1 DINOv2 & 0.5758 & ] 0.655
+OK  [report/ablation_section.tex: D1 DINOv2 & 0.5758 & ] 265,224
+OK  [report/ablation_section.tex: D1 DINOv2 & 0.5758 & ] no
+OK  [report/ablation_section.tex: D1 DINOv2 & 0.5758 & ] no
+OK  [report/ablation_section.tex: D1 CLIP B/32 & 0.5679 & ] 0.6014 ± 0.0053
+OK  [report/ablation_section.tex: D1 CLIP B/32 & 0.5679 & ] 0.651
+OK  [report/ablation_section.tex: D1 CLIP B/32 & 0.5679 & ] 199,688
+OK  [report/ablation_section.tex: D1 CLIP B/32 & 0.5679 & ] no
+OK  [report/ablation_section.tex: D1 CLIP B/32 & 0.5679 & ] no
+OK  [report/ablation_section.tex: D1 ResNet-50 & 0.5418 & ] 0.5265 ± 0.0025
+OK  [report/ablation_section.tex: D1 ResNet-50 & 0.5418 & ] 0.564
+OK  [report/ablation_section.tex: D1 ResNet-50 & 0.5418 & ] 592,904
+OK  [report/ablation_section.tex: D1 ResNet-50 & 0.5418 & ] no
+OK  [report/ablation_section.tex: D1 ResNet-50 & 0.5418 & ] no
+OK  [report/ablation_section.tex: D2 MPNet & 0.2942 & ] 0.2991 ± 0.0030
+OK  [report/ablation_section.tex: D2 MPNet & 0.2942 & ] 0.373
+OK  [report/ablation_section.tex: D2 MPNet & 0.2942 & ] 265,224
+OK  [report/ablation_section.tex: D2 MPNet & 0.2942 & ] yes
+OK  [report/ablation_section.tex: D2 MPNet & 0.2942 & ] no
+OK  [report/ablation_section.tex: D2 MiniLM & 0.2844 & ] 0.2847 ± 0.0094
+OK  [report/ablation_section.tex: D2 MiniLM & 0.2844 & ] 0.379
+OK  [report/ablation_section.tex: D2 MiniLM & 0.2844 & ] 166,920
+OK  [report/ablation_section.tex: D2 MiniLM & 0.2844 & ] yes
+OK  [report/ablation_section.tex: D2 MiniLM & 0.2844 & ] yes
+OK  [report/ablation_section.tex: D3 concat & 0.6097 & ] 0.6541 ± 0.0101
+OK  [report/ablation_section.tex: D3 concat & 0.6097 & ] 0.698
+OK  [report/ablation_section.tex: D3 concat & 0.6097 & ] 429,832
+OK  [report/ablation_section.tex: D3 concat & 0.6097 & ] yes
+OK  [report/ablation_section.tex: D3 concat & 0.6097 & ] no
+OK  [report/ablation_section.tex: D3 gated-late & 0.6093 & ] 0.6404 ± 0.0015
+OK  [report/ablation_section.tex: D3 gated-late & 0.6093 & ] 0.702
+OK  [report/ablation_section.tex: D3 gated-late & 0.6093 & ] 432,657
+OK  [report/ablation_section.tex: D3 gated-late & 0.6093 & ] yes
+OK  [report/ablation_section.tex: D3 gated-late & 0.6093 & ] no
+OK  [report/ablation_section.tex: D3 cross-attention & 0.6078 & ] 0.6388 ± 0.0079
+OK  [report/ablation_section.tex: D3 cross-attention & 0.6078 & ] 0.701
+OK  [report/ablation_section.tex: D3 cross-attention & 0.6078 & ] 957,192
+OK  [report/ablation_section.tex: D3 cross-attention & 0.6078 & ] yes
+OK  [report/ablation_section.tex: D3 cross-attention & 0.6078 & ] no
+OK  [report/ablation_section.tex: D4 picked (d_model 128) & 0.6083 & ] 0.6350 ± 0.0040
+OK  [report/ablation_section.tex: D4 picked (d_model 128) & 0.6083 & ] 0.687
+OK  [report/ablation_section.tex: D4 picked (d_model 128) & 0.6083 & ] 116,232
+OK  [report/ablation_section.tex: D4 picked (d_model 128) & 0.6083 & ] yes
+OK  [report/ablation_section.tex: D4 picked (d_model 128) & 0.6083 & ] yes
+OK  [report/ablation_section.tex: D4 best on dev (d_model 512) & 0.6200 & ] 0.6338 ± 0.0119
+OK  [report/ablation_section.tex: D4 best on dev (d_model 512) & 0.6200 & ] 0.677
+OK  [report/ablation_section.tex: D4 best on dev (d_model 512) & 0.6200 & ] 661,512
+OK  [report/ablation_section.tex: D4 best on dev (d_model 512) & 0.6200 & ] yes
+OK  [report/ablation_section.tex: D4 best on dev (d_model 512) & 0.6200 & ] no
+OK  [report/ablation_section.tex: Architecture comparison on frozen features (Task 2), seeds] seeds 42, 43, 44
+OK  [report/ablation_section.tex: Architecture comparison on frozen features (Task 2), seeds] 95% interval is about ± 0.04 wide
+OK  [report/ablation_section.tex: The picks are CLIP L/14 (every alternative is worse on dev)] learning rate 0.0001, dropout 0.2 and d_model 128 (26 of 27 grid configurations tied)
+OK  [report/ablation_section.tex: The text-only against image-only comparison confounds modality] a frozen 384-d sentence embedding
+OK  [report/ablation_section.tex: The text-only against image-only comparison confounds modality] (0.294)
+OK  [report/ablation_section.tex: Concatenation has a higher test macro-F1] (0.6541)
+OK  [report/ablation_section.tex: Concatenation has a higher test macro-F1] (0.967, test n = 10)
+OK  [report/ablation_section.tex: The configuration with the best dev score in the grid] (d_model 512, test 0.6338)
+OK  [report/ablation_section.tex: The configuration with the best dev score in the grid] on test (0.6438)
+OK  [report/ablation_section.tex: The final frozen pipeline (test macro-F1] test macro-F1 0.6350, test-sampling interval 0.598 to 0.663
+OK  [report/ablation_section.tex: The final frozen pipeline (test macro-F1] about ± 0.04 wide
+OK  [report/ablation_section.tex: There are 38 arm slots] There are 38 arm slots (27, 5, 2 and 4 per decision) and 35 distinct trained configurations
