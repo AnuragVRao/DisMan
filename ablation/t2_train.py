@@ -136,6 +136,10 @@ def main():
     ap.add_argument("--variant", choices=("full",) + VARIANTS, default="full")   # Part B component ablation
     ap.add_argument("--tier", default="")               # batch tier, recorded in the result JSON
     ap.add_argument("--tag", default="")                # suffix for smoke/timing runs so real rows are never overwritten
+    # opt-in switches for the L4a-L14 imbalance check (SELECTION_RULE.md addendum); the defaults reproduce every earlier run exactly
+    ap.add_argument("--feat", choices=("b32", "l14"), default="b32")   # cached CLIP features: v2's B/32 (512-d, raw) or L/14 (768-d, L2-normalised)
+    ap.add_argument("--loss", choices=("inv", "none"), default="inv")  # inverse-frequency class weights (all earlier runs) or unweighted cross-entropy
+    ap.add_argument("--part", default=None)                            # result folder (default: A for the full model, B for the Part B variants)
     a = ap.parse_args()
     cfg = dict(PRESETS[a.config]); E = a.epochs or cfg["epochs"]
     device = torch.device("cuda")
@@ -157,8 +161,10 @@ def main():
         y[s] = torch.tensor([l2i[l] for l in d["label"]])
 
     # image features: cached (deterministic) or online (frozen CLIP + v1 random-crop transform)
+    assert a.feat == "b32" or (cfg["cache"] and cfg["data"] == "full" and a.variant == "full"), "--feat l14 needs a cached-feature preset and the full model"
+    fdir = ART / "emb" if a.feat == "b32" else ABL_ART / "clip_l14"
     if cfg["cache"]:
-        feats = {s: torch.tensor(cc.cached(ART / "emb" / f"clip_humanitarian_{s}.npy", d["image_id"].tolist(),
+        feats = {s: torch.tensor(cc.cached(fdir / f"clip_humanitarian_{s}.npy", d["image_id"].tolist(),
                                            lambda: (_ for _ in ()).throw(RuntimeError("cache miss"))), dtype=torch.float32)
                  for s, d in data.items()}
         loaders = {s: DataLoader(TensorDataset(feats[s], *tokd[s], y[s]), batch_size=T2_BATCH if s == "train" else 128,
@@ -178,12 +184,13 @@ def main():
 
     cc.seed_all(a.seed)  # same head init regardless of which CLIP implementation was loaded above
     bcfg = bert_cfg if cfg["bert"] == "random" else None
-    model = (cc.DualStreamClassifier(NC, bert_config=bcfg) if a.variant == "full"
+    img_dim = feats["train"].shape[1] if cfg["cache"] else 512
+    model = (cc.DualStreamClassifier(NC, bert_config=bcfg, img_dim=img_dim) if a.variant == "full"
              else Variant(a.variant, NC, bert_config=bcfg)).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     cnt = tr["label"].map(l2i).value_counts().reindex(ALL).values.astype("float32")
     w = 1.0 / cnt; w /= w.sum() / NC
-    crit = nn.CrossEntropyLoss(weight=torch.tensor(w, device=device))
+    crit = nn.CrossEntropyLoss(weight=torch.tensor(w, device=device)) if a.loss == "inv" else nn.CrossEntropyLoss()
     opt = AdamW(param_groups(model, T2_LR), weight_decay=1e-4)
     sched = lr_scheduler.SequentialLR(opt, [lr_scheduler.LinearLR(opt, 1e-6, 1.0, T2_WARMUP),
                                             lr_scheduler.CosineAnnealingLR(opt, T_max=E - T2_WARMUP, eta_min=1e-7)],
@@ -245,7 +252,7 @@ def main():
             print(f"ABORT: exceeded --max-minutes {a.max_minutes} after epoch {epoch}/{E}", flush=True)
             break
 
-    part = "A" if a.variant == "full" else "B"
+    part = a.part or ("A" if a.variant == "full" else "B")
     name = f"t2_{a.config if a.variant == 'full' else a.variant}{a.tag}"
     if aborted:
         row = dict(task="T2", config=name, aborted=True, tier=a.tier, epochs_trained=len(hist), epochs_planned=E,
@@ -266,7 +273,7 @@ def main():
                test_weighted_f1=tm["weighted_f1"], per_class_f1=dict(zip(labels, map(float, pcf))),
                confusion_matrix=cm.tolist(), labels=labels, epochs_trained=len(hist), best_epoch=best_epoch,
                wall_clock_s=time.time() - t_start, n_train=len(tr), n_dev=len(dv), n_test=len(te), n_params=n_params,
-               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E), history=hist,
+               mean_epoch_s=float(np.mean(ep_times)), flags=dict(cfg, epochs=E, feat=a.feat, loss=a.loss), history=hist,
                variant=a.variant, tier=a.tier, majority_baseline_macro_f1=maj_f1,
                below_majority_baseline=bool(tm["macro_f1"] < maj_f1))
     print(write_row(part, name, a.seed, row))
