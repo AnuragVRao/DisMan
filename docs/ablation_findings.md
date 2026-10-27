@@ -629,3 +629,94 @@ Largest-to-smallest class ratio, train: T1 2.4:1, T2 729.4:1, T3 4.6:1; test: T1
 **Bootstrap audit.** 511 of 10,000 test resamples (5.11%; expected 4.97%) and 275 of 2,000 dev resamples (13.75%) contain no true row of "Missing or found people". Macro-F1 over the fixed 8 classes is unaffected by this (that class contributes 0 either way); the vectorised implementation equals scikit-learn's `f1_score(labels=all 8, zero_division=0)` on 300 resamples of every one of the 60 arm, seed and backbone runs (maximum difference 0.0). A "present classes only" average would have raised the bootstrap mean by about 0.004 and is not used. Recomputing every paired test difference changed no CI endpoint (maximum change 0) and 0 verdicts. The bootstrap mean of seed-averaged macro-F1 lies 0.0014 to 0.0028 below the point estimate on B/32 and 0.0017 to 0.0024 on L/14: a property of a ratio statistic on rare classes (mostly injured or dead, 10 test rows), not of the zero-support handling. The tables therefore show the point estimate with the percentile interval.
 
 **Limitations.** (1) "Missing or found people" has 3 test rows (2 dev, 9 train) and F1 = 0 in every arm; the headline cannot exceed 0.875 whatever the loss. (2) The test-sampling interval of a macro-F1 is about ±0.04 wide, against differences between losses of about 0.01, so only the large gaps are resolved. (3) Everything above uses the image-only head on frozen CLIP features; whether weighting matters inside the fusion model rests on one pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md` and the section above), with 3 seeds and 8 uncorrected comparisons. (4) Dev is small for the minority classes, so the selection rule has little power.
+
+### 9.10 H: architecture comparison on frozen features (Day 2: image backbone, text encoder, head, hyperparameters)
+
+Added after §9.9, in answer to the request to evidence each architectural choice. The comparison, its candidates, the selection rule and the grid were pre-registered in `ablation/SELECTION_RULE.md` (Day 2 addendum, committed before any Day 2 run). Scope: Task 2, frozen cached features and small trainable heads; the fine-tuned fusion runs are a separate step. Seeds 42, 43, 44; selection uses dev only; the test split is scored once per run and never used to choose. As in §9.9, `ablation/verify_findings.py` checks every number here against the stored results (recomputed from the stored dev and test predictions); it checks that the text matches the results, not that the design is right.
+
+**Table conventions (as in 9.9).** Every row shows the point estimate (the seed mean) and a percentile test-sampling 95% CI (10,000 resamples of the test rows, the same rows for every arm and seed; the CI is for the seed-averaged macro-F1 and is centred on the point estimate); it is reporting only and is a different quantity from the seed std (sample std over the three seeds). Recall columns are on the test split, with n = 10 injured-or-dead and n = 36 vehicle-damage rows (8 and 38 on dev); recall of "Missing or found people" is 0 in every arm. Dev comparisons are paired bootstraps (2,000 resamples of the dev rows, seed-averaged differences, 95% percentile CI) of best minus arm.
+
+**What "tied" means.** An arm is "tied" with the best when the paired dev interval of (best minus arm) includes 0. That means no difference is resolvable at this sample size (2,237 dev rows, 3 seeds; 8 injured-or-dead and 2 missing-or-found dev rows), not that the arms are equal. The many ties below (25 of the other 26 grid configurations, and 3 of the other 4 heads) are a power limit. Where several arms are tied, the pre-registered rule takes the simplest (fewest trainable parameters, then the smaller frozen backbone), not the one with the highest score or balanced accuracy.
+
+**Candidates (frozen features, cached for the humanitarian train, dev and test rows).** Image backbones: CLIP ViT-B/32 (512-d raw, 87.8M parameters), CLIP ViT-L/14 (768-d L2-normalised, 304.0M), DINOv2 ViT-B/14 (`facebook/dinov2-base`, 768-d CLS, 86.6M) and ResNet-50 (`microsoft/resnet-50`, 2048-d pooled, 23.5M). Text encoders: all-MiniLM-L6-v2 (384-d sentence embedding, 22.7M) and all-mpnet-base-v2 (768-d, 109.5M). Heads: image-only, text-only, concat, gated-late (a per-example gate over per-modality logits) and cross-attention (v2's two blocks over the frozen MiniLM token features, first 64 tokens; 0.04% of the training tweets are longer, none in dev or test). All heads use d_model 256, dropout 0.2 and lr 1e-4 unless the grid varies them; inverse-frequency class weights throughout.
+
+**Validation.** Under the Day 2 trainer the CLIP B/32 and L/14 image-only arms reproduce the stored image-only runs exactly (6 of 6 runs: dev F1, test F1, accuracy, best epoch and every test prediction), and the D3 image-only arm reproduces the D1 L/14 runs exactly (3 of 3).
+
+**Counting.** The decision tables contain 38 arm slots (D1 4, D2 2, D3 5, D4 27) but 35 distinct trained configurations: D3 image-only and the D4 default (lr 1e-4, dropout 0.2, d_model 256) are the same runs as D1 CLIP L/14, and D3 text-only is the same runs as D2 MiniLM. They are marked as duplicates in the tables and are not counted as separate arms.
+
+**D1: image backbone (image-only head).**
+
+| Arm | Dev macro-F1 (seed std) | Test macro-F1 (seed std) | Test-sampling 95% CI | Test bal. acc. | Test recall injured (n=10) | Test recall vehicle (n=36) | Trainable params | Backbone (M) | Dev: best minus arm [95% CI] | Tied with the best | Rule's pick | Note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D1 CLIP L/14 | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] | 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | best | yes | pick |  |
+| D1 DINOv2 ViT-B/14 | 0.5758 ± 0.0050 | 0.5851 ± 0.0063 | [0.546, 0.617] | 0.655 | 0.800 | 0.731 | 265,224 | 86.6 | +0.0366 [+0.0126, +0.0618] | no |  |  |
+| D1 CLIP B/32 | 0.5679 ± 0.0083 | 0.6014 ± 0.0053 | [0.561, 0.633] | 0.651 | 0.700 | 0.620 | 199,688 | 87.8 | +0.0445 [+0.0111, +0.0797] | no |  |  |
+| D1 ResNet-50 | 0.5418 ± 0.0020 | 0.5265 ± 0.0025 | [0.486, 0.561] | 0.564 | 0.533 | 0.444 | 592,904 | 23.5 | +0.0706 [+0.0372, +0.1084] | no |  |  |
+
+* D1: the best arm on dev is D1 CLIP L/14 (0.6124); no other arm is tied with it; the rule's pick is D1 CLIP L/14.
+* CLIP L/14 is better than each alternative on dev (all three paired intervals exclude 0), and none is tied with it. As in §9.7, L/14 is better than B/32; the two non-CLIP backbones (DINOv2 and ResNet-50) are also worse than L/14 on dev.
+
+**D2: text encoder (text-only head on the frozen sentence embedding).**
+
+| Arm | Dev macro-F1 (seed std) | Test macro-F1 (seed std) | Test-sampling 95% CI | Test bal. acc. | Test recall injured (n=10) | Test recall vehicle (n=36) | Trainable params | Backbone (M) | Dev: best minus arm [95% CI] | Tied with the best | Rule's pick | Note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D2 MPNet | 0.2942 ± 0.0039 | 0.2991 ± 0.0030 | [0.276, 0.321] | 0.373 | 0.567 | 0.241 | 265,224 | 109.5 | best | yes |  |  |
+| D2 MiniLM | 0.2844 ± 0.0088 | 0.2847 ± 0.0094 | [0.263, 0.305] | 0.379 | 0.700 | 0.250 | 166,920 | 22.7 | +0.0099 [-0.0022, +0.0219] | yes | pick |  |
+
+* D2: the best arm on dev is D2 MPNet (0.2942); 2 of the 2 arms are tied with it (the best and 1 other arm); the rule's pick is D2 MiniLM.
+* MPNet has the higher dev mean but is not distinguishable from MiniLM (+0.0099 [-0.0022, +0.0219]), so the rule takes the simpler MiniLM.
+
+**D3: head (with the D1 and D2 picks: CLIP L/14 and MiniLM).**
+
+| Arm | Dev macro-F1 (seed std) | Test macro-F1 (seed std) | Test-sampling 95% CI | Test bal. acc. | Test recall injured (n=10) | Test recall vehicle (n=36) | Trainable params | Backbone (M) | Dev: best minus arm [95% CI] | Tied with the best | Rule's pick | Note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D3 image-only | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] | 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | best | yes | pick | same runs as D1 CLIP L/14 (not a separate arm) |
+| D3 concat | 0.6097 ± 0.0037 | 0.6541 ± 0.0101 | [0.619, 0.681] | 0.698 | 0.967 | 0.694 | 429,832 | 326.7 | +0.0027 [-0.0100, +0.0162] | yes |  |  |
+| D3 gated-late | 0.6093 ± 0.0049 | 0.6404 ± 0.0015 | [0.602, 0.670] | 0.702 | 0.900 | 0.741 | 432,657 | 326.7 | +0.0031 [-0.0063, +0.0150] | yes |  |  |
+| D3 cross-attention | 0.6078 ± 0.0011 | 0.6388 ± 0.0079 | [0.603, 0.666] | 0.701 | 0.933 | 0.722 | 957,192 | 326.7 | +0.0046 [-0.0095, +0.0200] | yes |  |  |
+| D3 text-only | 0.2844 ± 0.0088 | 0.2847 ± 0.0094 | [0.263, 0.305] | 0.379 | 0.700 | 0.250 | 166,920 | 22.7 | +0.3280 [+0.2922, +0.3618] | no |  | same runs as D2 MiniLM (not a separate arm) |
+
+* D3: the best arm on dev is D3 image-only (0.6124); 4 of the 5 arms are tied with it (the best and 3 other arms); the rule's pick is D3 image-only.
+* Text-only is far below image-only on dev (best minus arm +0.3280 [+0.2922, +0.3618]). This compares a frozen 384-d MiniLM sentence embedding with CLIP L/14 image features, so it confounds modality with encoder and feature quality. The earlier fine-tuned DistilBERT text-only model (test macro-F1 0.294 ± 0.014, §4) points the same way, but it is a separate setup.
+* Concat, gated-late and cross-attention are tied with image-only on dev (no resolvable difference at this n; a power limit, not evidence that fusion or attention adds nothing). The cross-attention conclusion applies to frozen MiniLM token features only; it does not test fine-tuned text, and it replaces the earlier unevidenced attention claim only to that extent.
+* Concat has a higher test macro-F1 (0.6541) and injured-or-dead recall (0.967, test n = 10) than the pick. These are not selection results (dev is tied; test is never used to select), they lie within the test-sampling intervals, and they are not findings.
+
+**D4: hyperparameters (the D3 pick; fixed 27-configuration grid).**
+
+| Arm | Dev macro-F1 (seed std) | Test macro-F1 (seed std) | Test-sampling 95% CI | Test bal. acc. | Test recall injured (n=10) | Test recall vehicle (n=36) | Trainable params | Backbone (M) | Dev: best minus arm [95% CI] | Tied with the best | Rule's pick | Note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D4 lr 3e-4, dropout 0.1, d_model 512 | 0.6200 ± 0.0104 | 0.6338 ± 0.0119 | [0.596, 0.663] | 0.677 | 0.900 | 0.657 | 661,512 | 304.0 | best | yes |  |  |
+| D4 lr 1e-4, dropout 0.2, d_model 512 | 0.6176 ± 0.0047 | 0.6478 ± 0.0124 | [0.610, 0.677] | 0.689 | 0.900 | 0.685 | 661,512 | 304.0 | +0.0024 [-0.0197, +0.0231] | yes |  |  |
+| D4 lr 1e-4, dropout 0.1, d_model 512 | 0.6169 ± 0.0082 | 0.6406 ± 0.0120 | [0.603, 0.670] | 0.684 | 0.900 | 0.667 | 661,512 | 304.0 | +0.0030 [-0.0248, +0.0261] | yes |  |  |
+| D4 lr 3e-4, dropout 0.2, d_model 512 | 0.6168 ± 0.0112 | 0.6417 ± 0.0130 | [0.605, 0.669] | 0.670 | 0.867 | 0.648 | 661,512 | 304.0 | +0.0032 [-0.0058, +0.0129] | yes |  |  |
+| D4 lr 3e-4, dropout 0.2, d_model 256 | 0.6159 ± 0.0118 | 0.6401 ± 0.0159 | [0.603, 0.669] | 0.687 | 0.900 | 0.667 | 265,224 | 304.0 | +0.0041 [-0.0056, +0.0159] | yes |  |  |
+| D4 lr 3e-4, dropout 0.4, d_model 256 | 0.6149 ± 0.0100 | 0.6517 ± 0.0071 | [0.615, 0.680] | 0.688 | 0.867 | 0.704 | 265,224 | 304.0 | +0.0051 [-0.0175, +0.0272] | yes |  |  |
+| D4 lr 1e-4, dropout 0.1, d_model 256 | 0.6146 ± 0.0014 | 0.6478 ± 0.0062 | [0.610, 0.677] | 0.690 | 0.867 | 0.694 | 265,224 | 304.0 | +0.0054 [-0.0234, +0.0299] | yes |  |  |
+| D4 lr 3e-4, dropout 0.1, d_model 256 | 0.6144 ± 0.0132 | 0.6413 ± 0.0143 | [0.604, 0.670] | 0.684 | 0.900 | 0.667 | 265,224 | 304.0 | +0.0056 [-0.0036, +0.0165] | yes |  |  |
+| D4 lr 3e-4, dropout 0.2, d_model 128 | 0.6125 ± 0.0151 | 0.6394 ± 0.0245 | [0.603, 0.667] | 0.685 | 0.900 | 0.676 | 116,232 | 304.0 | +0.0074 [-0.0146, +0.0291] | yes |  |  |
+| D4 lr 1e-4, dropout 0.2, d_model 256 | 0.6124 ± 0.0024 | 0.6438 ± 0.0089 | [0.605, 0.673] | 0.693 | 0.867 | 0.713 | 265,224 | 304.0 | +0.0076 [-0.0210, +0.0320] | yes |  | same runs as D1 CLIP L/14 (not a separate arm) |
+| D4 lr 3e-4, dropout 0.4, d_model 512 | 0.6121 ± 0.0111 | 0.6454 ± 0.0115 | [0.609, 0.673] | 0.689 | 0.900 | 0.685 | 661,512 | 304.0 | +0.0078 [-0.0028, +0.0209] | yes |  |  |
+| D4 lr 1e-4, dropout 0.4, d_model 512 | 0.6117 ± 0.0017 | 0.6471 ± 0.0039 | [0.610, 0.676] | 0.697 | 0.867 | 0.722 | 661,512 | 304.0 | +0.0083 [-0.0194, +0.0330] | yes |  |  |
+| D4 lr 3e-4, dropout 0.1, d_model 128 | 0.6087 ± 0.0140 | 0.6399 ± 0.0182 | [0.603, 0.668] | 0.679 | 0.900 | 0.657 | 116,232 | 304.0 | +0.0113 [-0.0023, +0.0267] | yes |  |  |
+| D4 lr 1e-4, dropout 0.2, d_model 128 | 0.6083 ± 0.0052 | 0.6350 ± 0.0040 | [0.598, 0.663] | 0.687 | 0.833 | 0.685 | 116,232 | 304.0 | +0.0117 [-0.0113, +0.0349] | yes | pick |  |
+| D4 lr 1e-4, dropout 0.4, d_model 256 | 0.6068 ± 0.0039 | 0.6415 ± 0.0160 | [0.604, 0.670] | 0.696 | 0.867 | 0.722 | 265,224 | 304.0 | +0.0132 [-0.0155, +0.0396] | yes |  |  |
+| D4 lr 3e-4, dropout 0.4, d_model 128 | 0.6054 ± 0.0092 | 0.6441 ± 0.0111 | [0.607, 0.673] | 0.698 | 0.900 | 0.713 | 116,232 | 304.0 | +0.0146 [-0.0082, +0.0363] | yes |  |  |
+| D4 lr 1e-4, dropout 0.1, d_model 128 | 0.6053 ± 0.0076 | 0.6365 ± 0.0072 | [0.599, 0.666] | 0.694 | 0.867 | 0.713 | 116,232 | 304.0 | +0.0146 [-0.0078, +0.0374] | yes |  |  |
+| D4 lr 3e-5, dropout 0.1, d_model 512 | 0.6045 ± 0.0006 | 0.6352 ± 0.0072 | [0.597, 0.665] | 0.689 | 0.833 | 0.731 | 661,512 | 304.0 | +0.0154 [-0.0141, +0.0425] | yes |  |  |
+| D4 lr 3e-5, dropout 0.2, d_model 512 | 0.6039 ± 0.0016 | 0.6353 ± 0.0060 | [0.597, 0.665] | 0.690 | 0.833 | 0.731 | 661,512 | 304.0 | +0.0160 [-0.0137, +0.0435] | yes |  |  |
+| D4 lr 1e-4, dropout 0.4, d_model 128 | 0.6035 ± 0.0034 | 0.6268 ± 0.0066 | [0.590, 0.655] | 0.689 | 0.833 | 0.731 | 116,232 | 304.0 | +0.0165 [-0.0126, +0.0433] | yes |  |  |
+| D4 lr 3e-5, dropout 0.1, d_model 256 | 0.6012 ± 0.0011 | 0.6263 ± 0.0079 | [0.586, 0.657] | 0.680 | 0.733 | 0.741 | 265,224 | 304.0 | +0.0187 [-0.0141, +0.0477] | yes |  |  |
+| D4 lr 3e-5, dropout 0.1, d_model 128 | 0.5999 ± 0.0041 | 0.6158 ± 0.0049 | [0.575, 0.648] | 0.670 | 0.733 | 0.676 | 116,232 | 304.0 | +0.0200 [-0.0144, +0.0509] | yes |  |  |
+| D4 lr 3e-5, dropout 0.2, d_model 256 | 0.5999 ± 0.0034 | 0.6225 ± 0.0050 | [0.580, 0.655] | 0.677 | 0.700 | 0.741 | 265,224 | 304.0 | +0.0201 [-0.0135, +0.0506] | yes |  |  |
+| D4 lr 3e-5, dropout 0.4, d_model 512 | 0.5985 ± 0.0056 | 0.6191 ± 0.0084 | [0.578, 0.652] | 0.677 | 0.700 | 0.731 | 661,512 | 304.0 | +0.0215 [-0.0094, +0.0497] | yes |  |  |
+| D4 lr 3e-5, dropout 0.2, d_model 128 | 0.5963 ± 0.0065 | 0.6100 ± 0.0043 | [0.568, 0.643] | 0.663 | 0.700 | 0.648 | 116,232 | 304.0 | +0.0237 [-0.0102, +0.0552] | yes |  |  |
+| D4 lr 3e-5, dropout 0.4, d_model 256 | 0.5935 ± 0.0039 | 0.6165 ± 0.0041 | [0.574, 0.649] | 0.676 | 0.700 | 0.741 | 265,224 | 304.0 | +0.0265 [-0.0076, +0.0566] | yes |  |  |
+| D4 lr 3e-5, dropout 0.4, d_model 128 | 0.5804 ± 0.0067 | 0.6031 ± 0.0055 | [0.562, 0.636] | 0.653 | 0.667 | 0.620 | 116,232 | 304.0 | +0.0396 [+0.0129, +0.0686] | no |  |  |
+
+* D4: the best arm on dev is D4 lr 3e-4, dropout 0.1, d_model 512 (0.6200); 26 of the 27 arms are tied with it (the best and 25 other arms); the rule's pick is D4 lr 1e-4, dropout 0.2, d_model 128.
+* 25 of the other 26 configurations are tied with the best on dev (a power limit, not evidence that hyperparameters do not matter); only D4 lr 3e-5, dropout 0.4, d_model 128 is distinguishable (worse). The rule therefore takes the smallest, most default-like configuration.
+* The best-on-dev configuration (D4 lr 3e-4, dropout 0.1, d_model 512) has test macro-F1 0.6338, below the default's 0.6438; the gap is not resolvable and is consistent with selecting on dev noise.
+
+**Picks and what they support.** The rule's picks are CLIP L/14, MiniLM, the image-only head, and lr 1e-4 / dropout 0.2 / d_model 128. This is the simplest model within noise of the best under the pre-registered rule; no benefit from text, attention or tuning was detected; the test is underpowered. The final frozen image-only pipeline scores test macro-F1 0.6350 ± 0.0040 (test-sampling interval [0.598, 0.663]). This is not a win over v2 or L4a (0.587 and 0.598): the intervals overlap (they are about ±0.04 wide) and the setups differ (frozen features and sentence-embedding text against fine-tuned models). The MiniLM encoder is picked but unused by the picked head, which is image-only.
+
+**Multiplicity and limitations.** 38 arm slots (27 + 5 + 2 + 4), 35 distinct trained configurations, no multiplicity correction: isolated differences are weak evidence. Three seeds; 8 injured-or-dead and 2 missing-or-found dev rows; test-sampling intervals about ±0.04 wide against dev differences of about 0.01 to 0.03; frozen features only, with the text stream a frozen sentence embedding, so fine-tuned fusion is not covered here.
