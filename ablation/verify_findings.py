@@ -889,8 +889,300 @@ tchk("Scoring the stored predictions without the flagged test rows",
       f"L4a {_fm('L4a', 'before_macro_f1'):.3f} to {_fm('L4a', 'after_macro_f1'):.3f}", f"image-only {_fm('image_only', 'before_macro_f1'):.3f} to {_fm('image_only', 'after_macro_f1'):.3f}"])
 tchk("Under the development-calibrated bias variant", [f"({_bZ['test_l14_dev_calibrated']['macro_f1']:.3f} for L/14 against {_bZ['test_b32_dev_calibrated']['macro_f1']:.3f} for B/32)"])
 
+# 4i. G: class imbalance, extended metrics and the loss comparison (docs §9.9 and the .tex paragraph).
+# Everything is recomputed from the saved logits (artifacts/ablation/imbalance, artifacts/ablation/rescore), the data loaders and the per-run JSONs in
+# results/ablation/G, with the same bootstrap helpers (ablation/bootstrap_utils.py, fixed resample indices); stored summary JSONs are cross-checked.
+import bootstrap_utils as _gbu
+from extra_metrics import macro_f1_ci as _gmci
+from sklearn.metrics import (average_precision_score as _gap, balanced_accuracy_score as _gba, f1_score as _gf1, matthews_corrcoef as _gmcc,
+                             recall_score as _grec, roc_auc_score as _gauc)
+
+_gD = RES / "G"; _gIMB = _ART / "ablation" / "imbalance"; _gRES = _ART / "ablation" / "rescore"
+_gJ = lambda n_: json.load(open(_gD / f"{n_}.json"))
+_GS, _GF = (42, 43, 44), ("b32", "l14")
+_GARMS = ("none", "inv", "sqrt_inv", "eff_num", "focal1", "focal2", "focal2_inv", "sampler", "logit_adj", "none_posthoc")
+_GNAME = {"none": "`none` (unweighted)", "inv": "`inv` (current)", "sqrt_inv": "`sqrt_inv`", "eff_num": "`eff_num`", "focal1": "`focal1`", "focal2": "`focal2`",
+          "focal2_inv": "`focal2_inv`", "sampler": "`sampler`", "logit_adj": "`logit_adj`", "none_posthoc": "`none_posthoc`"}
+_GBB = {"b32": "B/32", "l14": "L/14"}
+_gH = {s_: _cc.load_split("humanitarian", s_, _DATA, _SPLIT, verbose=False)[0] for s_ in ("train", "dev", "test")}
+_glab = sorted(_gH["train"].label.unique()); _gl2i = {l_: i_ for i_, l_ in enumerate(_glab)}; _gALL = list(range(len(_glab)))
+_gy = {s_: np.array([_gl2i[l_] for l_ in _gH[s_].label]) for s_ in ("dev", "test")}
+_gMISS, _gINJ, _gVEH, _gAFF = (_gl2i[x_] for x_ in ("Missing or found people", "Injured or dead people", "Vehicle damage", "Affected individuals"))
+_gm = lambda a_, d_=3: f"{np.mean(a_):.{d_}f} ± {np.std(a_, ddof=1):.{d_}f}"
+_gsg = lambda x_, d_=4: f"{(0.0 if abs(x_) < 0.5 * 10 ** -d_ else x_):+.{d_}f}"
+_gci3 = lambda lo_, hi_: f"[{lo_:.3f}, {hi_:.3f}]"
+_gdci = lambda r_: f"{_gsg(r_['diff'])} [{_gsg(r_['ci95_low'])}, {_gsg(r_['ci95_high'])}]"
+def _gvd(r_):
+    """'better'/'worse' only if the paired 95% CI excludes 0 by more than 0.002; a bound within 0.002 of zero is 'borderline'."""
+    if r_["ci95_low"] > 0:
+        return "borderline" if r_["ci95_low"] < 0.002 else "better"
+    if r_["ci95_high"] < 0:
+        return "borderline" if r_["ci95_high"] > -0.002 else "worse"
+    return "not distinguishable"
+_gnear = lambda a_, b_: abs(a_ - b_) < 1e-9
+
+# -- recomputed per-run quantities from the saved logits; cross-checked against the per-run JSONs --
+_gR = {}
+for _f in _GF:
+    for _a in _GARMS:
+        for _s in _GS:
+            _z = np.load(_gIMB / f"{_f}_{_a}_seed{_s}.npz"); _pd, _pt = _z["dev"].argmax(1), _z["test"].argmax(1)
+            _rj = _gJ(f"g_t2_{_f}_{_a}_seed{_s}")
+            _gR[(_f, _a, _s)] = dict(
+                pd=_pd, pt=_pt, dev_f1=float(_gf1(_gy["dev"], _pd, labels=_gALL, average="macro", zero_division=0)), dev_bal=float(_gba(_gy["dev"], _pd)),
+                test_f1=float(_gf1(_gy["test"], _pt, labels=_gALL, average="macro", zero_division=0)), test_bal=float(_gba(_gy["test"], _pt)),
+                rec={c_: float(_grec(_gy["test"], _pt, labels=[c_], average="macro", zero_division=0)) for c_ in (_gMISS, _gINJ, _gVEH, _gAFF)},
+                f1c={c_: float(_gf1(_gy["test"], _pt, labels=[c_], average="macro", zero_division=0)) for c_ in (_gMISS, _gAFF)})
+            assert _gnear(_gR[(_f, _a, _s)]["test_f1"], _rj["test"]["macro_f1"]) and _gnear(_gR[(_f, _a, _s)]["dev_f1"], _rj["dev_macro_f1"])
+            assert _gnear(_gR[(_f, _a, _s)]["test_bal"], _rj["test"]["balanced_acc"])
+            assert (_pt == _gMISS).sum() == sum(1 for v_ in [_rj["pred"]] for p_ in v_ if p_ == _gMISS)
+# validation claims: 'inv' reproduces the stored image-only runs exactly (B/32: Part B; L/14: the stored L/14 normalised runs)
+for _s in _GS:
+    _st = json.load(open(RES / "B" / f"t2_image_only_seed{_s}.json")); _r = _gR[("b32", "inv", _s)]
+    assert _r["test_f1"] == _st["test_macro_f1"] and _r["dev_f1"] == _st["dev_macro_f1"]
+    _st = json.load(open(RES / "X" / f"b_t2_imageonly_L14_norm_seed{_s}.json")); _r = _gR[("l14", "inv", _s)]
+    assert _r["test_f1"] == _st["test_macro_f1"] and _r["dev_f1"] == _st["dev_macro_f1"]
+_gmean = lambda f_, a_, k_: float(np.mean([_gR[(f_, a_, s_)][k_] for s_ in _GS]))
+_gseeds = lambda f_, a_, k_: [_gR[(f_, a_, s_)][k_] for s_ in _GS]
+
+# -- bootstraps (fixed resample indices, the same for every arm and seed) --
+_gDI, _gTI = _gbu.resample_idx(len(_gy["dev"]), 2000), _gbu.resample_idx(len(_gy["test"]), 10000)
+_gDV = {k_: _gbu.macro_f1_vec(_gy["dev"], v_["pd"], 8, _gDI) for k_, v_ in _gR.items()}
+_gTV = {k_: _gbu.macro_f1_vec(_gy["test"], v_["pt"], 8, _gTI) for k_, v_ in _gR.items()}
+_gvec = lambda V_, f_, a_: {s_: V_[(f_, a_, s_)] for s_ in _GS}
+_gSUM = _gJ("g_imbalance_summary_seed42")["feats"]
+_gX = {}
+for _f in _GF:
+    _o = sorted(_GARMS, key=lambda a_: -_gmean(_f, a_, "dev_f1")); _best = _o[0]; _tied = [_best]; _dd = {}
+    for _a in _o[1:]:
+        _dd[_a] = _gbu.paired_diff_ci(_gvec(_gDV, _f, _best), _gvec(_gDV, _f, _a), point_diff=_gmean(_f, _best, "dev_f1") - _gmean(_f, _a, "dev_f1"))
+        if not (_dd[_a]["ci95_low"] > 0 or _dd[_a]["ci95_high"] < 0):
+            _tied.append(_a)
+    _pick = max(_tied, key=lambda a_: _gmean(_f, a_, "dev_bal"))
+    _tv = {}
+    for _a in _GARMS:
+        _tv[_a] = dict(ci=_gbu.mean_ci(_gvec(_gTV, _f, _a), point=_gmean(_f, _a, "test_f1")),
+                       vs_inv=_gbu.paired_diff_ci(_gvec(_gTV, _f, _a), _gvec(_gTV, _f, "inv"), point_diff=_gmean(_f, _a, "test_f1") - _gmean(_f, "inv", "test_f1")),
+                       vs_none=_gbu.paired_diff_ci(_gvec(_gTV, _f, _a), _gvec(_gTV, _f, "none"), point_diff=_gmean(_f, _a, "test_f1") - _gmean(_f, "none", "test_f1")))
+    _gX[_f] = dict(order=_o, best=_best, tied=_tied, dd=_dd, pick=_pick, tv=_tv)
+    # stored summary == recomputed
+    assert _gSUM[_f]["order"] == _o and _gSUM[_f]["tied"] == _tied and _gSUM[_f]["selected"] == _pick and _gSUM[_f]["dev_best"] == _best
+    for _a in _GARMS:
+        _x = _gSUM[_f]["arms"][_a]
+        assert _gnear(_x["dev_f1"], _gmean(_f, _a, "dev_f1")) and _gnear(_x["test_f1"], _gmean(_f, _a, "test_f1")) and _gnear(_x["test_bal_acc"], _gmean(_f, _a, "test_bal"))
+        for _k, _r in (("test_ci", _tv[_a]["ci"]), ("test_vs_inv", _tv[_a]["vs_inv"]), ("test_vs_none", _tv[_a]["vs_none"])):
+            assert all(_gnear(_x[_k][q_], _r[q_]) for q_ in _r if q_ in ("ci95_low", "ci95_high"))
+assert _gSUM["b32"]["arms"]["inv"]["test_f1_seed_std"] == float(np.std(_gseeds("b32", "inv", "test_f1"), ddof=1)) or _gnear(_gSUM["b32"]["arms"]["inv"]["test_f1_seed_std"], float(np.std(_gseeds("b32", "inv", "test_f1"), ddof=1)))
+_gSEL = {"b32": _gX["b32"]["pick"], "l14": _gX["l14"]["pick"]}
+assert _gSEL == {"b32": "inv", "l14": "focal2_inv"} and _gSEL == _gJ("g_imbalance_summary_seed42")["selected"] and _gJ("g_imbalance_summary_seed42")["adopt"] is None
+
+# -- class counts, from the loaders the models use --
+_gCT = {t_: {s_: _cc.load_split(t_, s_, _DATA, _SPLIT, verbose=False)[0] for s_ in ("train", "dev", "test")} for t_ in ("informative", "humanitarian", "damage")}
+_gTL = {"informative": "T1", "humanitarian": "T2", "damage": "T3"}
+chk("Largest-to-smallest class ratio, train:", [
+    "train: " + ", ".join(f"{_gTL[t_]} {max(_gCT[t_]['train'].label.value_counts()) / min(_gCT[t_]['train'].label.value_counts()):.1f}:1" for t_ in _gCT) + "; test: " +
+    ", ".join(f"{_gTL[t_]} {max(_gCT[t_]['test'].label.value_counts()) / min(_gCT[t_]['test'].label.value_counts()):.1f}:1" for t_ in _gCT)])
+for _t in _gCT:
+    _tr = _gCT[_t]["train"].label.value_counts()
+    for _c in _tr.index:
+        chk(f"| {_gTL[_t]} | {_c} |", [f"{int(_tr[_c]):,} | {int((_gCT[_t]['dev'].label == _c).sum()):,} | {int((_gCT[_t]['test'].label == _c).sum()):,} |"])
+_gmiss = lambda f_: sum(int((_gR[(f_, a_, s_)]["pt"] == _gMISS).sum()) for a_ in _GARMS for s_ in _GS)
+assert all(_gR[(f_, a_, s_)]["f1c"][_gMISS] == 0.0 and _gR[(f_, a_, s_)]["rec"][_gMISS] == 0.0 for f_ in _GF for a_ in _GARMS for s_ in _GS)
+_gmiss_ct = {s_: int((_gy[s_] == _gMISS).sum()) for s_ in ("dev", "test")}; _gmiss_ct["train"] = int((_gH["train"].label == "Missing or found people").sum())
+chk("Conventions. Macro-F1 is always computed", [f"({_gmiss_ct['train']} train / {_gmiss_ct['dev']} dev / {_gmiss_ct['test']} test rows)",
+                                                f"predicts it {_gmiss('b32')} times on B/32 and {_gmiss('l14')} times on L/14", f"7/8 = {7 / 8:.3f}", "(10,000 resamples;",
+                                                "excludes 0 by more than 0.002; a bound within 0.002 of zero is called \"borderline\" (weak evidence)",
+                                                "the word is \"not resolvable\": with 8 dev and 10 test rows", "which is not the same as no effect",
+                                                "Pairwise comparisons were not corrected for multiple testing (about 10 arms on 2 backbones, several metrics), so isolated borderline exclusions should be read as weak evidence"])
+chk("Added after the presentation, in answer to three questions", ["checks every number in this section against the saved results", "not that the analysis design is right"])
+
+# -- extended metrics of the existing T2 models, recomputed from the saved rescore logits --
+_gCFG = (("L4a", "T2 full model (L4a)", "A"), ("L4", "T2 v2 (L4)", "A"), ("image_only", "T2 image only", "B"), ("concat", "T2 concat, no attention", "B"),
+         ("no_t2i", "T2 no text→image attention", "B"), ("text_only", "T2 text only", "B"))
+_gMT = {}
+for _cfg, _lab, _part in _gCFG:
+    _mm = {k_: [] for k_ in ("acc", "f1", "bal", "mcc", "roc", "pr")}
+    for _s in _GS:
+        _z = np.load(_gRES / f"{_cfg}_seed{_s}.npy").astype(float); _p = _z.argmax(1); _e = np.exp(_z - _z.max(1, keepdims=True)); _e /= _e.sum(1, keepdims=True)
+        _mm["acc"].append(float((_p == _gy["test"]).mean())); _mm["f1"].append(float(_gf1(_gy["test"], _p, labels=_gALL, average="macro", zero_division=0)))
+        _mm["bal"].append(float(_gba(_gy["test"], _p))); _mm["mcc"].append(float(_gmcc(_gy["test"], _p)))
+        _mm["roc"].append(float(np.mean([_gauc(_gy["test"] == c_, _e[:, c_]) for c_ in _gALL]))); _mm["pr"].append(float(np.mean([_gap(_gy["test"] == c_, _e[:, c_]) for c_ in _gALL])))
+        _sj = _gJ(f"g_rescore_{_cfg}_seed{_s}"); _st = json.load(open(RES / _part / f"t2_{_cfg}_seed{_s}.json"))
+        assert _sj["max_abs_diff_vs_stored"] == 0.0 and _gnear(_mm["acc"][-1], _st["test_acc"]) and _gnear(_mm["f1"][-1], _st["test_macro_f1"])
+        assert _gnear(_sj["test"]["mcc"], _mm["mcc"][-1]) and _gnear(_sj["test"]["macro_pr_auc"], _mm["pr"][-1]) and _gnear(_sj["test"]["macro_roc_auc"], _mm["roc"][-1])
+    _ci = _gmci(_gy["test"], np.load(_gRES / f"{_cfg}_seed42.npy").argmax(1), 8); _mm["ci"] = _ci; _gMT[_cfg] = _mm
+    chk(f"| {_lab} | {_gm(_mm['acc'])} | {_gm(_mm['f1'])} | {_gm(_mm['bal'])} |", [_gm(_mm["mcc"]), _gm(_mm["roc"]), _gm(_mm["pr"]), f"{_gci3(_ci['ci95_low'], _ci['ci95_high'])} |"])
+assert max(_gCFG, key=lambda c_: np.mean(_gMT[c_[0]]["bal"]))[0] == "image_only"
+chk("The macro-F1 interval of the full model at seed 42", [_gci3(_gMT["L4a"]["ci"]["ci95_low"], _gMT["L4a"]["ci"]["ci95_high"]), f"({_gm(_gMT['image_only']['bal'])}, against {_gm(_gMT['L4a']['bal'])} for the full model)",
+                                                           f"({_gm(_gMT['image_only']['f1'])}) is within {abs(np.mean(_gMT['image_only']['f1']) - np.mean(_gMT['L4a']['f1'])):.3f} of the full model's ({_gm(_gMT['L4a']['f1'])})"])
+
+# -- Tasks 1 and 3 (stored deterministic CPU runs) --
+_gT1, _gT3, _gKN = _gJ("g_t1_balance_seed42"), _gJ("g_t3_balance_seed42"), _gJ("g_t3_knn_vote_boot_seed42")
+assert _gnear(_gKN["votes"]["majority"]["macro_f1"], _gT3["knn_fused_k5"]["majority"]) and _gnear(_gKN["votes"]["class_balanced"]["macro_f1"], b3("fused", 5, "class_balanced", "test_macro_f1"))
+assert _gnear(_gKN["votes"]["majority"]["macro_f1"], b3("fused", 5, "majority", "test_macro_f1"))
+for _lab, _arms, _Cs in [("T1 text (TF-IDF)", _gT1["arms"], None)] + [(f"T3 {e_} probe", _gT3["probes"][e_]["arms"], _gT3["probes"][e_]["C"]) for e_ in ("fused", "image", "text")]:
+    for _a in ("balanced", "none"):
+        _m = _arms[_a]; _c = _m["macro_f1_ci"]
+        chk(f"| {_lab} | {_a} | {'1' if _Cs is None else format(_Cs[_a], 'g')} | {_m['acc']:.3f} | {_m['macro_f1']:.3f} | {_gci3(_c['ci95_low'], _c['ci95_high'])} |",
+            [f"{_m['balanced_acc']:.3f} | {_m['mcc']:.3f} | {_m['macro_pr_auc']:.3f} | {min(v_['recall'] for v_ in _m['per_class'].values()):.3f} |"])
+_gd1 = _gT1["balanced_minus_none"]
+chk("Task 1: balanced minus unweighted macro-F1 is", [f"is {_gdci(_gd1)} (paired, 10,000 resamples): {_gvd(_gd1)}"])
+for _e in ("fused", "image", "text"):
+    _d = _gT3["probes"][_e]["balanced_minus_none"]
+    chk(f"Task 3, {_e} probe: balanced minus unweighted", [f"is {_gdci(_d)}: {_gvd(_d)}"])
+_gk = _gKN["class_balanced_minus_majority"]
+chk("Task 3 5-NN on the fused embedding, class-balanced against majority", [f"(macro-F1 {_gKN['votes']['class_balanced']['macro_f1']:.4f} against {_gKN['votes']['majority']['macro_f1']:.4f}; the two votes differ on {_gKN['n_predictions_differing']} of {_gKN['n_test']} test queries)",
+                                                                           f"difference {_gdci(_gk)} (paired, 10,000 resamples over the {_gKN['n_test']} queries): {_gvd(_gk)}"])
+chk("Task 2 imbalance treatments (image-only head, the recipe", ["seeds 42, 43, 44", "β = 0.999", "τ = 1", "(maximum difference 0 at all three seeds)"])
+
+# -- the arms tables --
+for _f in _GF:
+    _X = _gX[_f]
+    for _a in _X["order"]:
+        _dv, _db = _gmean(_f, _a, "dev_f1"), _gmean(_f, _a, "dev_bal")
+        if _a == _X["best"]:
+            chk(f"| {_GNAME[_a]} | {_dv:.3f} | {_db:.3f} | best arm |", ["| yes |"])
+        else:
+            _r = _X["dd"][_a]
+            chk(f"| {_GNAME[_a]} | {_dv:.3f} | {_db:.3f} | {_gsg(_r['diff'])} |", [f"[{_gsg(_r['ci95_low'])}, {_gsg(_r['ci95_high'])}] | {'yes' if _a in _X['tied'] else 'no'} |"])
+        _t = _X["tv"][_a]
+        _vi = "--" if _a == "inv" else f"{_gdci(_t['vs_inv'])} {_gvd(_t['vs_inv'])}"; _vn = "--" if _a == "none" else f"{_gdci(_t['vs_none'])} {_gvd(_t['vs_none'])}"
+        chk(f"| {_GNAME[_a]} | {_gmean(_f, _a, 'test_f1'):.3f} ± {np.std(_gseeds(_f, _a, 'test_f1'), ddof=1):.3f} | {_gci3(_t['ci']['ci95_low'], _t['ci']['ci95_high'])} | {_gmean(_f, _a, 'test_bal'):.3f} |",
+            [f"{np.mean([_gR[(_f, _a, s_)]['rec'][_gINJ] for s_ in _GS]):.3f} | {np.mean([_gR[(_f, _a, s_)]['rec'][_gVEH] for s_ in _GS]):.3f} | {_vi} | {_vn} |"])
+    _tv = _X["tv"]
+    chk(f"Dev: the best arm is `{_X['best']}` ({_gmean(_f, _X['best'], 'dev_f1'):.3f})",
+        [f"{len(_X['tied'])} of the {len(_GARMS)} arms (the best and {len(_X['tied']) - 1} others) are tied with it", f"selects `{_X['pick']}`", f"`inv` ranks {_X['order'].index('inv') + 1} of {len(_GARMS)} on dev macro-F1"])
+    assert max(_GARMS, key=lambda a_: _gmean(_f, a_, "test_f1")) == "eff_num"
+    chk(f"Test: the highest point estimate is `eff_num` ({_gmean(_f, 'eff_num', 'test_f1'):.3f})",
+        [f"(dev rank {_X['order'].index('eff_num') + 1} of {len(_GARMS)})", f"against `none` it is {_gvd(_tv['eff_num']['vs_none'])} ({_gdci(_tv['eff_num']['vs_none'])})",
+         f"against `inv` the paired interval excludes 0 only marginally ({_gdci(_tv['eff_num']['vs_inv'])})", f"(lower bound {_gsg(_tv['eff_num']['vs_inv']['ci95_low'])})",
+         "not robust and was not corrected for multiple comparisons across about 10 arms on 2 backbones", "we do not treat it as evidence that `eff_num` outperforms `inv`"])
+    assert 0 < _tv["eff_num"]["vs_inv"]["ci95_low"] < 0.002 and _gvd(_tv["eff_num"]["vs_inv"]) == "borderline" and _gvd(_tv["eff_num"]["vs_none"]) == "not distinguishable"
+    if _f == "b32":
+        _lb = _X["dd"]["inv"]["ci95_low"]; _alt = max((a_ for a_ in _X["tied"] if a_ != "inv"), key=lambda a_: _gmean(_f, a_, "dev_bal")); assert -0.002 < _lb < 0 and _alt == "eff_num"
+        chk("`inv` is in the tied set by a narrow margin", [f"the lower bound of the best-minus-`inv` interval is {_gsg(_lb)}", f"without it the rule would select `{_alt}` (dev balanced accuracy {_gmean(_f, _alt, 'dev_bal'):.3f})"])
+    else:
+        _lb = _X["dd"]["none"]["ci95_low"]; assert 0 < _lb < 0.002 and "none" not in _X["tied"] and _gmean(_f, "none", "dev_bal") < _gmean(_f, _X["pick"], "dev_bal")
+        chk("`none` is excluded from the tied set only by a borderline interval", [f"(lower bound {_gsg(_lb)})", f"its dev balanced accuracy ({_gmean(_f, 'none', 'dev_bal'):.3f}) is below that of `{_X['pick']}` ({_gmean(_f, _X['pick'], 'dev_bal'):.3f})"])
+assert {f_: sorted(a_ for a_ in _GARMS if a_ != "none" and _gvd(_gX[f_]["tv"][a_]["vs_none"]) != "not distinguishable") for f_ in _GF} == {"b32": ["logit_adj"], "l14": ["focal2_inv", "logit_adj"]}
+assert all(_gvd(_gX[f_]["tv"][a_]["vs_inv"]) == "worse" for f_ in _GF for a_ in ("sampler", "focal2_inv", "logit_adj"))
+assert all(_gvd(_gX[f_]["tv"][a_]["vs_none"]) == "worse" for f_ in _GF for a_ in ("logit_adj",))
+chk("Outcome of the pre-set rule.", [f"B/32 selects `{_gSEL['b32']}`; L/14 selects `{_gSEL['l14']}`", "did not adopt a new loss",
+                                     f"dev has {int((_gy['dev'] == _gINJ).sum())} injured-or-dead and {_gmiss_ct['dev']} missing-or-found rows",
+                                     f"{len(_gX['b32']['tied'])} of the {len(_GARMS)} arms (the best arm and {len(_gX['b32']['tied']) - 1} others) are tied with the best"])
+assert len(_gX["b32"]["tied"]) == len(_gX["l14"]["tied"])
+
+# -- balanced accuracy and minority recall, none / inv / sqrt_inv --
+_gBR = _gJ("g_balacc_recall_boot_seed42")
+_gsup = {s_: {n_: int((_gy[s_] == c_).sum()) for n_, c_ in (("inj", _gINJ), ("veh", _gVEH), ("mis", _gMISS))} for s_ in ("dev", "test")}
+chk("Balanced accuracy and minority recall, `none` / `inv` / `sqrt_inv`.", [f"{_gsup['dev']['inj']} injured or dead, {_gsup['dev']['veh']} vehicle damage, {_gsup['dev']['mis']} missing or found",
+                                                                           f"{_gsup['test']['inj']}, {_gsup['test']['veh']}, {_gsup['test']['mis']}", "(selection-eligible; 2,000 resamples)" if False else "2,000 resamples", "10,000 resamples"])
+_gMN = {"balanced_acc": "balanced accuracy", "recall_injured": "recall, injured or dead", "recall_vehicle": "recall, vehicle damage"}
+for _f in _GF:
+    for _m, _c in (("balanced_acc", None), ("recall_injured", _gINJ), ("recall_vehicle", _gVEH)):
+        _vv = {}
+        for _split, _idx, _y in (("dev", _gDI, _gy["dev"]), ("test", _gTI, _gy["test"])):
+            _P = {a_: {s_: _gR[(_f, a_, s_)]["pd" if _split == "dev" else "pt"] for s_ in _GS} for a_ in ("none", "inv", "sqrt_inv")}
+            if _c is None:
+                _pt = {a_: [float(_gba(_y, _P[a_][s_])) for s_ in _GS] for a_ in _P}
+                _vec = {a_: {s_: _gbu.balanced_acc_vec(_y, _P[a_][s_], 8, _idx) for s_ in _GS} for a_ in _P}
+            else:
+                _pt = {a_: [float(_grec(_y, _P[a_][s_], labels=[_c], average="macro", zero_division=0)) for s_ in _GS] for a_ in _P}
+                _rv = {a_: {s_: _gbu.recall_vec(_y, _P[a_][s_], 8, _idx) for s_ in _GS} for a_ in _P}
+                _keep = _rv["none"][42][1][:, _c] > 0; assert _keep.all()
+                _vec = {a_: {s_: _rv[a_][s_][0][:, _c][_keep] for s_ in _GS} for a_ in _P}
+            for _pr in ("inv-none", "sqrt_inv-none", "inv-sqrt_inv"):
+                _a1, _b1 = _pr.split("-")
+                _r = _gbu.paired_diff_ci(_vec[_a1], _vec[_b1], point_diff=float(np.mean([_pt[_a1][i_] - _pt[_b1][i_] for i_ in range(3)])))
+                _vv[(_split, _pr)] = _r
+                _sr = _gBR["feats"][_f][_split]["metrics"][_m]["pairs"][_pr]
+                assert all(_gnear(_sr[q_], _r[q_]) for q_ in ("diff", "ci95_low", "ci95_high"))
+        for _pr in ("inv-none", "sqrt_inv-none", "inv-sqrt_inv"):
+            _a1, _b1 = _pr.split("-")
+            _vw = (lambda r_: "not resolvable") if _m == "recall_injured" else _gvd
+            chk(f"| {_GBB[_f]} | {_gMN[_m]} | `{_a1}` − `{_b1}` |", [f"{_gdci(_vv[('dev', _pr)])} {_vw(_vv[('dev', _pr)])} | {_gdci(_vv[('test', _pr)])} {_vw(_vv[('test', _pr)])} |"])
+            if _m == "balanced_acc":
+                assert _vv[("dev", _pr)]["ci95_low"] > 0 and _vv[("test", _pr)]["ci95_low"] > 0
+            if _m == "recall_vehicle" and _pr != "inv-sqrt_inv":
+                assert _vv[("dev", _pr)]["ci95_low"] > 0 and _vv[("test", _pr)]["ci95_low"] > 0
+            if _m == "recall_injured":
+                assert _gvd(_vv[("dev", _pr)]) == "not distinguishable" == _gvd(_vv[("test", _pr)])
+        if _m == "recall_vehicle":
+            assert not (_vv[("dev", "inv-sqrt_inv")]["ci95_low"] > 0) if _f == "l14" else _vv[("dev", "inv-sqrt_inv")]["ci95_low"] > 0
+            assert _vv[("test", "inv-sqrt_inv")]["ci95_low"] > 0
+chk("Against `none`, both `inv` and `sqrt_inv` raise balanced accuracy", [f"(all 18 comparisons: dev and test, both backbones, three pairs) are not resolvable at this sample size ({_gsup['dev']['inj']} dev / {_gsup['test']['inj']} test rows; "
+                                                                           f"per-run recall moves in steps of {1 / _gsup['dev']['inj']:.3f} on dev and {1 / _gsup['test']['inj']:.1f} on test)", "neither evidence of an effect nor of no effect"])
+for _f in _GF:
+    _rn, _ri = (_gmean(_f, a_, "test_bal") for a_ in ("none", "inv"))
+    chk(f"| {_GBB[_f]} | {np.mean([_gR[(_f, 'none', s_)]['rec'][_gAFF] for s_ in _GS]):.3f} | {np.mean([_gR[(_f, 'inv', s_)]['rec'][_gAFF] for s_ in _GS]):.3f} | "
+        f"{np.mean([_gR[(_f, 'none', s_)]['f1c'][_gAFF] for s_ in _GS]):.3f} | {np.mean([_gR[(_f, 'inv', s_)]['f1c'][_gAFF] for s_ in _GS]):.3f} |", [])
+_gaf = {f_: {a_: (np.mean([_gR[(f_, a_, s_)]["rec"][_gAFF] for s_ in _GS]), np.mean([_gR[(f_, a_, s_)]["f1c"][_gAFF] for s_ in _GS])) for a_ in ("none", "inv")} for f_ in _GF}
+assert all(_gaf[f_]["inv"][0] > _gaf[f_]["none"][0] for f_ in _GF) and _gaf["b32"]["inv"][1] < _gaf["b32"]["none"][1]
+chk("Weighting raises the recall of this class on both backbones", [f"({_gaf['b32']['none'][1]:.3f} to {_gaf['b32']['inv'][1]:.3f})", f"changes by {_gaf['l14']['inv'][1] - _gaf['l14']['none'][1]:+.3f} on L/14"])
+
+# -- POST-HOC sensitivity, recomputed from the recomputed tied sets --
+_gSIMP = ("none", "none_posthoc", "focal1", "focal2", "sqrt_inv", "eff_num", "inv", "focal2_inv", "sampler", "logit_adj")
+_gPH = {f_: dict(a=_gX[f_]["best"], b=_gX[f_]["pick"], c=min(_gX[f_]["tied"], key=_gSIMP.index)) for f_ in _GF}
+_gPHs = _gJ("g_POSTHOC_selection_sensitivity_seed42")
+assert _gPHs["POSTHOC"] is True and all(_gPHs["feats"][f_][k_] == _gPH[f_][{"a_best_dev_macro_f1": "a", "b_original_rule": "b", "c_simplest_among_tied": "c"}[k_]] for f_ in _GF for k_ in ("a_best_dev_macro_f1", "b_original_rule", "c_simplest_among_tied"))
+for _key, _lab in (("a", "(a) best mean dev macro-F1"), ("b", "(b) original rule: highest dev balanced accuracy among the tied"), ("c", "(c) simplest arm among the tied (closest to unweighted)")):
+    chk(f"| {_lab} |", [f"`{_gPH['b32'][_key]}` | `{_gPH['l14'][_key]}` | {'yes' if _gPH['b32'][_key] == _gPH['l14'][_key] else 'no'} |"])
+assert all(_gPH["b32"][k_] != _gPH["l14"][k_] for k_ in "abc")
+_gsd = {f_: (_gmean(f_, "sqrt_inv", "dev_f1"), _gmean(f_, _gX[f_]["best"], "dev_f1") - _gmean(f_, "sqrt_inv", "dev_f1"), "sqrt_inv" in _gX[f_]["tied"]) for f_ in _GF}
+chk("| (d) `sqrt_inv` as the midpoint reference", [f"(dev macro-F1 {_gsd['b32'][0]:.3f} / {_gsd['l14'][0]:.3f}; gap to the best arm {_gsd['b32'][1]:.3f} / {_gsd['l14'][1]:.3f})",
+                                                   f"tied: {'yes' if _gsd['b32'][2] else 'no'} | tied: {'yes' if _gsd['l14'][2] else 'no'}"])
+chk("No selection variant agrees across the two backbones", ["none < none_posthoc < focal1 < focal2 < sqrt_inv < eff_num < inv < focal2_inv < sampler < logit_adj", f"on L/14 it picks `{_gPH['l14']['c']}`"])
+
+# -- bootstrap audit --
+_gBC = _gJ("g_bootstrap_check_seed42")
+_gzt, _gzd = int((np.sum(_gy["test"][_gTI] == _gMISS, axis=1) == 0).sum()), int((np.sum(_gy["dev"][_gDI] == _gMISS, axis=1) == 0).sum())
+assert _gzt == _gBC["zero_missing_resamples"]["test"] and _gzd == _gBC["zero_missing_resamples"]["dev"]
+_ggap = {f_: [float(np.mean([_gTV[(f_, a_, s_)] for s_ in _GS], axis=0).mean() - _gmean(f_, a_, "test_f1")) for a_ in _GARMS] for f_ in _GF}
+_gchg = max(max(abs(v_[f"vs_{r_}"]["before"][k_] - v_[f"vs_{r_}"]["after"][k_]) for k_ in ("ci95_low", "ci95_high"))
+            for f_ in _GF for a_, v_ in _gBC["feats"][f_]["arms"].items() for r_ in ("inv", "none") if f"vs_{r_}" in v_)
+assert _gchg == 0.0 and not _gBC["verdict_changes_after_recompute"] and all(_gBC["feats"][f_]["sklearn_crosscheck_max_abs_diff"] == 0.0 for f_ in _GF)
+assert all(f"{np.mean([v_['wrong_minus_correct'] for v_ in _gBC['feats'][f_]['arms'].values()]):.3f}" == "0.004" for f_ in _GF)
+chk("Bootstrap audit.", [f"{_gzt} of 10,000 test resamples ({_gzt / 100:.2f}%; expected {(1 - 3 / 2237) ** 2237 * 100:.2f}%)", f"{_gzd} of 2,000 dev resamples ({_gzd / 20:.2f}%)",
+                         "(maximum difference 0.0)", "raised the bootstrap mean by about 0.004", "(maximum change 0) and 0 verdicts",
+                         f"lies {abs(max(_ggap['b32'])):.4f} to {abs(min(_ggap['b32'])):.4f} below the point estimate on B/32 and {abs(max(_ggap['l14'])):.4f} to {abs(min(_ggap['l14'])):.4f} on L/14"])
+chk("Limitations. (1)", [f"has {_gmiss_ct['test']} test rows ({_gmiss_ct['dev']} dev, {_gmiss_ct['train']} train)", "cannot exceed 0.875", "about ±0.04 wide", "about 0.01",
+                         "a separate, pre-registered check on L4a-L14 (the L4a recipe with L/14 768-d image features; not a re-run of L4a; see `ablation/SELECTION_RULE.md`)"])
+assert 0.039 < (_gMT["L4a"]["ci"]["ci95_high"] - _gMT["L4a"]["ci"]["ci95_low"]) / 2 < 0.043
+
+# -- the .tex paragraph --
+_gtr = {t_: _gCT[t_]["train"].label.value_counts() for t_ in _gCT}
+_grat = lambda t_: f"{max(_gtr[t_]) / min(_gtr[t_]):.1f}:1"
+tchk("Task 2 is severely imbalanced", [f"has {int(_gtr['humanitarian'].max()):,} rows", f"has {int(_gtr['humanitarian'].min())}, a ratio of {_grat('humanitarian')}", f"Task 1: {_grat('informative')}", f"Task 3: {_grat('damage')}"])
+tchk("compares ten treatments with the image-only head", ["each scored once on the test split"])
+tchk("We select on the development split only", ["(2,000 resamples)"])
+tchk("The rule has little power", [f"{int((_gy['dev'] == _gINJ).sum())} injured-or-dead and {_gmiss_ct['dev']} missing-or-found rows"])
+_gbi = {f_: _gBR["feats"][f_]["test"]["metrics"] for f_ in _GF}
+_gdf = {f_: _gX[f_]["tv"]["inv"]["vs_none"] for f_ in _GF}
+_gdf = {f_: _gmean(f_, "inv", "test_f1") - _gmean(f_, "none", "test_f1") for f_ in _GF}
+assert all(_gbi[f_]["balanced_acc"]["pairs"]["inv-none"]["ci95_low"] > 0 and _gbi[f_]["recall_vehicle"]["pairs"]["inv-none"]["ci95_low"] > 0 for f_ in _GF)
+tchk("Against no weighting, inverse-frequency weighting raises test balanced accuracy",
+     [f"by +{_gbi['b32']['balanced_acc']['pairs']['inv-none']['diff']:.3f} (B/32) and +{_gbi['l14']['balanced_acc']['pairs']['inv-none']['diff']:.3f} (L/14)",
+      f"by +{_gbi['b32']['recall_vehicle']['pairs']['inv-none']['diff']:.3f} and +{_gbi['l14']['recall_vehicle']['pairs']['inv-none']['diff']:.3f}",
+      f"({_gdf['b32']:+.3f} and {_gdf['l14']:+.3f})"])
+tchk("The effective-number weights have the highest test macro-F1", [f"({_gmean('b32', 'eff_num', 'test_f1'):.3f} and {_gmean('l14', 'eff_num', 'test_f1'):.3f})"])
+tchk("Against inverse-frequency weighting their paired interval excludes zero only marginally",
+     [f"(lower bounds {_gsg(_gX['b32']['tv']['eff_num']['vs_inv']['ci95_low'])} and {_gsg(_gX['l14']['tv']['eff_num']['vs_inv']['ci95_low'])})", "so we do not read it as an improvement"])
+tchk("Pairwise comparisons were not corrected for multiple testing across about ten arms and two encoders", ["weak evidence"])
+tchk("Beyond macro-F1 we report balanced accuracy", [])
+tchk("For the full model (L4a) the three-seed means are", [f"balanced accuracy {np.mean(_gMT['L4a']['bal']):.3f}", f"MCC {np.mean(_gMT['L4a']['mcc']):.3f}", f"ROC-AUC {np.mean(_gMT['L4a']['roc']):.3f}", f"PR-AUC {np.mean(_gMT['L4a']['pr']):.3f}",
+                                                           f"at seed 42 is {_gMT['L4a']['ci']['ci95_low']:.3f} to {_gMT['L4a']['ci']['ci95_high']:.3f}", "95% test-sampling interval", "about ± 0.04 wide", "about 0.01"])
+tchk("Balancing helps the Task 1 text model", [f"(macro-F1 {_gT1['arms']['balanced']['macro_f1']:.3f} against {_gT1['arms']['none']['macro_f1']:.3f}", f"(0.{int(round(_gT3['probes']['fused']['arms']['balanced']['macro_f1'] * 1000)):03d} against 0.{int(round(_gT3['probes']['fused']['arms']['none']['macro_f1'] * 1000)):03d})",
+                                                 f"gives {_gKN['votes']['class_balanced']['macro_f1']:.3f} against {_gKN['votes']['majority']['macro_f1']:.3f}"])
+tchk("has F1 = 0 under every treatment", [f"({_gmiss_ct['train']} training, {_gmiss_ct['dev']} development and {_gmiss_ct['test']} test rows)", "F1 = 0 under", "cap of 0.875"])
+_gLAB = {"none": "none", "inv": "inv (current)", "sqrt_inv": "sqrt_inv", "eff_num": "eff_num", "focal1": "focal1", "focal2": "focal2", "focal2_inv": "focal2_inv", "sampler": "sampler", "logit_adj": "logit_adj", "none_posthoc": "none_posthoc"}
+for _a in _GARMS:
+    _c = [f"{_gmean('b32', _a, 'dev_f1'):.3f}", f"{_gmean('b32', _a, 'test_f1'):.3f} ± {np.std(_gseeds('b32', _a, 'test_f1'), ddof=1):.3f}", f"{_gmean('b32', _a, 'test_bal'):.3f}",
+          f"{_gmean('l14', _a, 'dev_f1'):.3f}", f"{_gmean('l14', _a, 'test_f1'):.3f} ± {np.std(_gseeds('l14', _a, 'test_f1'), ddof=1):.3f}", f"{_gmean('l14', _a, 'test_bal'):.3f}"]
+    tchk(f"{_gLAB[_a]} & {_c[0]} & ", _c[1:], cover_anchor=True)
+tchk("Task 2 class-imbalance treatments, image-only head on cached CLIP features", ["seeds 42, 43, 44"])
+
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
-STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?"]
+STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]
 uncovered = []
 for i, l in TEX:
     masked = l

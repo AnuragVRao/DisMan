@@ -241,3 +241,28 @@ all rows & 2237 & majority class & -- & 0.472 & 0.080 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Task 2 class-imbalance treatments, image-only head on cached CLIP features, seeds 42, 43, 44. Dev macro-F1 and balanced accuracy are seed means; test macro-F1 is the seed mean $\pm$ the seed std. The first group of columns is CLIP B/32, the second CLIP L/14.}
+\label{tab:g_arms}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+Arm & Dev F1 & Test F1 & Bal. acc. & Dev F1 & Test F1 & Bal. acc. \\
+\midrule
+none & 0.596 & 0.608 $\pm$ 0.006 & 0.579 & 0.624 & 0.653 $\pm$ 0.002 & 0.636 \\
+inv (current) & 0.568 & 0.601 $\pm$ 0.005 & 0.651 & 0.612 & 0.644 $\pm$ 0.009 & 0.693 \\
+sqrt\_inv & 0.589 & 0.614 $\pm$ 0.006 & 0.626 & 0.629 & 0.654 $\pm$ 0.008 & 0.677 \\
+eff\_num & 0.587 & 0.617 $\pm$ 0.003 & 0.629 & 0.629 & 0.656 $\pm$ 0.009 & 0.676 \\
+focal1 & 0.599 & 0.608 $\pm$ 0.003 & 0.582 & 0.632 & 0.652 $\pm$ 0.005 & 0.637 \\
+focal2 & 0.602 & 0.612 $\pm$ 0.003 & 0.590 & 0.630 & 0.652 $\pm$ 0.004 & 0.638 \\
+focal2\_inv & 0.547 & 0.579 $\pm$ 0.003 & 0.653 & 0.606 & 0.608 $\pm$ 0.001 & 0.702 \\
+sampler & 0.554 & 0.577 $\pm$ 0.003 & 0.650 & 0.589 & 0.620 $\pm$ 0.010 & 0.696 \\
+logit\_adj & 0.523 & 0.562 $\pm$ 0.003 & 0.667 & 0.572 & 0.593 $\pm$ 0.005 & 0.691 \\
+none\_posthoc & 0.596 & 0.610 $\pm$ 0.008 & 0.587 & 0.627 & 0.651 $\pm$ 0.009 & 0.652 \\
+\bottomrule
+\end{tabular}}
+\end{table}
