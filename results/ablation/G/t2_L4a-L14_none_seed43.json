@@ -1,0 +1,208 @@
+{
+ "task": "T2",
+ "config": "t2_L4a-L14_none",
+ "dev_macro_f1": 0.6178991290339428,
+ "test_acc": 0.821636119803308,
+ "test_macro_f1": 0.6290425035827374,
+ "test_weighted_f1": 0.8200035942509124,
+ "per_class_f1": {
+  "Affected individuals": 0.5925925925925926,
+  "Infrastructure and utility damage": 0.8524590163934426,
+  "Injured or dead people": 0.631578947368421,
+  "Missing or found people": 0.0,
+  "Not humanitarian": 0.8784608165180666,
+  "Other relevant information": 0.7670807453416149,
+  "Rescue, volunteering or donation effort": 0.7164179104477612,
+  "Vehicle damage": 0.59375
+ },
+ "confusion_matrix": [
+  [
+   48,
+   12,
+   3,
+   0,
+   9,
+   0,
+   16,
+   0
+  ],
+  [
+   11,
+   390,
+   0,
+   0,
+   21,
+   7,
+   21,
+   8
+  ],
+  [
+   0,
+   0,
+   6,
+   0,
+   1,
+   0,
+   3,
+   0
+  ],
+  [
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  [
+   7,
+   20,
+   0,
+   0,
+   936,
+   55,
+   36,
+   1
+  ],
+  [
+   0,
+   8,
+   0,
+   0,
+   66,
+   247,
+   10,
+   0
+  ],
+  [
+   7,
+   13,
+   0,
+   0,
+   41,
+   3,
+   192,
+   0
+  ],
+  [
+   0,
+   14,
+   0,
+   0,
+   1,
+   1,
+   1,
+   19
+  ]
+ ],
+ "labels": [
+  "Affected individuals",
+  "Infrastructure and utility damage",
+  "Injured or dead people",
+  "Missing or found people",
+  "Not humanitarian",
+  "Other relevant information",
+  "Rescue, volunteering or donation effort",
+  "Vehicle damage"
+ ],
+ "epochs_trained": 10,
+ "best_epoch": 5,
+ "wall_clock_s": 579.4316473007202,
+ "n_train": 13608,
+ "n_dev": 2237,
+ "n_test": 2237,
+ "n_params": 67418376,
+ "mean_epoch_s": 56.483737754821775,
+ "flags": {
+  "data": "full",
+  "clip": "hf",
+  "tf": "deterministic",
+  "epochs": 10,
+  "cache": true,
+  "amp": true,
+  "bert": "pretrained",
+  "feat": "l14",
+  "loss": "none"
+ },
+ "history": [
+  {
+   "epoch": 1,
+   "train_loss": 2.053706300090736,
+   "dev_acc": 0.1050514081358963,
+   "dev_macro_f1": 0.07659121706265674,
+   "dev_weighted_f1": 0.10547881140767226
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.8249005816632033,
+   "dev_acc": 0.7898971837282074,
+   "dev_macro_f1": 0.3904419381936371,
+   "dev_weighted_f1": 0.7676825139752018
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.5537357615403167,
+   "dev_acc": 0.8019669199821189,
+   "dev_macro_f1": 0.5057985651039374,
+   "dev_weighted_f1": 0.7905144972357924
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.4866791562190358,
+   "dev_acc": 0.8104604380867233,
+   "dev_macro_f1": 0.5569155667877305,
+   "dev_weighted_f1": 0.8041460206620465
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.41797960294244435,
+   "dev_acc": 0.8073312472060795,
+   "dev_macro_f1": 0.6178991290339428,
+   "dev_weighted_f1": 0.8065327944090779
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.3311210538265011,
+   "dev_acc": 0.8046490835940993,
+   "dev_macro_f1": 0.5991991449147405,
+   "dev_weighted_f1": 0.8023351777310982
+  },
+  {
+   "epoch": 7,
+   "train_loss": 0.2528868584058514,
+   "dev_acc": 0.8064371926687528,
+   "dev_macro_f1": 0.5847270215223381,
+   "dev_weighted_f1": 0.8019393052391782
+  },
+  {
+   "epoch": 8,
+   "train_loss": 0.1934271608457459,
+   "dev_acc": 0.7979436745641484,
+   "dev_macro_f1": 0.5628714640241042,
+   "dev_weighted_f1": 0.7933230515085555
+  },
+  {
+   "epoch": 9,
+   "train_loss": 0.15544371972376472,
+   "dev_acc": 0.7930263746088512,
+   "dev_macro_f1": 0.5680384033853305,
+   "dev_weighted_f1": 0.7894229655877898
+  },
+  {
+   "epoch": 10,
+   "train_loss": 0.135566887006321,
+   "dev_acc": 0.7921323200715243,
+   "dev_macro_f1": 0.5826329628942928,
+   "dev_weighted_f1": 0.7892778743992366
+  }
+ ],
+ "variant": "full",
+ "tier": "",
+ "majority_baseline_macro_f1": 0.08011846901579586,
+ "below_majority_baseline": false,
+ "part": "G",
+ "seed": 43,
+ "git_commit": "unknown"
+}
