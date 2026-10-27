@@ -152,7 +152,8 @@ def main():
                 st = json.load(open(RES / "B" / f"t2_image_only_seed{seed}.json" if a.feat == "b32"
                                     else RES / "X" / f"b_t2_imageonly_L14_norm_seed{seed}.json"))
                 d = max(abs(m["acc"] - st["test_acc"]), abs(m["macro_f1"] - st["test_macro_f1"]), abs(dev_f1 - st["dev_macro_f1"]))
-                print(f"          validation vs stored Part B image_only seed {seed}: max |difference| {d:.2e}", flush=True)
+                ref = "Part B image_only" if a.feat == "b32" else "L/14 normalised image-only (b_t2_l14.py)"
+                print(f"          validation vs stored {ref} seed {seed}: max |difference| {d:.2e}", flush=True)
                 assert d < 1e-4, "the 'inv' arm does not reproduce Part B image_only"
             if arm == "none":                          # post-hoc logit adjustment of the unweighted model; tau chosen on dev only
                 ph = []
