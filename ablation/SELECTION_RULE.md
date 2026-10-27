@@ -35,11 +35,12 @@ Outcome of the rule above (see `results/ablation/G/g_imbalance_summary_seed42.js
 disagree, so **no new loss is adopted**. A post-hoc sensitivity analysis (`g_POSTHOC_selection_sensitivity_seed42.json`) was added afterwards; it is labelled
 POST-HOC, was defined after the outcome was known, and does not change this decision.
 
-Pre-registered for Day 2 (fused model: the L4a recipe, i.e. pretrained DistilBERT, AMP, cached features, 10 epochs, batch 32, lr 1e-4, but with the
-CLIP L/14 image vector (768-d) in place of B/32):
+Pre-registered for Day 2, on the fused model **L4a-L14** (the L4a recipe, i.e. pretrained DistilBERT, AMP, cached features, 10 epochs, batch 32, lr 1e-4, but with the
+CLIP L/14 image vector (768-d, L2-normalised) in place of B/32). Note: L4a-L14 is a new model, not a re-run of L4a (the repository's L4a is B/32 + pretrained DistilBERT).
 1. The headline loss is **inverse-frequency weighted cross-entropy** (`inv`), unchanged.
-2. **One** extra arm is run on this fused configuration: **`none`** (unweighted cross-entropy), seeds 42, 43, 44, to test whether weighting matters in
-   fusion. Same recipe, seeds, dev-based checkpoint selection and single test scoring as the `inv` runs.
+2. **One** extra arm is run on L4a-L14: **`none`** (unweighted cross-entropy), seeds 42, 43, 44, to test whether weighting matters in
+   fusion. Same recipe, seeds, dev-based checkpoint selection and single test scoring as the `inv` runs (the `inv` runs of L4a-L14 are the comparator and
+   are run with the same code path; they are the headline loss, not an extra arm).
 3. **No other arm** (sqrt_inv, eff_num, focal, sampler, logit-adjusted, post-hoc shifts) is added to the fused configuration after seeing fused test numbers.
 4. The outcome is reported whichever way it goes: seed means and std, the paired test bootstrap of `none` against `inv` (reporting only, labelled as a
    test-sampling CI, separate from the seed std), balanced accuracy, minority recall and per-class F1. "Better" or "worse" is used only where the paired CI
