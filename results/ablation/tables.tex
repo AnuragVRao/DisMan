@@ -309,3 +309,21 @@ D4 best on dev (d\_model 512) & 0.6200 & 0.6338 $\pm$ 0.0119 & 0.677 & 661\,512 
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features, inverse-frequency loss), seeds 42, 43, 44; mean $\pm$ seed std. The arms differ in more than the text (trainable parameters, head, recipe). The DistilBERT arm reuses earlier runs. Test columns are reporting only.}
+\label{tab:h_ft}
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Arm & Trainable params & Dev F1 & Dev bal. acc. & Test F1 & Test bal. acc. \\
+\midrule
+Frozen image-only head & 116\,232 & 0.6083 $\pm$ 0.0052 & 0.679 & 0.6350 $\pm$ 0.0040 & 0.687 \\
+DistilBERT fine-tuned (reused runs) & 67\,418\,376 & 0.6072 $\pm$ 0.0097 & 0.648 & 0.6350 $\pm$ 0.0120 & 0.657 \\
+MiniLM fine-tuned & 23\,670\,408 & 0.6104 $\pm$ 0.0093 & 0.663 & 0.6483 $\pm$ 0.0079 & 0.684 \\
+\bottomrule
+\end{tabular}}
+\end{table}

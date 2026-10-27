@@ -720,3 +720,41 @@ Added after §9.9, in answer to the request to evidence each architectural choic
 **Picks and what they support.** The rule's picks are CLIP L/14, MiniLM, the image-only head, and lr 1e-4 / dropout 0.2 / d_model 128. This is the simplest model within noise of the best under the pre-registered rule; no benefit from text, attention or tuning was detected; the test is underpowered. The final frozen image-only pipeline scores test macro-F1 0.6350 ± 0.0040 (test-sampling interval [0.598, 0.663]). This is not a win over v2 or L4a (0.587 and 0.598): the intervals overlap (they are about ±0.04 wide) and the setups differ (frozen features and sentence-embedding text against fine-tuned models). The MiniLM encoder is picked but unused by the picked head, which is image-only.
 
 **Multiplicity and limitations.** 38 arm slots (27 + 5 + 2 + 4), 35 distinct trained configurations, no multiplicity correction: isolated differences are weak evidence. Three seeds; 8 injured-or-dead and 2 missing-or-found dev rows; test-sampling intervals about ±0.04 wide against dev differences of about 0.01 to 0.03; frozen features only, with the text stream a frozen sentence embedding, so fine-tuned fusion is not covered here.
+
+#### 9.10.1 Fine-tuned fusion against the frozen image-only head (pre-registered)
+
+Pre-registered in the fine-tuned fusion addendum of `ablation/SELECTION_RULE.md` (committed before the three new runs). Arms: the frozen image-only L/14 head picked in 9.10 (lr 1e-4, dropout 0.2, d_model 128); pretrained DistilBERT fine-tuned in the v2 head (L4a-L14 `inv`); and pretrained all-MiniLM-L6-v2 fine-tuned in the same head (L4a-L14-MiniLM). **The DistilBERT arm reuses the existing L4a-L14 `inv` runs of 9.9, which were run before the pre-registration and whose numbers had been seen (disclosed in the pre-registration), so this is not a blind comparison; only the MiniLM arm (3 new runs) was run after it.**
+
+Setup: CLIP L/14 768-d L2-normalised cached features, inverse-frequency loss, seeds 42, 43, 44, the L4a recipe (AMP, 10 epochs, batch 32, 3 warm-up epochs then cosine, text encoder at lr 1e-5 and every other module at 1e-4, v2's cross-attention head with d_model 256 and dropout 0.2), checkpoint = best dev macro-F1, test scored once. **The arms differ in more than the text:** trainable parameters (116,232 for the frozen head against 23,670,408 and 67,418,376), the head (d_model 128 image-only against the v2 cross-attention head at d_model 256) and the recipe (a fine-tuned encoder). The comparison does not isolate the text.
+
+Validation: `FusionModel` built with DistilBERT has the same 124 state-dict tensors (names and shapes) as `DualStreamClassifier`, loads the stored L4a-L14 `inv` seed-42 checkpoint and reproduces its stored dev and test predictions on all 2,237 rows each; the three MiniLM checkpoints re-score to exactly the dev and test macro-F1 their training runs stored. Cost: the MiniLM runs took 310 to 366 s each inside the training script, about 17 minutes in total.
+
+| Arm | Trainable params | Dev macro-F1 (seed std) | Dev bal. acc. | Test macro-F1 (seed std) | Test-sampling 95% CI | Test bal. acc. | Test recall injured (n=10) | Test recall vehicle (n=36) |
+|---|---|---|---|---|---|---|---|---|
+| FT frozen image-only head (Day 2 pick) | 116,232 | 0.6083 ± 0.0052 | 0.679 | 0.6350 ± 0.0040 | [0.598, 0.663] | 0.687 | 0.833 | 0.685 |
+| FT DistilBERT fine-tuned (L4a-L14, reused runs) | 67,418,376 | 0.6072 ± 0.0097 | 0.648 | 0.6350 ± 0.0120 | [0.597, 0.663] | 0.657 | 0.767 | 0.611 |
+| FT MiniLM fine-tuned (L4a-L14-MiniLM) | 23,670,408 | 0.6104 ± 0.0093 | 0.663 | 0.6483 ± 0.0079 | [0.613, 0.676] | 0.684 | 0.967 | 0.630 |
+
+* Rule (dev only): the best arm on dev is FT MiniLM fine-tuned (L4a-L14-MiniLM) (0.6104); its paired dev difference from the frozen head is +0.0022 [-0.0162, +0.0202] and from DistilBERT +0.0032 [-0.0125, +0.0184], so all three arms are tied (no difference resolvable at this n, not equal). Among the tied arms the rule takes the simplest, which is the frozen image-only head (116,232 trainable parameters).
+
+Paired bootstraps, fine-tuned minus frozen head (dev: 2,000 resamples, the only version eligible for selection; test: 10,000 resamples, reporting only, test-sampling intervals). Labels follow the rule of 9.9; the injured-or-dead recall (n = 8 dev, n = 10 test) is "not resolvable" where its CI includes 0.
+
+| Arm | Metric | Dev: fine-tuned minus frozen [95% CI] | Test: fine-tuned minus frozen [95% CI] |
+|---|---|---|---|
+| FT DistilBERT fine-tuned (L4a-L14, reused runs) | macro-F1 | -0.0011 [-0.0177, +0.0153] not distinguishable | -0.0001 [-0.0224, +0.0228] not distinguishable |
+| FT DistilBERT fine-tuned (L4a-L14, reused runs) | balanced accuracy | -0.0313 [-0.0505, -0.0150] worse | -0.0298 [-0.0591, +0.0009] not distinguishable |
+| FT DistilBERT fine-tuned (L4a-L14, reused runs) | recall, injured or dead | -0.0417 [-0.1429, +0.0000] not resolvable (n=8) | -0.0667 [-0.2821, +0.1667] not resolvable (n=10) |
+| FT DistilBERT fine-tuned (L4a-L14, reused runs) | recall, vehicle damage | -0.1053 [-0.1930, -0.0185] worse (n=38) | -0.0741 [-0.1481, -0.0101] worse (n=36) |
+| FT MiniLM fine-tuned (L4a-L14-MiniLM) | macro-F1 | +0.0022 [-0.0162, +0.0202] not distinguishable | +0.0133 [-0.0085, +0.0381] not distinguishable |
+| FT MiniLM fine-tuned (L4a-L14-MiniLM) | balanced accuracy | -0.0170 [-0.0376, +0.0018] not distinguishable | -0.0034 [-0.0278, +0.0286] not distinguishable |
+| FT MiniLM fine-tuned (L4a-L14-MiniLM) | recall, injured or dead | -0.0417 [-0.1429, +0.0000] not resolvable (n=8) | +0.1333 [+0.0000, +0.3704] not resolvable (n=10) |
+| FT MiniLM fine-tuned (L4a-L14-MiniLM) | recall, vehicle damage | -0.0175 [-0.1204, +0.0894] not distinguishable (n=38) | -0.0556 [-0.1395, +0.0115] not distinguishable (n=36) |
+
+* In these two setups fine-tuned text fusion showed no detectable benefit over the frozen image-only head. This does not show that text is useless: the arms differ in more than the text (trainable parameters, head and recipe, see above), and the test is underpowered.
+* Macro-F1 is not distinguishable from the frozen head for both fine-tuned models on dev (DistilBERT -0.0011 [-0.0177, +0.0153], MiniLM +0.0022 [-0.0162, +0.0202]) and on test (DistilBERT -0.0001 [-0.0224, +0.0228], MiniLM +0.0133 [-0.0085, +0.0381]).
+* For DistilBERT, balanced accuracy (-0.0313 [-0.0505, -0.0150]) and vehicle recall (-0.1053 [-0.1930, -0.0185], n = 38) are worse than the frozen head on dev; on test vehicle recall is also worse (-0.0741 [-0.1481, -0.0101], n = 36), and the balanced-accuracy interval has an upper bound of +0.0009 (it touches zero; not distinguishable). These come from 16 uncorrected comparisons, so they are weak evidence in either direction.
+* All four injured-or-dead recall comparisons (n = 8 dev, n = 10 test) have a CI that includes 0 and are "not resolvable" under the existing rule; none is evidence of an effect or of no effect.
+* The MiniLM test columns in the table are reporting only. They are not selection results, and no claim here rests on them.
+* The DistilBERT arm and the frozen head share the same test mean (0.6350) by coincidence: their predictions and their seed stds differ.
+* Multiplicity: 9.10 has 38 arm slots (35 distinct trained configurations) and, separately, this subsection has 16 pairwise comparisons (2 arms x 4 metrics x 2 splits); neither set is corrected for multiplicity.
+* Under the pre-registered rule the pick is the frozen image-only head: the simplest model within noise of the best under the pre-registered rule; fine-tuned text fusion showed no detectable benefit; the test is underpowered.
