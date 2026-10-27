@@ -315,6 +315,21 @@ if (RES / "G" / "g_fused_L4a-L14_none_vs_inv_seed42.json").exists():
                      "weighting (none), mean $\\pm$ seed std. The difference is none minus inv with its paired 95\\% interval: dev (the only version used for selection) and test "
                      "(reporting only, test-sampling interval). Injured or dead has 8 dev and 10 test rows, vehicle damage 38 dev and 36 test rows.",
                      "tab:g_fused", ["Metric", "Dev inv", "Dev none", "Dev diff. [95\\% CI]", "Test inv", "Test none", "Test diff. [95\\% CI]"], body, "lrrrrrr", fit=True))
+# ── H: Day 2 architecture comparison on frozen features (each distinct arm once; duplicates are omitted) ──────────────────
+if (RES / "H" / "report_seed42.json").exists():
+    hr = json.load(open(RES / "H" / "report_seed42.json"))["decisions"]
+    H_ROWS = [("D1 CLIP L/14", "d1", "d1_clip_l14"), ("D1 DINOv2", "d1", "d1_dinov2"), ("D1 CLIP B/32", "d1", "d1_clip_b32"), ("D1 ResNet-50", "d1", "d1_resnet50"),
+              ("D2 MPNet", "d2", "d2_mpnet"), ("D2 MiniLM", "d2", "d2_minilm"), ("D3 concat", "d3", "d3_concat"), ("D3 gated-late", "d3", "d3_gated_late"),
+              ("D3 cross-attention", "d3", "d3_cross_attention"), ("D4 picked (d\\_model 128)", "d4", "d4_lr0.0001_do0.2_dm128"), ("D4 best on dev (d\\_model 512)", "d4", "d4_lr0.0003_do0.1_dm512")]
+    body = []
+    for lab, d, a in H_ROWS:
+        r = hr[d]["rows"][a]
+        body.append([lab, f"{r['dev']:.4f}", f"{r['test']:.4f} $\\pm$ {r['test_std']:.4f}", f"{r['bal']:.3f}", f"{r['params']:,}".replace(",", "\\,"),
+                     "yes" if r["tied"] else "no", "yes" if r["pick"] else "no"])
+    tex.append(table("Architecture comparison on frozen features (Task 2), seeds 42, 43, 44. Dev F1 is the seed mean; test F1 is the seed mean $\\pm$ the seed std (its test-sampling 95\\% "
+                     "interval is about $\\pm 0.04$ wide and is not shown). Tied: no difference from the best arm of the decision is resolvable on dev; pick: the pre-registered rule's choice. "
+                     "D3 image-only and the D4 default are the same runs as D1 CLIP L/14, and D3 text-only is the same runs as D2 MiniLM, so they are not listed again.",
+                     "tab:h_arch", ["Arm", "Dev F1", "Test F1", "Bal. acc.", "Trainable params", "Tied", "Pick"], body, "lrrrrcc"))
 (RES / "tables.tex").write_text("\n".join(tex), encoding="utf8")
 
 # ── figure: T2 ladder ─────────────────────────────────────────────────────────

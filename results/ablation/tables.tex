@@ -285,3 +285,27 @@ recall, vehicle damage & 0.632 $\pm$ 0.053 & 0.570 $\pm$ 0.040 & -0.0614 [-0.131
 \bottomrule
 \end{tabular}}
 \end{table}
+
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{Architecture comparison on frozen features (Task 2), seeds 42, 43, 44. Dev F1 is the seed mean; test F1 is the seed mean $\pm$ the seed std (its test-sampling 95\% interval is about $\pm 0.04$ wide and is not shown). Tied: no difference from the best arm of the decision is resolvable on dev; pick: the pre-registered rule's choice. D3 image-only and the D4 default are the same runs as D1 CLIP L/14, and D3 text-only is the same runs as D2 MiniLM, so they are not listed again.}
+\label{tab:h_arch}
+\begin{tabular}{lrrrrcc}
+\toprule
+Arm & Dev F1 & Test F1 & Bal. acc. & Trainable params & Tied & Pick \\
+\midrule
+D1 CLIP L/14 & 0.6124 & 0.6438 $\pm$ 0.0089 & 0.693 & 265\,224 & yes & yes \\
+D1 DINOv2 & 0.5758 & 0.5851 $\pm$ 0.0063 & 0.655 & 265\,224 & no & no \\
+D1 CLIP B/32 & 0.5679 & 0.6014 $\pm$ 0.0053 & 0.651 & 199\,688 & no & no \\
+D1 ResNet-50 & 0.5418 & 0.5265 $\pm$ 0.0025 & 0.564 & 592\,904 & no & no \\
+D2 MPNet & 0.2942 & 0.2991 $\pm$ 0.0030 & 0.373 & 265\,224 & yes & no \\
+D2 MiniLM & 0.2844 & 0.2847 $\pm$ 0.0094 & 0.379 & 166\,920 & yes & yes \\
+D3 concat & 0.6097 & 0.6541 $\pm$ 0.0101 & 0.698 & 429\,832 & yes & no \\
+D3 gated-late & 0.6093 & 0.6404 $\pm$ 0.0015 & 0.702 & 432\,657 & yes & no \\
+D3 cross-attention & 0.6078 & 0.6388 $\pm$ 0.0079 & 0.701 & 957\,192 & yes & no \\
+D4 picked (d\_model 128) & 0.6083 & 0.6350 $\pm$ 0.0040 & 0.687 & 116\,232 & yes & yes \\
+D4 best on dev (d\_model 512) & 0.6200 & 0.6338 $\pm$ 0.0119 & 0.677 & 661\,512 & yes & no \\
+\bottomrule
+\end{tabular}
+\end{table}

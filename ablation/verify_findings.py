@@ -1259,6 +1259,160 @@ tchk("Metric & Dev inv & Dev none", ["Dev diff. [95% CI]", "Test diff. [95% CI]"
 tchk("Pre-registered check on L4a-L14 (the L4a recipe with CLIP L/14 features", ["seeds 42, 43, 44", "paired 95% interval",
                                                                                  f"Injured or dead has {_gsup['dev']['inj']} dev and {_gsup['test']['inj']} test rows, vehicle damage {_gsup['dev']['veh']} dev and {_gsup['test']['veh']} test rows"])
 
+# 4k. H: Day 2 architecture comparison (docs §9.10 and the .tex paragraph). Everything is recomputed from the stored dev and test predictions in results/ablation/H
+# (with the same fixed bootstrap indices as §9.9), the trainable-parameter counts from freshly built heads, and the data loaders.
+import itertools as _hit
+from d2_common import BACKBONE_M as _hBM, Head as _hHead
+
+_hD = RES / "H"
+_hj = lambda a_, s_: json.load(open(_hD / f"{a_}_seed{s_}.json"))
+_hLR, _hDO, _hDM = (3e-5, 1e-4, 3e-4), (0.1, 0.2, 0.4), (128, 256, 512)
+_hARMS = {"d1": [f"d1_{a_}" for a_ in ("clip_b32", "clip_l14", "dinov2", "resnet50")], "d2": [f"d2_{a_}" for a_ in ("minilm", "mpnet")],
+          "d3": [f"d3_{k_}" for k_ in ("image_only", "text_only", "concat", "gated_late", "cross_attention")], "d4": [f"d4_lr{a_:g}_do{b_:g}_dm{c_}" for a_, b_, c_ in _hit.product(_hLR, _hDO, _hDM)]}
+_hDIM = {"clip_b32": 512, "clip_l14": 768, "dinov2": 768, "resnet50": 2048, "minilm": 384, "mpnet": 768}
+_hLRS = {"3e-05": "3e-5", "0.0001": "1e-4", "0.0003": "3e-4"}
+_hLAB = {"d1_clip_b32": "D1 CLIP B/32", "d1_clip_l14": "D1 CLIP L/14", "d1_dinov2": "D1 DINOv2 ViT-B/14", "d1_resnet50": "D1 ResNet-50", "d2_minilm": "D2 MiniLM", "d2_mpnet": "D2 MPNet",
+         "d3_image_only": "D3 image-only", "d3_text_only": "D3 text-only", "d3_concat": "D3 concat", "d3_gated_late": "D3 gated-late", "d3_cross_attention": "D3 cross-attention"}
+
+
+def _hlabel(a_):
+    if a_ in _hLAB:
+        return _hLAB[a_]
+    _, lr_, do_, dm_ = a_.split("_")
+    return f"D4 lr {_hLRS[lr_[2:]]}, dropout {do_[2:]}, d_model {dm_[2:]}"
+
+
+def _hspec(a_):
+    """(kind, d_img, d_txt, d_model, dropout, backbones) of an arm, from its name alone (independent of the stored values)."""
+    if a_.startswith("d1_"):
+        b_ = a_[3:]; return "image_only", _hDIM[b_], None, 256, 0.2, (b_,)
+    if a_.startswith("d2_"):
+        b_ = a_[3:]; return "text_only", None, _hDIM[b_], 256, 0.2, (b_,)
+    if a_.startswith("d3_"):
+        k_ = a_[3:]; return k_, 768, 384, 256, 0.2, {"image_only": ("clip_l14",), "text_only": ("minilm",)}.get(k_, ("clip_l14", "minilm"))
+    _, lr_, do_, dm_ = a_.split("_"); return "image_only", 768, None, int(dm_[2:]), float(do_[2:]), ("clip_l14",)
+
+
+_hR = {a_: [_hj(a_, s_) for s_ in _GS] for d_ in _hARMS for a_ in _hARMS[d_]}
+_hM = {}       # arm -> recomputed per-seed metrics from the stored predictions
+for _a, _rs in _hR.items():
+    _k, _di, _dt, _dm, _do, _bb = _hspec(_a)
+    _np_ = sum(p_.numel() for p_ in _hHead(_k, 8, _di, _dt, _dm, _do).parameters())
+    _m = dict(dev=[], test=[], bal=[], inj=[], veh=[], pd=[], pt=[])
+    for _r in _rs:
+        _pdv, _ptt = np.array(_r["pred_dev"]), np.array(_r["pred_test"])
+        _m["dev"].append(float(_gf1(_gy["dev"], _pdv, labels=_gALL, average="macro", zero_division=0))); _m["test"].append(float(_gf1(_gy["test"], _ptt, labels=_gALL, average="macro", zero_division=0)))
+        _m["bal"].append(float(_gba(_gy["test"], _ptt))); _m["inj"].append(float(_grec(_gy["test"], _ptt, labels=[_gINJ], average="macro", zero_division=0)))
+        _m["veh"].append(float(_grec(_gy["test"], _ptt, labels=[_gVEH], average="macro", zero_division=0))); _m["pd"].append(_pdv); _m["pt"].append(_ptt)
+        assert _gnear(_m["dev"][-1], _r["dev_macro_f1"]) and _gnear(_m["test"][-1], _r["test_macro_f1"]) and _gnear(_m["bal"][-1], _r["test_balanced_acc"])
+        assert _gnear(_m["inj"][-1], _r["recall_injured"]) and _gnear(_m["veh"][-1], _r["recall_vehicle"]) and _r["recall_missing"] == 0.0
+        assert _r["n_trainable"] == _np_ and abs(_r["backbone_params_m"] - sum(_hBM[b_] for b_ in _bb)) < 1e-9 and _r["n_test_injured"] == 10 and _r["n_test_vehicle"] == 36
+    _m["n_params"], _m["bb_m"] = _np_, float(sum(_hBM[b_] for b_ in _bb)); _hM[_a] = _m
+assert (int((_gy["test"] == _gINJ).sum()), int((_gy["test"] == _gVEH).sum()), int((_gy["dev"] == _gINJ).sum()), int((_gy["dev"] == _gVEH).sum())) == (10, 36, 8, 38)
+# duplicates (same runs): first arm in decision order with identical dev and test predictions on all seeds
+_hCAN, _hSEEN = {}, {}
+for _d in ("d1", "d2", "d3", "d4"):
+    for _a in _hARMS[_d]:
+        _hCAN[_a] = _hSEEN.setdefault(tuple((tuple(r_["pred_dev"]), tuple(r_["pred_test"])) for r_ in _hR[_a]), _a)
+_hDUP = {a_: c_ for a_, c_ in _hCAN.items() if a_ != c_}
+assert _hDUP == {"d3_image_only": "d1_clip_l14", "d3_text_only": "d2_minilm", "d4_lr0.0001_do0.2_dm256": "d1_clip_l14"}
+_hN = sum(len(v_) for v_ in _hARMS.values()); _hNd = len(set(_hCAN.values())); assert (_hN, _hNd) == (38, 35)
+# validation claims: B/32 and L/14 reproduce the stored image-only runs exactly; D3 image-only == D1 L/14
+for _arm, _st in (("d1_clip_b32", "b_t2_imageonly_B32_raw"), ("d1_clip_l14", "b_t2_imageonly_L14_norm")):
+    for _s, _r in zip(_GS, _hR[_arm]):
+        _x = json.load(open(RES / "X" / f"{_st}_seed{_s}.json"))
+        assert _r["dev_macro_f1"] == _x["dev_macro_f1"] and _r["test_macro_f1"] == _x["test_macro_f1"] and _r["pred_test"] == _x["pred"] and _r["best_epoch"] == _x["best_epoch"] and _r["test"]["acc"] == _x["test_acc"]
+# dev bootstraps (rule) and test-sampling intervals, same fixed resample indices as 9.9
+_hDV = {}
+_hTVc = {}
+_hsel = {}
+for _d in ("d1", "d2", "d3", "d4"):
+    _ar = _hARMS[_d]; _mean = {a_: float(np.mean(_hM[a_]["dev"])) for a_ in _ar}; _best = max(_ar, key=lambda a_: _mean[a_])
+    _vec = {a_: {s_: _gbu.macro_f1_vec(_gy["dev"], _hM[a_]["pd"][i_], 8, _gDI) for i_, s_ in enumerate(_GS)} for a_ in _ar}
+    _df = {a_: _gbu.paired_diff_ci(_vec[_best], _vec[a_], point_diff=_mean[_best] - _mean[a_]) for a_ in _ar if a_ != _best}
+    _tied = [_best] + [a_ for a_ in _ar if a_ != _best and not (_df[a_]["ci95_low"] > 0 or _df[a_]["ci95_high"] < 0)]
+    if _d == "d4":
+        _key = lambda a_: (_hM[a_]["n_params"], abs(_hLR.index(_hR[a_][0]["hp"]["lr"]) - 1) + abs(_hDO.index(_hR[a_][0]["hp"]["dropout"]) - 1), _hR[a_][0]["hp"]["lr"])
+    else:
+        _key = lambda a_: (_hM[a_]["n_params"], _hM[a_]["bb_m"])
+    _pick = min(_tied, key=_key)
+    _ss = json.load(open(_hD / f"selection_{_d}_seed42.json"))
+    assert _ss["best"] == _best and _ss["tied"] == _tied and _ss["pick"] == _pick
+    assert all(_gnear(_ss["best_minus_arm"][a_][q_], _df[a_][q_]) for a_ in _df for q_ in ("diff", "ci95_low", "ci95_high"))
+    _hsel[_d] = dict(best=_best, tied=_tied, pick=_pick, df=_df, mean=_mean)
+assert [_hsel[d_]["pick"] for d_ in ("d1", "d2", "d3", "d4")] == ["d1_clip_l14", "d2_minilm", "d3_image_only", "d4_lr0.0001_do0.2_dm128"]
+_hTV = {}
+for _a in _hR:
+    _kc = _hCAN[_a]
+    if _kc not in _hTVc:
+        _hTVc[_kc] = {s_: _gbu.macro_f1_vec(_gy["test"], _hM[_kc]["pt"][i_], 8, _gTI) for i_, s_ in enumerate(_GS)}
+    _hTV[_a] = _gbu.mean_ci(_hTVc[_kc], point=float(np.mean(_hM[_a]["test"])))
+_hREP = json.load(open(_hD / "report_seed42.json"))
+assert _hREP["arm_slots"] == 38 and _hREP["distinct_configurations"] == 35 and _hREP["duplicates"] == _hDUP
+for _d in _hARMS:
+    for _a in _hARMS[_d]:
+        _x = _hREP["decisions"][_d]["rows"][_a]
+        assert _gnear(_x["test"], float(np.mean(_hM[_a]["test"]))) and _gnear(_x["ci"][0], _hTV[_a]["ci95_low"]) and _gnear(_x["ci"][1], _hTV[_a]["ci95_high"]) and _x["tied"] == (_a in _hsel[_d]["tied"])
+# --- doc lines ---
+_hnote = lambda a_: f"same runs as {_hlabel(_hDUP[a_])} (not a separate arm)" if a_ in _hDUP else ""
+for _d in ("d1", "d2", "d3", "d4"):
+    _s_ = _hsel[_d]
+    for _a in sorted(_hARMS[_d], key=lambda a_: -_s_["mean"][a_]):
+        _m = _hM[_a]; _c = "best" if _a == _s_["best"] else f"{_gsg(_s_['df'][_a]['diff'])} [{_gsg(_s_['df'][_a]['ci95_low'])}, {_gsg(_s_['df'][_a]['ci95_high'])}]"
+        chk(f"| {_hlabel(_a)} | {np.mean(_m['dev']):.4f} ± {np.std(_m['dev'], ddof=1):.4f} | {np.mean(_m['test']):.4f} ± {np.std(_m['test'], ddof=1):.4f} | {_gci3(_hTV[_a]['ci95_low'], _hTV[_a]['ci95_high'])} |",
+            [f"{np.mean(_m['bal']):.3f} | {np.mean(_m['inj']):.3f} | {np.mean(_m['veh']):.3f} | {_m['n_params']:,} | {_m['bb_m']:.1f} | {_c} | {'yes' if _a in _s_['tied'] else 'no'} | {'pick' if _a == _s_['pick'] else ''} | {_hnote(_a)} |"])
+    _nt = len(_s_["tied"]); _bs = _s_["best"]
+    _tt = "no other arm is tied with it" if _nt == 1 else f"{_nt} of the {len(_hARMS[_d])} arms are tied with it (the best and {_nt - 1} other arm{'' if _nt == 2 else 's'})"
+    chk(f"{_d.upper()}: the best arm on dev is {_hlabel(_bs)} ({_s_['mean'][_bs]:.4f})", [_tt, f"the rule's pick is {_hlabel(_s_['pick'])}"])
+_h1 = _hsel["d1"]["df"]; assert all(_h1[a_]["ci95_low"] > 0.002 for a_ in _h1)
+chk("CLIP L/14 is better than each alternative on dev", ["all three paired intervals exclude 0", "none is tied with it", "L/14 is better than B/32"])
+_h2 = _hsel["d2"]["df"]["d2_minilm"]
+chk("MPNet has the higher dev mean but is not distinguishable from MiniLM", [f"({_gsg(_h2['diff'])} [{_gsg(_h2['ci95_low'])}, {_gsg(_h2['ci95_high'])}])", "so the rule takes the simpler MiniLM"])
+_h3 = _hsel["d3"]["df"]["d3_text_only"]
+_htxt = float(np.mean(col("t2_text_only", "test_macro_f1", "B"))); _htsd = float(np.std(col("t2_text_only", "test_macro_f1", "B"), ddof=1))
+chk("Text-only is far below image-only on dev", [f"(best minus arm {_gsg(_h3['diff'])} [{_gsg(_h3['ci95_low'])}, {_gsg(_h3['ci95_high'])}])", "a frozen 384-d MiniLM sentence embedding with CLIP L/14 image features", "confounds modality with encoder and feature quality",
+                                                f"(test macro-F1 {_htxt:.3f} ± {_htsd:.3f}, §4) points the same way, but it is a separate setup"])
+chk("Concat, gated-late and cross-attention are tied with image-only on dev", ["no resolvable difference at this n; a power limit, not evidence that fusion or attention adds nothing", "applies to frozen MiniLM token features only; it does not test fine-tuned text"])
+assert set(_hsel["d3"]["tied"]) == {"d3_image_only", "d3_concat", "d3_gated_late", "d3_cross_attention"}
+_hc = _hM["d3_concat"]
+chk("Concat has a higher test macro-F1", [f"({np.mean(_hc['test']):.4f}) and injured-or-dead recall ({np.mean(_hc['inj']):.3f}, test n = 10)", "not selection results (dev is tied; test is never used to select)", "they are not findings"])
+assert np.mean(_hc["test"]) > np.mean(_hM["d3_image_only"]["test"])
+_h4 = _hsel["d4"]; _hun = [a_ for a_ in _hARMS["d4"] if a_ not in _h4["tied"]]
+chk(f"{len(_h4['tied']) - 1} of the other {len(_hARMS['d4']) - 1} configurations are tied with the best on dev", ["a power limit, not evidence that hyperparameters do not matter", f"only {', '.join(_hlabel(a_) for a_ in _hun)} is distinguishable (worse)"])
+assert _hun == ["d4_lr3e-05_do0.4_dm128"] and _h4["df"][_hun[0]]["ci95_low"] > 0.002
+_hb, _hdf = _hM[_h4["best"]], _hM["d4_lr0.0001_do0.2_dm256"]
+assert np.mean(_hb["test"]) < np.mean(_hdf["test"])
+chk("The best-on-dev configuration (", [f"has test macro-F1 {np.mean(_hb['test']):.4f}, below the default's {np.mean(_hdf['test']):.4f}", "consistent with selecting on dev noise"])
+_hf = _hM[_h4["pick"]]
+chk("Picks and what they support.", ["the simplest model within noise of the best under the pre-registered rule; no benefit from text, attention or tuning was detected; the test is underpowered",
+                                     f"scores test macro-F1 {np.mean(_hf['test']):.4f} ± {np.std(_hf['test'], ddof=1):.4f} (test-sampling interval {_gci3(_hTV[_h4['pick']]['ci95_low'], _hTV[_h4['pick']]['ci95_high'])})",
+                                     f"This is not a win over v2 or L4a ({np.mean(col('t2_L4', 'test_macro_f1')):.3f} and {np.mean(col('t2_L4a', 'test_macro_f1')):.3f})", "the intervals overlap (they are about ±0.04 wide)"])
+chk("Multiplicity and limitations.", [f"{_hN} arm slots ({len(_hARMS['d4'])} + {len(_hARMS['d3'])} + {len(_hARMS['d2'])} + {len(_hARMS['d1'])}), {_hNd} distinct trained configurations, no multiplicity correction",
+                                      "8 injured-or-dead and 2 missing-or-found dev rows", "about ±0.04 wide against dev differences of about 0.01 to 0.03"])
+chk("What \"tied\" means.", [f"({len(_h4['tied']) - 1} of the other {len(_hARMS['d4']) - 1} grid configurations, and {len(_hsel['d3']['tied']) - 1} of the other {len(_hARMS['d3']) - 1} heads) are a power limit",
+                            "2,237 dev rows, 3 seeds; 8 injured-or-dead and 2 missing-or-found dev rows", "not that the arms are equal"])
+_htm = json.load(open(_ART / "ablation" / "d2_feats" / "minilm" / "tokens_meta.json"))
+assert _htm["dev"]["truncated_fraction"] == 0.0 and _htm["test"]["truncated_fraction"] == 0.0
+_hmeta = {n_: json.load(open(_ART / "ablation" / "d2_feats" / n_ / "meta.json")) for n_ in ("dinov2", "resnet50", "minilm", "mpnet")}
+assert all(round(_hmeta[n_]["params_m"], 1) == _hBM[n_] for n_ in _hmeta) and round(_bP32, 1) == _hBM["clip_b32"] and round(_bP14, 1) == _hBM["clip_l14"]
+chk("Candidates (frozen features, cached", [f"CLIP ViT-B/32 (512-d raw, {_hBM['clip_b32']}M parameters)", f"CLIP ViT-L/14 (768-d L2-normalised, {_hBM['clip_l14']}M)", f"{_hBM['dinov2']}M) and ResNet-50 (`microsoft/resnet-50`, 2048-d pooled, {_hBM['resnet50']}M)",
+                                           f"(384-d sentence embedding, {_hBM['minilm']}M)", f"(768-d, {_hBM['mpnet']}M)", f"{_htm['train']['truncated_fraction'] * 100:.2f}% of the training tweets are longer, none in dev or test"])
+chk("Validation. Under the Day 2 trainer", ["6 of 6 runs", "(3 of 3)"])
+chk("Counting. The decision tables contain", [f"{_hN} arm slots (D1 4, D2 2, D3 5, D4 27) but {_hNd} distinct trained configurations"])
+chk("Table conventions (as in 9.9).", ["n = 10 injured-or-dead and n = 36 vehicle-damage rows (8 and 38 on dev)", "10,000 resamples of the test rows", "2,000 resamples of the dev rows"])
+# --- tex ---
+for _lab, _a in (("D1 CLIP L/14", "d1_clip_l14"), ("D1 DINOv2", "d1_dinov2"), ("D1 CLIP B/32", "d1_clip_b32"), ("D1 ResNet-50", "d1_resnet50"), ("D2 MPNet", "d2_mpnet"), ("D2 MiniLM", "d2_minilm"),
+                 ("D3 concat", "d3_concat"), ("D3 gated-late", "d3_gated_late"), ("D3 cross-attention", "d3_cross_attention"), ("D4 picked (d_model 128)", "d4_lr0.0001_do0.2_dm128"), ("D4 best on dev (d_model 512)", "d4_lr0.0003_do0.1_dm512")):
+    _d = _a[:2]; _m = _hM[_a]
+    tchk(f"{_lab} & {np.mean(_m['dev']):.4f} & ", [f"{np.mean(_m['test']):.4f} ± {np.std(_m['test'], ddof=1):.4f}", f"{np.mean(_m['bal']):.3f}", f"{_m['n_params']:,}", "yes" if _a in _hsel[_d]["tied"] else "no", "yes" if _a == _hsel[_d]["pick"] else "no"], cover_anchor=True)
+tchk("Architecture comparison on frozen features (Task 2), seeds", ["seeds 42, 43, 44", "95% interval is about ± 0.04 wide"])
+tchk("The picks are CLIP L/14 (every alternative is worse on dev)", [f"learning rate 0.0001, dropout 0.2 and d_model 128 ({len(_h4['tied'])} of {len(_hARMS['d4'])} grid configurations tied)"])
+tchk("The text-only against image-only comparison confounds modality", ["a frozen 384-d sentence embedding", f"(0.{int(round(_htxt * 1000)):03d})"])
+tchk("Concatenation has a higher test macro-F1", [f"({np.mean(_hc['test']):.4f})", f"({np.mean(_hc['inj']):.3f}, test n = 10)"])
+tchk("The configuration with the best dev score in the grid", [f"(d_model 512, test {np.mean(_hb['test']):.4f})", f"on test ({np.mean(_hdf['test']):.4f})"])
+tchk("The final frozen pipeline (test macro-F1", [f"test macro-F1 {np.mean(_hf['test']):.4f}, test-sampling interval {_hTV[_h4['pick']]['ci95_low']:.3f} to {_hTV[_h4['pick']]['ci95_high']:.3f}", "about ± 0.04 wide"])
+tchk("There are 38 arm slots", [f"There are {_hN} arm slots (27, 5, 2 and 4 per decision) and {_hNd} distinct trained configurations"])
+
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
 STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]
 uncovered = []
