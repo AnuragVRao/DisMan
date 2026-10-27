@@ -957,6 +957,45 @@ OK  [Counting. The decision tables contain] 38 arm slots (D1 4, D2 2, D3 5, D4 2
 OK  [Table conventions (as in 9.9).] n = 10 injured-or-dead and n = 36 vehicle-damage rows (8 and 38 on dev)
 OK  [Table conventions (as in 9.9).] 10,000 resamples of the test rows
 OK  [Table conventions (as in 9.9).] 2,000 resamples of the dev rows
+OK  [Pre-registered in the fine-tuned fusion addendum] The DistilBERT arm reuses the existing L4a-L14 `inv` runs of 9.9
+OK  [Pre-registered in the fine-tuned fusion addendum] so this is not a blind comparison
+OK  [Pre-registered in the fine-tuned fusion addendum] only the MiniLM arm (3 new runs) was run after it
+OK  [Setup: CLIP L/14 768-d L2-normalised cached features] trainable parameters (116,232 for the frozen head against 23,670,408 and 67,418,376)
+OK  [Setup: CLIP L/14 768-d L2-normalised cached features] The arms differ in more than the text
+OK  [Setup: CLIP L/14 768-d L2-normalised cached features] The comparison does not isolate the text.
+OK  [Validation: `FusionModel` built with DistilBERT] the same 124 state-dict tensors (names and shapes) as `DualStreamClassifier`
+OK  [Validation: `FusionModel` built with DistilBERT] on all 2,237 rows each
+OK  [Validation: `FusionModel` built with DistilBERT] took 310 to 366 s each inside the training script, about 17 minutes in total
+OK  [| FT frozen image-only head (Day 2 pick) | 116,232 | 0.6083 ± 0.0052 | 0.679 | 0.6350 ± 0.0040 | [0.598, 0.663] |] 0.687 | 0.833 | 0.685 |
+OK  [| FT DistilBERT fine-tuned (L4a-L14, reused runs) | 67,418,376 | 0.6072 ± 0.0097 | 0.648 | 0.6350 ± 0.0120 | [0.597, 0.663] |] 0.657 | 0.767 | 0.611 |
+OK  [| FT MiniLM fine-tuned (L4a-L14-MiniLM) | 23,670,408 | 0.6104 ± 0.0093 | 0.663 | 0.6483 ± 0.0079 | [0.613, 0.676] |] 0.684 | 0.967 | 0.630 |
+OK  [Rule (dev only): the best arm on dev is] (0.6104); its paired dev difference from the frozen head is +0.0022 [-0.0162, +0.0202] and from DistilBERT +0.0032 [-0.0125, +0.0184]
+OK  [Rule (dev only): the best arm on dev is] so all three arms are tied (no difference resolvable at this n, not equal)
+OK  [Rule (dev only): the best arm on dev is] the frozen image-only head (116,232 trainable parameters)
+OK  [| FT DistilBERT fine-tuned (L4a-L14, reused runs) | macro-F1 |] -0.0011 [-0.0177, +0.0153] not distinguishable | -0.0001 [-0.0224, +0.0228] not distinguishable |
+OK  [| FT DistilBERT fine-tuned (L4a-L14, reused runs) | balanced accuracy |] -0.0313 [-0.0505, -0.0150] worse | -0.0298 [-0.0591, +0.0009] not distinguishable |
+OK  [| FT DistilBERT fine-tuned (L4a-L14, reused runs) | recall, injured or dead |] -0.0417 [-0.1429, +0.0000] not resolvable (n=8) | -0.0667 [-0.2821, +0.1667] not resolvable (n=10) |
+OK  [| FT DistilBERT fine-tuned (L4a-L14, reused runs) | recall, vehicle damage |] -0.1053 [-0.1930, -0.0185] worse (n=38) | -0.0741 [-0.1481, -0.0101] worse (n=36) |
+OK  [| FT MiniLM fine-tuned (L4a-L14-MiniLM) | macro-F1 |] +0.0022 [-0.0162, +0.0202] not distinguishable | +0.0133 [-0.0085, +0.0381] not distinguishable |
+OK  [| FT MiniLM fine-tuned (L4a-L14-MiniLM) | balanced accuracy |] -0.0170 [-0.0376, +0.0018] not distinguishable | -0.0034 [-0.0278, +0.0286] not distinguishable |
+OK  [| FT MiniLM fine-tuned (L4a-L14-MiniLM) | recall, injured or dead |] -0.0417 [-0.1429, +0.0000] not resolvable (n=8) | +0.1333 [+0.0000, +0.3704] not resolvable (n=10) |
+OK  [| FT MiniLM fine-tuned (L4a-L14-MiniLM) | recall, vehicle damage |] -0.0175 [-0.1204, +0.0894] not distinguishable (n=38) | -0.0556 [-0.1395, +0.0115] not distinguishable (n=36) |
+OK  [In these two setups fine-tuned text fusion showed no detectable benefit] This does not show that text is useless
+OK  [In these two setups fine-tuned text fusion showed no detectable benefit] the arms differ in more than the text (trainable parameters, head and recipe, see above), and the test is underpowered
+OK  [Macro-F1 is not distinguishable from the frozen head for both fine-tuned models] on dev (DistilBERT -0.0011 [-0.0177, +0.0153], MiniLM +0.0022 [-0.0162, +0.0202])
+OK  [Macro-F1 is not distinguishable from the frozen head for both fine-tuned models] on test (DistilBERT -0.0001 [-0.0224, +0.0228], MiniLM +0.0133 [-0.0085, +0.0381])
+OK  [For DistilBERT, balanced accuracy (] balanced accuracy (-0.0313 [-0.0505, -0.0150]) and vehicle recall (-0.1053 [-0.1930, -0.0185], n = 38) are worse than the frozen head on dev
+OK  [For DistilBERT, balanced accuracy (] on test vehicle recall is also worse (-0.0741 [-0.1481, -0.0101], n = 36)
+OK  [For DistilBERT, balanced accuracy (] upper bound of +0.0009 (it touches zero; not distinguishable)
+OK  [For DistilBERT, balanced accuracy (] These come from 16 uncorrected comparisons, so they are weak evidence in either direction
+OK  [All four injured-or-dead recall comparisons] (n = 8 dev, n = 10 test) have a CI that includes 0
+OK  [All four injured-or-dead recall comparisons] "not resolvable" under the existing rule
+OK  [The MiniLM test columns in the table are reporting only] They are not selection results, and no claim here rests on them.
+OK  [The DistilBERT arm and the frozen head share the same test mean] (0.6350) by coincidence
+OK  [Multiplicity: 9.10 has] 38 arm slots (35 distinct trained configurations)
+OK  [Multiplicity: 9.10 has] 16 pairwise comparisons (2 arms x 4 metrics x 2 splits)
+OK  [Multiplicity: 9.10 has] neither set is corrected for multiplicity
+OK  [Under the pre-registered rule the pick is the frozen image-only head] the simplest model within noise of the best under the pre-registered rule; fine-tuned text fusion showed no detectable benefit; the test is underpowered
 OK  [report/ablation_section.tex: L0 & v1 buggy] & 3 &
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.557 ± 0.016
 OK  [report/ablation_section.tex: L0 & v1 buggy] 0.767 ± 0.002
@@ -1553,4 +1592,27 @@ OK  [report/ablation_section.tex: The configuration with the best dev score in t
 OK  [report/ablation_section.tex: The configuration with the best dev score in the grid] on test (0.6438)
 OK  [report/ablation_section.tex: The final frozen pipeline (test macro-F1] test macro-F1 0.6350, test-sampling interval 0.598 to 0.663
 OK  [report/ablation_section.tex: The final frozen pipeline (test macro-F1] about ± 0.04 wide
-OK  [report/ablation_section.tex: There are 38 arm slots] There are 38 arm slots (27, 5, 2 and 4 per decision) and 35 distinct trained configurations
+OK  [report/ablation_section.tex: There are 38 arm slots (27, 5, 2 and 4 per decision)] There are 38 arm slots (27, 5, 2 and 4 per decision) and 35 distinct trained configurations
+OK  [report/ablation_section.tex: Frozen image-only head & 116,232 & ] 0.6083 ± 0.0052
+OK  [report/ablation_section.tex: Frozen image-only head & 116,232 & ] 0.679
+OK  [report/ablation_section.tex: Frozen image-only head & 116,232 & ] 0.6350 ± 0.0040
+OK  [report/ablation_section.tex: Frozen image-only head & 116,232 & ] 0.687
+OK  [report/ablation_section.tex: DistilBERT fine-tuned (reused runs) & 67,418,376 & ] 0.6072 ± 0.0097
+OK  [report/ablation_section.tex: DistilBERT fine-tuned (reused runs) & 67,418,376 & ] 0.648
+OK  [report/ablation_section.tex: DistilBERT fine-tuned (reused runs) & 67,418,376 & ] 0.6350 ± 0.0120
+OK  [report/ablation_section.tex: DistilBERT fine-tuned (reused runs) & 67,418,376 & ] 0.657
+OK  [report/ablation_section.tex: MiniLM fine-tuned & 23,670,408 & ] 0.6104 ± 0.0093
+OK  [report/ablation_section.tex: MiniLM fine-tuned & 23,670,408 & ] 0.663
+OK  [report/ablation_section.tex: MiniLM fine-tuned & 23,670,408 & ] 0.6483 ± 0.0079
+OK  [report/ablation_section.tex: MiniLM fine-tuned & 23,670,408 & ] 0.684
+OK  [report/ablation_section.tex: Fine-tuned fusion against the frozen image-only head (Task 2, CLIP L/14 features] seeds 42, 43, 44
+OK  [report/ablation_section.tex: Fine-tuned fusion was compared with the frozen image-only head under a rule fixed in advance] seeds 42, 43, 44
+OK  [report/ablation_section.tex: The arms differ in more than the text: the frozen head has] has 116,232 trainable parameters and the fine-tuned models 23,670,408 and 67,418,376
+OK  [report/ablation_section.tex: On dev all three arms are tied] by +0.0022 with interval -0.0162 to +0.0202
+OK  [report/ablation_section.tex: Macro-F1 is not distinguishable from the frozen head for either fine-tuned model] (test differences -0.0001 and +0.0133, intervals -0.0224 to +0.0228 and -0.0085 to +0.0381)
+OK  [report/ablation_section.tex: For DistilBERT, balanced accuracy (] balanced accuracy (-0.0313) and vehicle recall (-0.1053, n = 38)
+OK  [report/ablation_section.tex: For DistilBERT, balanced accuracy (] upper bound of +0.0009
+OK  [report/ablation_section.tex: These come from 16 uncorrected comparisons] 16 uncorrected comparisons
+OK  [report/ablation_section.tex: The test columns are reporting only and none is a selection result] (8 dev and 10 test rows)
+OK  [report/ablation_section.tex: There are 38 arm slots (35 distinct configurations) and, separately] There are 38 arm slots (35 distinct configurations) and, separately, 16 pairwise comparisons here
+OK  [report/ablation_section.tex: The three MiniLM runs took about] about 17 minutes in total
