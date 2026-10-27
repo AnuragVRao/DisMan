@@ -1,0 +1,39 @@
+{
+ "task": "T3",
+ "tier": "cpu",
+ "n_test": 529,
+ "votes": {
+  "majority": {
+   "macro_f1": 0.4914439729128235,
+   "ci": {
+    "point": 0.4914439729128235,
+    "ci95_low": 0.43661629461653334,
+    "ci95_high": 0.5435060273134927,
+    "n_boot": 10000
+   }
+  },
+  "class_balanced": {
+   "macro_f1": 0.4953500264398481,
+   "ci": {
+    "point": 0.4953500264398481,
+    "ci95_low": 0.4485226340396472,
+    "ci95_high": 0.5413387741650877,
+    "n_boot": 10000
+   }
+  }
+ },
+ "class_balanced_minus_majority": {
+  "diff": 0.003906053527024611,
+  "boot_mean_diff": 0.004610795193268992,
+  "ci95_low": -0.04424918119339716,
+  "ci95_high": 0.05540541208863846,
+  "excludes_zero": false,
+  "n_boot": 10000,
+  "verdict": "not distinguishable"
+ },
+ "n_predictions_differing": 152,
+ "part": "G",
+ "config": "g_t3_knn_vote_boot",
+ "seed": 42,
+ "git_commit": "3a0cf7d"
+}

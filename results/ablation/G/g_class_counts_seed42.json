@@ -1,0 +1,108 @@
+{
+ "task": "T1/T2/T3",
+ "tier": "cpu",
+ "counts": {
+  "informative": {
+   "table": {
+    "informative": {
+     "train": 9638,
+     "dev": 1612,
+     "test": 1612
+    },
+    "not_informative": {
+     "train": 3970,
+     "dev": 625,
+     "test": 625
+    }
+   },
+   "n": {
+    "train": 13608,
+    "dev": 2237,
+    "test": 2237
+   },
+   "ratio_train": 2.427707808564232,
+   "ratio_test": 2.5792
+  },
+  "humanitarian": {
+   "table": {
+    "Affected individuals": {
+     "train": 397,
+     "dev": 77,
+     "test": 88
+    },
+    "Infrastructure and utility damage": {
+     "train": 2761,
+     "dev": 405,
+     "test": 458
+    },
+    "Injured or dead people": {
+     "train": 92,
+     "dev": 8,
+     "test": 10
+    },
+    "Missing or found people": {
+     "train": 9,
+     "dev": 2,
+     "test": 3
+    },
+    "Not humanitarian": {
+     "train": 6565,
+     "dev": 1088,
+     "test": 1055
+    },
+    "Other relevant information": {
+     "train": 1860,
+     "dev": 338,
+     "test": 331
+    },
+    "Rescue, volunteering or donation effort": {
+     "train": 1694,
+     "dev": 281,
+     "test": 256
+    },
+    "Vehicle damage": {
+     "train": 230,
+     "dev": 38,
+     "test": 36
+    }
+   },
+   "n": {
+    "train": 13608,
+    "dev": 2237,
+    "test": 2237
+   },
+   "ratio_train": 729.4444444444445,
+   "ratio_test": 351.6666666666667
+  },
+  "damage": {
+   "table": {
+    "Little or no damage": {
+     "train": 333,
+     "dev": 71,
+     "test": 71
+    },
+    "Mild damage": {
+     "train": 587,
+     "dev": 126,
+     "test": 126
+    },
+    "Severe damage": {
+     "train": 1548,
+     "dev": 332,
+     "test": 332
+    }
+   },
+   "n": {
+    "train": 2468,
+    "dev": 529,
+    "test": 529
+   },
+   "ratio_train": 4.648648648648648,
+   "ratio_test": 4.676056338028169
+  }
+ },
+ "part": "G",
+ "config": "g_class_counts",
+ "seed": 42,
+ "git_commit": "3a0cf7d"
+}
