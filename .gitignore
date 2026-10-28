@@ -8,3 +8,4 @@ venv/
 demo_examples/*.jpg
 demo_examples/*.jpeg
 demo_examples/*.png
+report/
