@@ -511,7 +511,7 @@ def tchk(anchor, expected, cover_anchor=False):
 cc_T3_LABELS = LABELS_T3 = ["Severe damage", "Mild damage", "Little or no damage"]   # the 3 real classes (v2)
 # 1. every embedded table must be identical to the generated tables.tex block; its numbers are re-derived from the JSONs below
 GEN = (RES / "tables.tex").read_text(encoding="utf8")
-for blk in re.findall(r"\\begin\{table\}.*?\\end\{table\}", TEX_RAW, re.S):
+for blk in [m_.group(0) for m_ in re.finditer(r"\\begin\{(table\*?)\}.*?\\end\{\1\}", TEX_RAW, re.S)]:
     tex_nchecks += 1
     if blk.strip() not in GEN:
         tex_bad.append(("embedded table", "identical to results/ablation/tables.tex", blk.splitlines()[3][:100]))
@@ -1589,7 +1589,7 @@ tchk("The picks add up to frozen CLIP L/14 features", [f"whose test macro-F1 is 
 tchk("Limitations: the minority class has", [f"has {_gmiss_ct['train']} training, {_gmiss_ct['dev']} development and {_gmiss_ct['test']} test rows", "F1 = 0 in every arm", "cannot exceed 0.875", "about ± 0.04 wide against gaps between arms of about 0.01"])
 
 # 5. coverage: every numeric token in the .tex must lie inside a verified span (or be structural LaTeX such as labels)
-STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{[^}]*\}", r"\\begin\{table\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]
+STRUCT = [r"[LB]/\d+", r"\\ref\{[^}]*\}", r"\\label\{[^}]*\}", r"\\begin\{tabular\}\{.*", r"\\begin\{table\*?\}\[[^\]]*\]", r"Tasks? \d\.?", r"\\setlength\{\\tabcolsep\}\{\d+pt\}"]
 uncovered = []
 for i, l in TEX:
     masked = l
