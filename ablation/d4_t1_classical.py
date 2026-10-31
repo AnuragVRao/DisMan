@@ -10,6 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 import d4_t1_data as d4
+import d4_prov
 import metrics_all as M
 from common import cc
 
@@ -27,7 +28,7 @@ if __name__ == "__main__":
         pipe = Pipeline([("tfidf", TfidfVectorizer(max_features=50_000, ngram_range=(1, 2), sublinear_tf=True, min_df=2)), ("clf", mk())])
         pipe.fit(S["train"].text, D["y"]["train"])
         pd_, pt_ = pipe.predict_proba(S["dev"].text), pipe.predict_proba(S["test"].text)
-        row = M.save_run("T1", name, SEED, d4.LABELS, D["y"]["dev"], pd_, D["y"]["test"], pt_)
+        row = M.save_run("T1", name, SEED, d4.LABELS, D["y"]["dev"], pd_, D["y"]["test"], pt_, extra=d4_prov.prov("informative", "none (TF-IDF + %s fit on T1 train)" % name))
         t, dv = row["test"], row["dev"]
         print(f"{name:10s} dev wF1 {dv['weighted_f1']:.4f} | test acc {t['acc']:.4f} wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} "
               f"MCC {t['mcc']:.4f} AUC {t['roc_auc']:.4f} ECE {t['ece']:.4f}", flush=True)

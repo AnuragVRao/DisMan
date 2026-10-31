@@ -25,7 +25,7 @@ def data():
             assert set(df.label.unique()) <= set(LABELS), (s, df.label.unique())
             raw = pd.read_csv(SPLIT_DIR / f"task_informative_text_img_{s}.tsv", sep="\t", dtype=str).drop_duplicates(subset=["image_id"]).set_index("image_id")
             assert (raw.loc[df.image_id, "label_text"].str.strip().values == df.label.values).all(), "label is not the raw label_text column"
-        raw_train = pd.read_csv(SPLIT_DIR / "task_informative_text_img_train.tsv", sep="	", dtype=str)
+        raw_train = pd.read_csv(SPLIT_DIR / "task_informative_text_img_train.tsv", sep="\t", dtype=str)
         assert set(S["train"].image_id) <= set(raw_train.image_id), "T1 training rows must come from the T1 train file only"
         assert not (set(S["train"].tweet_id) & (set(S["dev"].tweet_id) | set(S["test"].tweet_id))), "T1 train shares tweets with dev/test"
         _D.update(S=S, y={s: np.array([LABELS.index(l) for l in S[s].label]) for s in S}, ids={s: S[s].image_id.tolist() for s in S})

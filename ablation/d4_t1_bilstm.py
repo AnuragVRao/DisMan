@@ -12,6 +12,7 @@ import torch.nn as nn
 from sklearn.metrics import f1_score
 
 import d4_t1_data as d4
+import d4_prov
 import metrics_all as M
 from common import ART, cc
 
@@ -79,6 +80,6 @@ if __name__ == "__main__":
             if f > best:
                 best, best_ep = f, ep; best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         model.load_state_dict(best_state)
-        row = M.save_run("T1", "bilstm_glove", seed, d4.LABELS, D["y"]["dev"], logits(model, X["dev"]), D["y"]["test"], logits(model, X["test"]), extra=dict(best_epoch=best_ep))
+        row = M.save_run("T1", "bilstm_glove", seed, d4.LABELS, D["y"]["dev"], logits(model, X["dev"]), D["y"]["test"], logits(model, X["test"]), extra=dict(best_epoch=best_ep, **d4_prov.prov("informative", "none (BiLSTM random init; frozen GloVe Twitter 200d)")))
         t = row["test"]
         print(f"bilstm seed {seed}: ep {best_ep} dev wF1 {best:.4f} | test acc {t['acc']:.4f} wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} MCC {t['mcc']:.4f} AUC {t['roc_auc']:.4f}", flush=True)

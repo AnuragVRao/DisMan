@@ -11,6 +11,7 @@ from torch.optim import AdamW
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, get_linear_schedule_with_warmup
 
 import d4_t1_data as d4
+import d4_prov
 import metrics_all as M
 from common import cc
 
@@ -80,7 +81,7 @@ if __name__ == "__main__":
                 best, best_ep = f, ep; best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         model.load_state_dict(best_state)
         zd, zt = predict(model, *X["dev"]), predict(model, *X["test"])
-        row = M.save_run("T1", NAME, seed, d4.LABELS, D["y"]["dev"], zd, D["y"]["test"], zt, extra=dict(best_epoch=best_ep, wall_clock_s=time.time() - t0))
+        row = M.save_run("T1", NAME, seed, d4.LABELS, D["y"]["dev"], zd, D["y"]["test"], zt, extra=dict(best_epoch=best_ep, wall_clock_s=time.time() - t0, **d4_prov.prov("informative", "vinai/bertweet-base")))
         t = row["test"]
         print(f"DONE seed {seed}: best ep {best_ep} dev wF1 {best:.4f} | test acc {t['acc']:.4f} wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} "
               f"MCC {t['mcc']:.4f} AUC {t['roc_auc']:.4f}", flush=True)

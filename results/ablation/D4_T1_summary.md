@@ -1,4 +1,4 @@
-﻿# Task 1 summary (text label; sorted by dev weighted F1; mean ± std over seeds, deterministic models have 1 seed)
+# Task 1 summary (text label; sorted by dev weighted F1; mean ± std over seeds, deterministic models have 1 seed)
 
 | Model | seeds | dev wF1 | dev bal-acc | test acc | test wF1 | test macro-F1 | test bal-acc | test MCC | test ROC-AUC |
 |---|---|---|---|---|---|---|---|---|---|

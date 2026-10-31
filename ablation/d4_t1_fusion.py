@@ -5,14 +5,20 @@ import sys
 
 import numpy as np
 
+import d4_prov
 import metrics_all as M
+
+
+TASK_NAME = {"T1": "informative", "T2": "humanitarian"}
 
 
 def load(task, name, seed):
     try:
-        return M.load_run(task, name, seed)
+        r = M.load_run(task, name, seed)
     except FileNotFoundError:
-        return M.load_run(task, name, 42)
+        r = M.load_run(task, name, 42)
+    d4_prov.assert_run(r, TASK_NAME[task], f"{task}_{name}")          # task_name, label_col, train-split sha256, init_from, feature encoder
+    return r
 
 
 def calibrated(run):
@@ -28,6 +34,7 @@ if __name__ == "__main__":
             ra, rb = load(task, a, seed), load(task, b, seed)
             assert (ra["y_dev"] == rb["y_dev"]).all() and (ra["y_test"] == rb["y_test"]).all()
             da, ta, tempa = calibrated(ra); db, tb, tempb = calibrated(rb)
-            row = M.save_run(task, f"late_{a}+{b}", seed, ra["labels"], ra["y_dev"], (da + db) / 2, ra["y_test"], (ta + tb) / 2, extra=dict(temps=[tempa, tempb]))
+            row = M.save_run(task, f"late_{a}+{b}", seed, ra["labels"], ra["y_dev"], (da + db) / 2, ra["y_test"], (ta + tb) / 2, extra=dict(temps=[tempa, tempb], components=[a, b],
+                                                                                                                       **d4_prov.prov(TASK_NAME[task], f"none (calibrated average of {a} and {b})")))
             t, d = row["test"], row["dev"]
             print(f"late {a}+{b} seed {seed}: T=({tempa:.2f},{tempb:.2f}) dev wF1 {d['weighted_f1']:.4f} macroF1 {d['macro_f1']:.4f} | test wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} acc {t['acc']:.4f}", flush=True)

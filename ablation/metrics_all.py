@@ -74,6 +74,8 @@ def fusion_gain(fused, *unimodal, key="macro_f1"):
 def save_run(task, name, seed, labels, y_dev, p_dev, y_test, p_test, extra=None):
     """One JSON per run holding dev and test probabilities and the full metric set on both (test is scored once; dev is for selection)."""
     RUN_DIR.mkdir(parents=True, exist_ok=True)
+    need = ("task_name", "label_col", "train_split_sha256", "init_from", "feature_cache")
+    assert extra and all(k in extra for k in need), f"save_run needs provenance keys {need} (see d4_prov.prov)"
     row = dict(task=task, name=name, seed=seed, labels=list(labels), dev=evaluate(y_dev, p_dev, labels), test=evaluate(y_test, p_test, labels),
                y_dev=np.asarray(y_dev).tolist(), y_test=np.asarray(y_test).tolist(),
                probs_dev=np.round(to_probs(p_dev), 6).tolist(), probs_test=np.round(to_probs(p_test), 6).tolist(), **(extra or {}))

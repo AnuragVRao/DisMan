@@ -12,6 +12,7 @@ from torch.optim import AdamW, lr_scheduler
 from torch.utils.data import DataLoader, TensorDataset
 
 import d4_t1_data as d4
+import d4_prov
 import metrics_all as M
 from common import ABL_ART, cc
 
@@ -25,6 +26,7 @@ def feats(name):
         d = ABL_ART / "d4_feats" / name
         assert json.load(open(d / f"informative_{s}.ids.json")) == D["ids"][s]
         out[s] = torch.tensor(np.load(d / f"informative_{s}.npy"), dtype=torch.float32)
+    assert json.load(open(d / "meta.json"))["model"] in d4_prov.HUB, "feature encoder is not a pretrained hub model"
     return out
 
 
@@ -73,6 +75,6 @@ if __name__ == "__main__":
         x = feats(name)
         for seed in SEEDS:
             model, dev_f, ep = train(x, D["y"], seed)
-            row = M.save_run("T1", f"img_{name}", seed, d4.LABELS, D["y"]["dev"], logits(model, x["dev"]), D["y"]["test"], logits(model, x["test"]), extra=dict(best_epoch=ep))
+            row = M.save_run("T1", f"img_{name}", seed, d4.LABELS, D["y"]["dev"], logits(model, x["dev"]), D["y"]["test"], logits(model, x["test"]), extra=dict(best_epoch=ep, **d4_prov.prov("informative", f"none (head trained from scratch on frozen {name} features)", feature=name)))
             t = row["test"]
             print(f"img_{name} seed {seed}: ep {ep} dev wF1 {dev_f:.4f} | test acc {t['acc']:.4f} wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} MCC {t['mcc']:.4f} AUC {t['roc_auc']:.4f}", flush=True)

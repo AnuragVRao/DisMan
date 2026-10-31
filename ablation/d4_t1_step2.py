@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.utils.class_weight import compute_sample_weight
 
 import d4_t1_data as d4
+import d4_prov
 import metrics_all as M
 from bootstrap_utils import N_BOOT, resample_idx
 from common import ART, RES, cc
@@ -30,14 +31,14 @@ def fair_nb(D):
         pipe = Pipeline([("tfidf", vec()), ("clf", mk())])
         kw = {"clf__sample_weight": compute_sample_weight("balanced", y["train"])} if weighted else {}
         pipe.fit(S["train"].text, y["train"], **kw)
-        out[name] = M.save_run("T1", name, 42, d4.LABELS, y["dev"], pipe.predict_proba(S["dev"].text), y["test"], pipe.predict_proba(S["test"].text), extra=dict(posthoc=True))
+        out[name] = M.save_run("T1", name, 42, d4.LABELS, y["dev"], pipe.predict_proba(S["dev"].text), y["test"], pipe.predict_proba(S["test"].text), extra=dict(posthoc=True, **d4_prov.prov("informative", "none (TF-IDF + %s fit on T1 train)" % name)))
     return out
 
 
 def majority(D):
     y = D["y"]; maj = int(np.bincount(y["train"]).argmax())                        # "always informative" (the train majority)
     p = lambda n: np.tile(np.eye(2)[maj], (n, 1))
-    return M.save_run("T1", "majority", 42, d4.LABELS, y["dev"], p(len(y["dev"])), y["test"], p(len(y["test"])), extra=dict(posthoc=True, class_predicted=d4.LABELS[maj]))
+    return M.save_run("T1", "majority", 42, d4.LABELS, y["dev"], p(len(y["dev"])), y["test"], p(len(y["test"])), extra=dict(posthoc=True, class_predicted=d4.LABELS[maj], **d4_prov.prov("informative", "none (majority class of T1 train)")))
 
 
 def bal_acc_boot(y, pred, idx):
@@ -147,7 +148,7 @@ def summary():
            f"not-informative precision {tr['dev']['ni_precision']['weighted']:.3f} / {tr['test']['ni_precision']['weighted']:.3f} vs {tr['dev']['ni_precision']['unweighted']:.3f} / {tr['test']['ni_precision']['unweighted']:.3f}. "
            f"Dev balanced accuracy gain {w['point_gain']:+.4f}, 95% CI [{w['ci95'][0]:+.4f}, {w['ci95'][1]:+.4f}]. Weighted F1 and macro-F1 were not tested with a bootstrap; the arm means differ by less than the seed spread (see the table). "
            "This is a different operating point (more not-informative predictions), not a safety improvement; whether it is preferable depends on the cost of missed informative tweets.\n")
-    (RES / "D4_T1_summary.md").write_text(md, encoding="utf-8-sig")
+    (RES / "D4_T1_summary.md").write_text(md, encoding="utf-8")
     return md
 
 

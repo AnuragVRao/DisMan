@@ -176,5 +176,6 @@
    "test": 328
   },
   "note": "Step-1 matrix columns T3_* are the official damage train/dev/test splits, not the deployed index; the index is built from T3 train rows after a filter."
- }
+ },
+ "verification_note": "Independent verification of report \u00a7III-C: the official Task 3 damage splits share 62 (train-dev), 62 (train-test) and 16 (dev-test) tweets (within_task_overlap_tweet_id), matching the report; the report's tweet-disjoint claim applies to the 2,361-row index. T1 test vs that index: 328 rows (t3_deployed_index)."
 }

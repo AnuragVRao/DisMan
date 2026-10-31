@@ -1,0 +1,102 @@
+{
+ "T1_bertweet_noweight_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bertweet_noweight_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bertweet_noweight_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bertweet_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bertweet_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bertweet_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bilstm_glove_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bilstm_glove_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_bilstm_glove_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_clip_l14_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_clip_l14_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_clip_l14_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_dinov2_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_dinov2_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_dinov2_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_resnet50_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_resnet50_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_img_resnet50_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_majority_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_cnb_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_lr_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_nb_bal_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_nb_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_rf_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_tfidf_svm_seed42": {
+  "ok": true,
+  "problems": []
+ }
+}

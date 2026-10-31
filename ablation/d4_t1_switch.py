@@ -6,6 +6,7 @@ import json
 
 import numpy as np
 
+import d4_prov
 import metrics_all as M
 from bootstrap_utils import N_BOOT, RNG_SEED, resample_idx
 
@@ -24,13 +25,13 @@ def wf1(y, p, idx):
 
 
 if __name__ == "__main__":
-    base = M.load_run("T1", "tfidf_lr", 42); y = base["y_dev"]
+    base = M.load_run("T1", "tfidf_lr", 42); d4_prov.assert_run(base, "informative", "tfidf_lr"); y = base["y_dev"]
     idx = resample_idx(len(y), N_BOOT)
     f_base = wf1(y, base["probs_dev"].argmax(1), idx)
     point_base = float(M.evaluate(y, base["probs_dev"], base["labels"])["weighted_f1"])
     gains, points = [], []
     for seed in (42, 43, 44):
-        r = M.load_run("T1", "bertweet", seed); assert (r["y_dev"] == y).all()
+        r = M.load_run("T1", "bertweet", seed); d4_prov.assert_run(r, "informative", f"bertweet seed{seed}"); assert (r["y_dev"] == y).all()
         gains.append(wf1(y, r["probs_dev"].argmax(1), idx) - f_base)
         points.append(float(M.evaluate(y, r["probs_dev"], r["labels"])["weighted_f1"]) - point_base)
     avg = np.mean(gains, 0); lo, hi = np.percentile(avg, [2.5, 97.5])
