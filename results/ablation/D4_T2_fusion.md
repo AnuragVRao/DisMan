@@ -68,3 +68,14 @@ Table VIII check: L4a reproduces the report's subset numbers with the present-cl
 |---|---|---|---|---|
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | +0.0209 | +0.0201 | -0.0409 | -0.0343 |
 | t2_early_bertweet_resnet50 | -0.0381 | -0.0242 | -0.1114 | -0.0955 |
+
+## Tie-break applied to the two pre-registered comparisons (dev macro-F1)
+
+Governing text: SELECTION_RULE_DAY4.md rule 2, "Ties go to the simplest model." Rules 14-19 contain no tie wording of their own (rule 17 only defines the label "not distinguishable": the 95% CI includes 0). "Simplest" is taken as defined in the Day 2 addendum of SELECTION_RULE.md and used in D2/§VII-G: the fewest trainable parameters (counted from the instantiated model, frozen backbones excluded), then the smaller frozen backbone.
+
+| Comparison | dev macro-F1 difference [95% CI] | tied? | trainable parameters (core / other) | the rule picks | dev weighted F1 (corroboration only) |
+|---|---|---|---|---|---|
+| core − t2_L4a | -0.0243 [-0.0579, +0.0064] | yes | 135,755,784 / 67,352,840 | **t2_L4a** (fewest trainable parameters) | -0.0341 [-0.0484, -0.0200] (worse) |
+| core − t2_img_clip_b32 | -0.0074 [-0.0428, +0.0246] | yes | 135,755,784 / 199,688 | **t2_img_clip_b32** (fewest trainable parameters) | -0.0260 [-0.0413, -0.0105] (worse) |
+
+The pick rests on the tie-break (simplicity), not on a resolved difference: neither comparison shows the core model better, and dev weighted F1 (worse for the core model in both) is mentioned as corroboration only, not as a criterion.

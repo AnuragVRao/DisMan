@@ -1,0 +1,8 @@
+{
+ "core_bertweet_resnet50": 135755784,
+ "posthoc_bertweet_clip_b32": 135362568,
+ "t2_L4a": 67352840,
+ "t2_img_clip_b32_head": 199688,
+ "t2_distilbert_text": 66628104,
+ "source": "core / post-hoc: counted from the instantiated d4_t2_early_fusion.Fusion (requires_grad); others: n_params stored in results/ablation/A/t2_L4a_seed42.json and B/t2_{image,text}_only_seed42.json (frozen CLIP / ResNet50 not included)"
+}

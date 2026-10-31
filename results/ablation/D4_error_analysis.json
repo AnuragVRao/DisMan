@@ -1,0 +1,50 @@
+{
+ "T1": {
+  "model": "BERTweet (deployed; bertweet_deploy seed 42, dev temperature 1.825)",
+  "n_test": 2237,
+  "n_errors": 340,
+  "by_category": {
+   "model error": 156,
+   "text-image mismatch": 134,
+   "label ambiguity": 50
+  },
+  "sample_test_rows": [
+   9,
+   18,
+   27,
+   29,
+   21,
+   24,
+   108,
+   135,
+   7,
+   12,
+   13,
+   23
+  ]
+ },
+ "T2": {
+  "model": "L4a seed 42 (the demo's Task 2 model)",
+  "n_test": 2237,
+  "n_errors": 440,
+  "by_category": {
+   "text-image mismatch": 318,
+   "label ambiguity": 69,
+   "model error": 53
+  },
+  "sample_test_rows": [
+   2,
+   11,
+   19,
+   28,
+   39,
+   44,
+   103,
+   137,
+   43,
+   51,
+   118,
+   204
+  ]
+ }
+}

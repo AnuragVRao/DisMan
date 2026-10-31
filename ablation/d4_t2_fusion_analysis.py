@@ -151,4 +151,17 @@ if __name__ == "__main__":
     md += "\n### Fusion gain on the subsets (test; fused − best single modality of that seed)\n\n| Fused model | agreed macro-F1 | agreed wF1 | disagreed macro-F1 | disagreed wF1 |\n|---|---|---|---|---|\n"
     for n, g in out["gains"].items():
         md += f"| {n} | {sg(g['mean']['test_agreed']['macro_f1'])} | {sg(g['mean']['test_agreed']['weighted_f1'])} | {sg(g['mean']['test_disagreed']['macro_f1'])} | {sg(g['mean']['test_disagreed']['weighted_f1'])} |\n"
+    pc = json.load(open(RES / "D4_t2_param_counts.json"))
+    md += ("\n## Tie-break applied to the two pre-registered comparisons (dev macro-F1)\n\n"
+           "Governing text: SELECTION_RULE_DAY4.md rule 2, \"Ties go to the simplest model.\" Rules 14-19 contain no tie wording of their own (rule 17 only defines the label \"not distinguishable\": the 95% CI includes 0). "
+           "\"Simplest\" is taken as defined in the Day 2 addendum of SELECTION_RULE.md and used in D2/§VII-G: the fewest trainable parameters (counted from the instantiated model, frozen backbones excluded), then the smaller frozen backbone.\n\n"
+           "| Comparison | dev macro-F1 difference [95% CI] | tied? | trainable parameters (core / other) | the rule picks | dev weighted F1 (corroboration only) |\n|---|---|---|---|---|---|\n")
+    for key, other, pn in (("core_vs_L4a", L4A, pc["t2_L4a"]), ("core_vs_image_only_clip_b32", IMG_B32, pc["t2_img_clip_b32_head"])):
+        c = out["comparisons"][key]["dev"]; tied = c["macro_f1"]["verdict"] == "not distinguishable"
+        pick = (other if pn < pc["core_bertweet_resnet50"] else CORE) if tied else (CORE if c["macro_f1"]["point"] > 0 else other)
+        out["comparisons"][key]["tie_break"] = dict(tied=tied, trainable_core=pc["core_bertweet_resnet50"], trainable_other=pn, pick=pick, basis="fewest trainable parameters" if tied else "dev macro-F1 (resolved)")
+        md += (f"| core − {other} | {sg(c['macro_f1']['point'])} [{c['macro_f1']['ci95'][0]:+.4f}, {c['macro_f1']['ci95'][1]:+.4f}] | {'yes' if tied else 'no'} | {pc['core_bertweet_resnet50']:,} / {pn:,} | **{pick}** (fewest trainable parameters) | "
+               f"{sg(c['weighted_f1']['point'])} [{c['weighted_f1']['ci95'][0]:+.4f}, {c['weighted_f1']['ci95'][1]:+.4f}] ({c['weighted_f1']['verdict']}) |\n")
+    md += "\nThe pick rests on the tie-break (simplicity), not on a resolved difference: neither comparison shows the core model better, and dev weighted F1 (worse for the core model in both) is mentioned as corroboration only, not as a criterion.\n"
+    (RES / "D4_T2_fusion.json").write_text(json.dumps(out, indent=1))
     (RES / "D4_T2_fusion.md").write_text(md, encoding="utf-8"); print(md)

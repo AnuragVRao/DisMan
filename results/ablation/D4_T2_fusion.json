@@ -1560,6 +1560,13 @@
      ],
      "verdict": "worse"
     }
+   },
+   "tie_break": {
+    "tied": true,
+    "trainable_core": 135755784,
+    "trainable_other": 67352840,
+    "pick": "t2_L4a",
+    "basis": "fewest trainable parameters"
    }
   },
   "core_vs_image_only_clip_b32": {
@@ -1600,6 +1607,13 @@
      ],
      "verdict": "worse"
     }
+   },
+   "tie_break": {
+    "tied": true,
+    "trainable_core": 135755784,
+    "trainable_other": 199688,
+    "pick": "t2_img_clip_b32",
+    "basis": "fewest trainable parameters"
    }
   }
  },

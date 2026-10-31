@@ -76,8 +76,9 @@ if __name__ == "__main__":
     every = min(bt) > max(dd)
     out["bertweet_vs_distilbert_dev"] = dict(bertweet_matched_per_seed=bt, distilbert_per_seed=dd, every_bertweet_seed_exceeds_every_distilbert_seed=bool(every))
     md += ("\nBERTweet (matched recipe) vs DistilBERT text-only, per-seed dev macro-F1: BERTweet " + ", ".join(f"{v:.4f}" for v in bt) + "; DistilBERT " + ", ".join(f"{v:.4f}" for v in dd) + ". "
-           + (("Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed), but " if every else "Nominally better, not established; ")
-              + "the paired bootstrap (post-hoc; DistilBERT predictions re-inferred from its checkpoints, d4_t2_reinfer.py; seed-averaged, 10,000 resamples) gives, for macro-F1, "
+           + (("Consistent at every seed on dev, but the paired dev interval marginally includes zero "
+               f"[{pb['dev']['macro_f1']['ci95'][0]:+.4f}, {pb['dev']['macro_f1']['ci95'][1]:+.4f}]: small, not robust. " if every else "Nominally better, not established. ")
+              + "Detail of the paired bootstrap (post-hoc; DistilBERT predictions re-inferred from its checkpoints, d4_t2_reinfer.py; seed-averaged, 10,000 resamples), for macro-F1, "
               + f"dev {pb['dev']['macro_f1']['point']:+.4f} [{pb['dev']['macro_f1']['ci95'][0]:+.4f}, {pb['dev']['macro_f1']['ci95'][1]:+.4f}] ({pb['dev']['macro_f1']['verdict']}) and "
               + f"test {pb['test']['macro_f1']['point']:+.4f} [{pb['test']['macro_f1']['ci95'][0]:+.4f}, {pb['test']['macro_f1']['ci95'][1]:+.4f}] ({pb['test']['macro_f1']['verdict']}); for weighted F1, "
               + f"dev {pb['dev']['weighted_f1']['point']:+.4f} ({pb['dev']['weighted_f1']['verdict']}) and test {pb['test']['weighted_f1']['point']:+.4f} ({pb['test']['weighted_f1']['verdict']}). ")
