@@ -44,7 +44,141 @@
   "partners": {
    "informative": "not_informative",
    "not_informative": "informative"
-  }
+  },
+  "sample": [
+   {
+    "i": 7,
+    "cat": "model error",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.8587553359828946,
+    "tweet": "Vet In Puerto Rico Hurricane Worse Than War - Shared from https://t.co/xpjHFigsHX. [https://t.co/swKJylxTvd] https://t.co/xkW9fQE2Tk",
+    "image": "data_image/hurricane_maria/22_10_2017/922230253359116288_0.jpg",
+    "text_label": "not_informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 9,
+    "cat": "text-image mismatch",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.6769552224577062,
+    "tweet": "Houston, Corpus Christi, Beaumont & SE Texas seeing mosquitoes w/ Zika Virus: https://t.co/xgScwx2OTn #Harvey #Texas https://t.co/Bh7agkhdac",
+    "image": "data_image/hurricane_harvey/4_9_2017/904706043690745856_0.jpg",
+    "text_label": "not_informative",
+    "image_label": "informative"
+   },
+   {
+    "i": 12,
+    "cat": "label ambiguity",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.8474241928614438,
+    "tweet": "RT @RealDera: Hurricane Irma? Bring it bitch.\u00b7\u03a9\u00d1A https://t.co/4z6afuQdLZ",
+    "image": "data_image/hurricane_irma/19_9_2017/910089439770226689_0.jpg",
+    "text_label": "not_informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 13,
+    "cat": "model error",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.7858955306154841,
+    "tweet": "#Researchpreneur #ScienceAlertsThe 2017 Hurricane Season Really Is More Intense Than\u201a\u00c4\u00b6 https://t.co/e3iErcNb9e\u201a\u00c4\u00b6 https://t.co/9gWHcxa9Fs",
+    "image": "data_image/hurricane_irma/19_9_2017/910130660869730304_0.jpg",
+    "text_label": "not_informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 21,
+    "cat": "label ambiguity",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.6420082806943388,
+    "tweet": "RT @PMDNewsGov: President condoles Mexico earthquake victims https://t.co/PsuUJdAKgn https://t.co/BtK7y1DJUx",
+    "image": "data_image/mexico_earthquake/3_10_2017/915105838892748800_0.png",
+    "text_label": "not_informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 23,
+    "cat": "model error",
+    "true": "not_informative",
+    "pred": "informative",
+    "conf": 0.8089557194424274,
+    "tweet": "Will Harvey And Irma Affect Attitudes On Climate? Probably Not. https://t.co/fGe2HCZLuM https://t.co/954m7zAnZD",
+    "image": "data_image/hurricane_harvey/12_9_2017/907591489634672642_0.jpg",
+    "text_label": "not_informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 18,
+    "cat": "text-image mismatch",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.925416139434988,
+    "tweet": "Everyone's thinking it. I said it. #FridayFeeling #WelfareState #HurricaneMaria https://t.co/1yKRqqEVuL",
+    "image": "data_image/hurricane_maria/29_9_2017/913837201246511104_0.jpg",
+    "text_label": "informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 81,
+    "cat": "text-image mismatch",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.6163906311591363,
+    "tweet": "Houston Texans home game in Arlington? Harvey makes it possible https://t.co/vAnUjX29rS https://t.co/7hwOtQNNWd",
+    "image": "data_image/hurricane_harvey/27_8_2017/901826926804738048_0.jpg",
+    "text_label": "informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 99,
+    "cat": "text-image mismatch",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.781449735225938,
+    "tweet": "#MONEY #IRMA business U.S. tax code hurts American firms in M&A, study finds https://t.co/CmT7eIuMFm https://t.co/rxeM1Ceogo \u2014 Bloomber\u2026",
+    "image": "data_image/hurricane_irma/19_9_2017/910093650301997061_0.jpg",
+    "text_label": "informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 106,
+    "cat": "text-image mismatch",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.5738717220730764,
+    "tweet": "Warriors players will sign tonight\u00e2\u20ac\u2122s shooting shirts, will be auctioned off to benefit California wildfire relief https://t.co/lQxibp1YgW",
+    "image": "data_image/california_wildfires/17_10_2017/920437762117046272_0.jpg",
+    "text_label": "informative",
+    "image_label": "not_informative"
+   },
+   {
+    "i": 112,
+    "cat": "model error",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.672374481741036,
+    "tweet": "Nelson on floor saying how he and Rubio working together on Irma. Mentions proposed tax break for citrus growers. https://t.co/xsxd5X4mdo",
+    "image": "data_image/hurricane_irma/18_9_2017/909865527501312000_0.jpg",
+    "text_label": "informative",
+    "image_label": "informative"
+   },
+   {
+    "i": 135,
+    "cat": "model error",
+    "true": "informative",
+    "pred": "not_informative",
+    "conf": 0.5430044174244253,
+    "tweet": "California Wildfires Evacuees Offered Free Haircuts & Chiropractic\u00c2 Care https://t.co/zwiIyLeqw6 https://t.co/KHVxdwRcB1",
+    "image": "data_image/california_wildfires/15_10_2017/919668667226374145_0.jpg",
+    "text_label": "informative",
+    "image_label": "informative"
+   }
+  ]
  },
  "T2": {
   "model": "L4a seed 42 (the demo's Task 2 model; temperature 1.185)",
@@ -136,6 +270,140 @@
    "Other relevant information": "Not humanitarian",
    "Rescue, volunteering or donation effort": "Not humanitarian",
    "Vehicle damage": "Infrastructure and utility damage"
-  }
+  },
+  "sample": [
+   {
+    "i": 39,
+    "cat": "model error",
+    "true": "Not humanitarian",
+    "pred": "Other relevant information",
+    "conf": 0.35871681259832255,
+    "tweet": "First Harvey, Then Irma and Jose. Why? It\u2019s the Season. https://t.co/LWOrXWhFWN https://t.co/R32Wqmx615",
+    "image": "data_image/hurricane_irma/18_9_2017/909688082911203328_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 44,
+    "cat": "model error",
+    "true": "Not humanitarian",
+    "pred": "Other relevant information",
+    "conf": 0.796617992161852,
+    "tweet": "INBOX: @SpeakerStraus issues #Harvey-related interim charges: #txlege https://t.co/Y8t7Skz92M",
+    "image": "data_image/hurricane_harvey/14_9_2017/908359896994926596_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 206,
+    "cat": "model error",
+    "true": "Not humanitarian",
+    "pred": "Other relevant information",
+    "conf": 0.966688061377015,
+    "tweet": "Tornado Watch for most of south Florida until 12AM Sept 10th https://t.co/jsC3W71b1h",
+    "image": "data_image/hurricane_harvey/9_9_2017/906551249121812485_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 43,
+    "cat": "model error",
+    "true": "Not humanitarian",
+    "pred": "Rescue, volunteering or donation effort",
+    "conf": 0.5902660175759225,
+    "tweet": "@realDonaldTrump And @fema ahead of #HurricaneMaria and #HurracaineIrma !! The #FakeNewsMedia never reported this !! https://t.co/Lb9DPaay3A",
+    "image": "data_image/hurricane_maria/30_9_2017/914096124776058880_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 45,
+    "cat": "text-image mismatch",
+    "true": "Not humanitarian",
+    "pred": "Rescue, volunteering or donation effort",
+    "conf": 0.8870652945716703,
+    "tweet": "@MAHealthHosp Prez & CEO Lynn Nicholas seeing off nurse/lab tech volunteers heading for Harvey relief. https://t.co/u6hp8K39QN",
+    "image": "data_image/hurricane_harvey/6_9_2017/905425857078071296_0.jpg",
+    "text_label": "Rescue, volunteering or donation effort",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 51,
+    "cat": "model error",
+    "true": "Not humanitarian",
+    "pred": "Rescue, volunteering or donation effort",
+    "conf": 0.8306507907617735,
+    "tweet": "@realDonaldTrump grabbing Hurricane Harvey by the pussy. #FakeNews CAN'T keep ignoring this heroism! https://t.co/dSHiEK4cLs",
+    "image": "data_image/hurricane_harvey/13_9_2017/907794445063598081_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 11,
+    "cat": "text-image mismatch",
+    "true": "Other relevant information",
+    "pred": "Not humanitarian",
+    "conf": 0.8690694751342269,
+    "tweet": "Puerto Rico is now a country! Don't believe me, read @Newsweek https://t.co/kvXEOLjDNb https://t.co/6qxFpeMfPh",
+    "image": "data_image/hurricane_maria/26_10_2017/923636376393928704_0.jpg",
+    "text_label": "Not humanitarian",
+    "image_label": "Other relevant information"
+   },
+   {
+    "i": 137,
+    "cat": "model error",
+    "true": "Other relevant information",
+    "pred": "Not humanitarian",
+    "conf": 0.9015410837871976,
+    "tweet": "Help to close the zoo located in Mayag\u00c3\u00bcez, Puerto Rico for animal mistreatment! Plz sign: https://t.co/sPeGcdSYQm https://t.co/gi3hyJWAbc",
+    "image": "data_image/hurricane_maria/5_10_2017/916037888357302272_0.jpg",
+    "text_label": "Other relevant information",
+    "image_label": "Other relevant information"
+   },
+   {
+    "i": 202,
+    "cat": "text-image mismatch",
+    "true": "Other relevant information",
+    "pred": "Not humanitarian",
+    "conf": 0.6815822032388612,
+    "tweet": "Some of the disgusting top comments on Fox News' post about the Iran earthquake that has killed over 200 people https://t.co/1WGzyUXzu2",
+    "image": "data_image/iraq_iran_earthquake/13_11_2017/930033039878606848_0.jpg",
+    "text_label": "Injured or dead people",
+    "image_label": "Other relevant information"
+   },
+   {
+    "i": 38,
+    "cat": "text-image mismatch",
+    "true": "Not humanitarian",
+    "pred": "Infrastructure and utility damage",
+    "conf": 0.5026167421118746,
+    "tweet": "Harvey was a jerk. Always bring a kayak. https://t.co/BVlhASxhUf",
+    "image": "data_image/hurricane_harvey/11_9_2017/907114204540305408_0.jpg",
+    "text_label": "Other relevant information",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 131,
+    "cat": "text-image mismatch",
+    "true": "Not humanitarian",
+    "pred": "Infrastructure and utility damage",
+    "conf": 0.8601565687581691,
+    "tweet": "Tree tunnels to control colombo floods https://t.co/dRg4RVFEal #flood #SriLanka #colombo https://t.co/c6KRkN3pmn",
+    "image": "data_image/srilanka_floods/25_6_2017/878803403157061632_0.jpg",
+    "text_label": "Other relevant information",
+    "image_label": "Not humanitarian"
+   },
+   {
+    "i": 182,
+    "cat": "text-image mismatch",
+    "true": "Not humanitarian",
+    "pred": "Infrastructure and utility damage",
+    "conf": 0.6187567010758828,
+    "tweet": "A hard days work cleaning up #Irma debris always goes up in smoke at #HorseMintFarm https://t.co/qElzoZPWS5",
+    "image": "data_image/hurricane_irma/18_9_2017/909744481330765824_0.jpg",
+    "text_label": "Rescue, volunteering or donation effort",
+    "image_label": "Not humanitarian"
+   }
+  ]
  }
 }

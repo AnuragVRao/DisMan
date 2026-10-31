@@ -118,7 +118,8 @@ if __name__ == "__main__":
         tag, model, errs, n, labels, partner, kind = analyse(task)
         sample, ranked, pairs, cap = select(errs, len(labels)); cnt = Counter(e["cat"] for e in errs)
         summary[tag] = dict(model=model, n_test=n, n_errors=len(errs), by_category=dict(cnt), cap_per_pair=cap, sample_test_rows=[e["i"] for e in sample], sample_categories=dict(Counter(e["cat"] for e in sample)),
-                            ranked_pairs=[[p[0], p[1], pairs[p]] for p in ranked[:10]], near_dup_kind=kind, partners={labels[c]: labels[p] for c, p in partner.items()})
+                            ranked_pairs=[[p[0], p[1], pairs[p]] for p in ranked[:10]], near_dup_kind=kind, partners={labels[c]: labels[p] for c, p in partner.items()},
+                            sample=[dict(i=e["i"], cat=e["cat"], true=e["true"], pred=e["pred"], conf=e["conf"], tweet=re.sub(r"\s+", " ", html.unescape(e["tweet"])).strip(), image=e["image"], text_label=e["text_label"], image_label=e["image_label"]) for e in sample])
         md.append(f"\n## {tag}: {model}\n\n{len(errs)} errors on {n} test rows ({len(errs) / n:.1%}); category counts over ALL errors: " + ", ".join(f"{c} {cnt.get(c, 0)}" for c in CATS)
                   + f". Sample categories: " + ", ".join(f"{c} {summary[tag]['sample_categories'].get(c, 0)}" for c in CATS) + f". Cap per pair: {cap}. Near-duplicate criterion: {kind}.\n\n")
         md.append("| # | test row | category | image (path under data/CrisisMMD_v2.0) | tweet | true | predicted (calibrated p) | text label / image label |\n|---|---|---|---|---|---|---|---|\n")
