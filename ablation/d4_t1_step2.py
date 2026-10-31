@@ -52,7 +52,8 @@ def weighting_posthoc():
         for s in SEEDS:
             r = M.load_run("T1", arm, s)
             rows[f"{arm}_seed{s}"] = {sp: dict(balanced_acc=r[sp]["balanced_acc"], ni_recall=r[sp]["per_class"]["not_informative"]["recall"],
-                                              ni_precision=r[sp]["per_class"]["not_informative"]["precision"], macro_f1=r[sp]["macro_f1"], weighted_f1=r[sp]["weighted_f1"])
+                                              ni_precision=r[sp]["per_class"]["not_informative"]["precision"], inf_recall=r[sp]["per_class"]["informative"]["recall"],
+                                              inf_precision=r[sp]["per_class"]["informative"]["precision"], macro_f1=r[sp]["macro_f1"], weighted_f1=r[sp]["weighted_f1"])
                                       for sp in ("dev", "test")}
     y = M.load_run("T1", "bertweet", 42)["y_dev"]; idx = resample_idx(len(y), N_BOOT)
     diffs = []
@@ -62,12 +63,26 @@ def weighting_posthoc():
     avg = np.mean(diffs, 0); lo, hi = np.percentile(avg, [2.5, 97.5])
     point = float(np.mean([rows[f"bertweet_seed{s}"]["dev"]["balanced_acc"] - rows[f"bertweet_noweight_seed{s}"]["dev"]["balanced_acc"] for s in SEEDS]))
     shown = bool(lo > 0 or hi < 0)
+    mean = lambda arm, sp, k: float(np.mean([rows[f"{arm}_seed{s}"][sp][k] for s in SEEDS]))
+    trade = {sp: {k: dict(weighted=mean("bertweet", sp, k), unweighted=mean("bertweet_noweight", sp, k)) for k in ("ni_recall", "inf_recall", "ni_precision", "inf_precision")} for sp in ("dev", "test")}
     verdict = ("weighting retained by pre-registration; " + ("shown to change minority recall (dev balanced accuracy CI excludes 0)" if shown
                 else "NOT shown to change minority recall (dev balanced-accuracy CI includes 0)"))
     res = dict(posthoc=True, comparison="weighted minus unweighted BERTweet, dev balanced accuracy, seed-averaged paired bootstrap", n_boot=N_BOOT, point_gain=point,
-               ci95=[float(lo), float(hi)], verdict=verdict, per_run=rows)
+               ci95=[float(lo), float(hi)], verdict=verdict, trade_off_means=trade, per_run=rows)
     (RES / "D4_T1_weighting_posthoc.json").write_text(json.dumps(res, indent=1))
     return res
+
+
+def tie_check():
+    from d4_t1_switch import wf1
+    base = M.load_run("T1", "tfidf_lr", 42); y = base["y_dev"]; idx = resample_idx(len(y), N_BOOT)
+    fb = wf1(y, base["probs_dev"].argmax(1), idx)
+    g = np.mean([wf1(y, M.load_run("T1", "bilstm_glove", s)["probs_dev"].argmax(1), idx) - fb for s in SEEDS], 0); lo, hi = np.percentile(g, [2.5, 97.5])
+    pt = float(np.mean([M.load_run("T1", "bilstm_glove", s)["dev"]["weighted_f1"] for s in SEEDS]) - base["dev"]["weighted_f1"])
+    res = dict(posthoc=True, comparison="BiLSTM+GloVe minus TF-IDF+LR, dev weighted F1, seed-averaged paired bootstrap", point_gain=pt, tfidf_dev_wf1=float(base["dev"]["weighted_f1"]),
+               bilstm_dev_wf1=float(pt + base["dev"]["weighted_f1"]), ci95=[float(lo), float(hi)],
+               verdict="tied / not resolvable" if lo <= 0 <= hi else "resolved")
+    (RES / "D4_T1_bilstm_vs_tfidf_dev.json").write_text(json.dumps(res, indent=1)); return res
 
 
 def glove_check():
@@ -121,7 +136,18 @@ def summary():
     for r in rows:
         md += (f"| {r['label']}{' (post-hoc)' if r['posthoc'] else ''} | {r['n_seeds']} | {f(r['dev_weighted_f1'])} | {f(r['dev_balanced_acc'])} | {f(r['test_acc'])} | "
                f"{f(r['test_weighted_f1'])} | {f(r['test_macro_f1'])} | {f(r['test_balanced_acc'])} | {f(r['test_mcc'])} | {f(r['test_roc_auc'])} |\n")
-    (RES / "D4_T1_summary.md").write_text(md, encoding="utf8")
+    w = json.loads((RES / "D4_T1_weighting_posthoc.json").read_text()); t = json.loads((RES / "D4_T1_bilstm_vs_tfidf_dev.json").read_text()); tr = w["trade_off_means"]
+    md += ("\n## Notes\n\n"
+           f"- **BiLSTM + GloVe vs TF-IDF + LR: tied / not resolvable.** Dev weighted F1 {t['bilstm_dev_wf1']:.4f} (BiLSTM, mean of 3 seeds) vs {t['tfidf_dev_wf1']:.4f} (TF-IDF+LR), so the BiLSTM is nominally *above* by {t['point_gain']:+.4f}; "
+           f"the paired dev bootstrap CI is [{t['ci95'][0]:+.4f}, {t['ci95'][1]:+.4f}], which includes 0. Post-hoc comparison, no multiplicity correction.\n"
+           "- **Loss weighting for BERTweet (post-hoc arm; weighting is retained because it was fixed by pre-registration).** Weighting raises not-informative recall at the cost of informative recall "
+           "(and lowers not-informative precision). Mean of 3 seeds, dev / test: "
+           f"not-informative recall {tr['dev']['ni_recall']['weighted']:.3f} / {tr['test']['ni_recall']['weighted']:.3f} (weighted) vs {tr['dev']['ni_recall']['unweighted']:.3f} / {tr['test']['ni_recall']['unweighted']:.3f} (unweighted); "
+           f"informative recall {tr['dev']['inf_recall']['weighted']:.3f} / {tr['test']['inf_recall']['weighted']:.3f} vs {tr['dev']['inf_recall']['unweighted']:.3f} / {tr['test']['inf_recall']['unweighted']:.3f}; "
+           f"not-informative precision {tr['dev']['ni_precision']['weighted']:.3f} / {tr['test']['ni_precision']['weighted']:.3f} vs {tr['dev']['ni_precision']['unweighted']:.3f} / {tr['test']['ni_precision']['unweighted']:.3f}. "
+           f"Dev balanced accuracy gain {w['point_gain']:+.4f}, 95% CI [{w['ci95'][0]:+.4f}, {w['ci95'][1]:+.4f}]. Weighted F1 and macro-F1 were not tested with a bootstrap; the arm means differ by less than the seed spread (see the table). "
+           "This is a different operating point (more not-informative predictions), not a safety improvement; whether it is preferable depends on the cost of missed informative tweets.\n")
+    (RES / "D4_T1_summary.md").write_text(md, encoding="utf-8-sig")
     return md
 
 
@@ -130,6 +156,6 @@ if __name__ == "__main__":
     for n, r in fair_nb(D).items():
         print(f"{n}: dev wF1 {r['dev']['weighted_f1']:.4f} bal-acc {r['dev']['balanced_acc']:.4f} | test wF1 {r['test']['weighted_f1']:.4f} macro-F1 {r['test']['macro_f1']:.4f}")
     mj = majority(D); print("majority: dev", {k: round(mj['dev'][k], 4) for k in ('acc', 'weighted_f1', 'macro_f1', 'mcc', 'balanced_acc')}, "test", {k: round(mj['test'][k], 4) for k in ('acc', 'weighted_f1', 'macro_f1', 'mcc', 'balanced_acc')})
-    w = weighting_posthoc(); print("weighting:", w["verdict"], f"| dev bal-acc gain {w['point_gain']:+.4f} CI {w['ci95']}")
+    print("tie:", tie_check()["verdict"]); w = weighting_posthoc(); print("weighting:", w["verdict"], f"| dev bal-acc gain {w['point_gain']:+.4f} CI {w['ci95']}")
     print("glove:", {k: v for k, v in glove_check().items() if k != "url"})
     print(summary())

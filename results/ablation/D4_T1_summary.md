@@ -1,4 +1,4 @@
-# Task 1 summary (text label; sorted by dev weighted F1; mean ± std over seeds, deterministic models have 1 seed)
+﻿# Task 1 summary (text label; sorted by dev weighted F1; mean ± std over seeds, deterministic models have 1 seed)
 
 | Model | seeds | dev wF1 | dev bal-acc | test acc | test wF1 | test macro-F1 | test bal-acc | test MCC | test ROC-AUC |
 |---|---|---|---|---|---|---|---|---|---|
@@ -15,3 +15,8 @@
 | ResNet50 head (frozen) [image-only] | 3 | 0.7106 ± 0.0047 | 0.6596 ± 0.0104 | 0.6923 ± 0.0126 | 0.7016 ± 0.0092 | 0.6436 ± 0.0057 | 0.6575 ± 0.0043 | 0.2965 ± 0.0070 | 0.7210 ± 0.0031 |
 | TF-IDF + NB, unweighted (reference) | 1 | 0.6979 | 0.5813 | 0.7671 | 0.7076 | 0.5875 | 0.5910 | 0.3419 | 0.8400 |
 | majority class (always informative) (post-hoc) | 1 | 0.6036 | 0.5000 | 0.7206 | 0.6036 | 0.4188 | 0.5000 | 0.0000 | 0.5000 |
+
+## Notes
+
+- **BiLSTM + GloVe vs TF-IDF + LR: tied / not resolvable.** Dev weighted F1 0.8114 (BiLSTM, mean of 3 seeds) vs 0.8109 (TF-IDF+LR), so the BiLSTM is nominally *above* by +0.0005; the paired dev bootstrap CI is [-0.0129, +0.0133], which includes 0. Post-hoc comparison, no multiplicity correction.
+- **Loss weighting for BERTweet (post-hoc arm; weighting is retained because it was fixed by pre-registration).** Weighting raises not-informative recall at the cost of informative recall (and lowers not-informative precision). Mean of 3 seeds, dev / test: not-informative recall 0.670 / 0.681 (weighted) vs 0.604 / 0.625 (unweighted); informative recall 0.895 / 0.902 vs 0.926 / 0.933; not-informative precision 0.714 / 0.732 vs 0.763 / 0.785. Dev balanced accuracy gain +0.0175, 95% CI [+0.0095, +0.0258]. Weighted F1 and macro-F1 were not tested with a bootstrap; the arm means differ by less than the seed spread (see the table). This is a different operating point (more not-informative predictions), not a safety improvement; whether it is preferable depends on the cost of missed informative tweets.

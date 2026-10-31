@@ -1,0 +1,12 @@
+{
+ "posthoc": true,
+ "comparison": "BiLSTM+GloVe minus TF-IDF+LR, dev weighted F1, seed-averaged paired bootstrap",
+ "point_gain": 0.00047206637813335117,
+ "tfidf_dev_wf1": 0.8109210211203757,
+ "bilstm_dev_wf1": 0.811393087498509,
+ "ci95": [
+  -0.012876093562955274,
+  0.013333072247495274
+ ],
+ "verdict": "tied / not resolvable"
+}

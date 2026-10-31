@@ -161,5 +161,20 @@
    "T3_dev": 57,
    "T3_test": 60
   }
+ },
+ "t3_deployed_index": {
+  "source": "artifacts/task3_meta.csv (rows of artifacts/task3_index.faiss)",
+  "n_rows": 2361,
+  "T1_overlap_by_tweet_id": {
+   "train": 1605,
+   "dev": 291,
+   "test": 328
+  },
+  "T1_overlap_by_image_path": {
+   "train": 1742,
+   "dev": 291,
+   "test": 328
+  },
+  "note": "Step-1 matrix columns T3_* are the official damage train/dev/test splits, not the deployed index; the index is built from T3 train rows after a filter."
  }
 }

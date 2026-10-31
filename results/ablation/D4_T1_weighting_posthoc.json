@@ -8,12 +8,52 @@
   0.02576087407811664
  ],
  "verdict": "weighting retained by pre-registration; shown to change minority recall (dev balanced accuracy CI excludes 0)",
+ "trade_off_means": {
+  "dev": {
+   "ni_recall": {
+    "weighted": 0.6704,
+    "unweighted": 0.6042666666666667
+   },
+   "inf_recall": {
+    "weighted": 0.8949545078577336,
+    "unweighted": 0.9261786600496279
+   },
+   "ni_precision": {
+    "weighted": 0.7142724447854617,
+    "unweighted": 0.7625836139889306
+   },
+   "inf_precision": {
+    "weighted": 0.8754287599479299,
+    "unweighted": 0.8581140968119904
+   }
+  },
+  "test": {
+   "ni_recall": {
+    "weighted": 0.6805333333333333,
+    "unweighted": 0.6250666666666667
+   },
+   "inf_recall": {
+    "weighted": 0.901985111662531,
+    "unweighted": 0.9334160463192722
+   },
+   "ni_precision": {
+    "weighted": 0.7323969718979012,
+    "unweighted": 0.7854137276408731
+   },
+   "inf_precision": {
+    "weighted": 0.8796323456749695,
+    "unweighted": 0.8653819379978386
+   }
+  }
+ },
  "per_run": {
   "bertweet_seed42": {
    "dev": {
     "balanced_acc": 0.7970347394540942,
     "ni_recall": 0.72,
     "ni_precision": 0.6891271056661562,
+    "inf_recall": 0.8740694789081885,
+    "inf_precision": 0.889520202020202,
     "macro_f1": 0.792976255530681,
     "weighted_f1": 0.8321345665157371
    },
@@ -21,6 +61,8 @@
     "balanced_acc": 0.8022754342431762,
     "ni_recall": 0.728,
     "ni_precision": 0.6957186544342507,
+    "inf_recall": 0.8765508684863523,
+    "inf_precision": 0.8926089703095389,
     "macro_f1": 0.7980001982182383,
     "weighted_f1": 0.8361683944912933
    }
@@ -30,6 +72,8 @@
     "balanced_acc": 0.7683468982630273,
     "ni_recall": 0.6192,
     "ni_precision": 0.7442307692307693,
+    "inf_recall": 0.9174937965260546,
+    "inf_precision": 0.8613861386138614,
     "macro_f1": 0.7822688272046237,
     "weighted_f1": 0.8291640317757618
    },
@@ -37,6 +81,8 @@
     "balanced_acc": 0.7803300248138958,
     "ni_recall": 0.632,
     "ni_precision": 0.7745098039215687,
+    "inf_recall": 0.9286600496277916,
+    "inf_precision": 0.8668210770121598,
     "macro_f1": 0.7963554468416907,
     "weighted_f1": 0.8406183176024327
    }
@@ -46,6 +92,8 @@
     "balanced_acc": 0.782650124069479,
     "ni_recall": 0.672,
     "ni_precision": 0.7094594594594594,
+    "inf_recall": 0.8933002481389578,
+    "inf_precision": 0.8753799392097265,
     "macro_f1": 0.7872355831028498,
     "weighted_f1": 0.830039582941192
    },
@@ -53,6 +101,8 @@
     "balanced_acc": 0.7911722084367245,
     "ni_recall": 0.6816,
     "ni_precision": 0.726962457337884,
+    "inf_recall": 0.9007444168734491,
+    "inf_precision": 0.8794669897032101,
     "macro_f1": 0.7967646659123526,
     "weighted_f1": 0.837892113823857
    }
@@ -62,6 +112,8 @@
     "balanced_acc": 0.7752367245657569,
     "ni_recall": 0.6336,
     "ni_precision": 0.7471698113207547,
+    "inf_recall": 0.9168734491315137,
+    "inf_precision": 0.8658465143526655,
     "macro_f1": 0.788171996728791,
     "weighted_f1": 0.8333779693578998
    },
@@ -69,6 +121,8 @@
     "balanced_acc": 0.7840689826302729,
     "ni_recall": 0.6432,
     "ni_precision": 0.768642447418738,
+    "inf_recall": 0.924937965260546,
+    "inf_precision": 0.8698949824970829,
     "macro_f1": 0.7984604457332263,
     "weighted_f1": 0.841749027539069
    }
@@ -78,6 +132,8 @@
     "balanced_acc": 0.7495047146401985,
     "ni_recall": 0.5536,
     "ni_precision": 0.7972350230414746,
+    "inf_recall": 0.9454094292803971,
+    "inf_precision": 0.8452579034941764,
     "macro_f1": 0.7729897953399503,
     "weighted_f1": 0.8257341344730561
    },
@@ -85,6 +141,8 @@
     "balanced_acc": 0.7655047146401985,
     "ni_recall": 0.5856,
     "ni_precision": 0.8061674008810573,
+    "inf_recall": 0.9454094292803971,
+    "inf_precision": 0.854739203589456,
     "macro_f1": 0.7880984001714346,
     "weighted_f1": 0.8364964630501381
    }
@@ -94,6 +152,8 @@
     "balanced_acc": 0.7709265508684864,
     "ni_recall": 0.6256,
     "ni_precision": 0.7433460076045627,
+    "inf_recall": 0.9162531017369727,
+    "inf_precision": 0.8632378725891292,
     "macro_f1": 0.7841824861240131,
     "weighted_f1": 0.8304101232019017
    },
@@ -101,6 +161,8 @@
     "balanced_acc": 0.7881503722084366,
     "ni_recall": 0.6464,
     "ni_precision": 0.781431334622824,
+    "inf_recall": 0.9299007444168734,
+    "inf_precision": 0.8715116279069768,
     "macro_f1": 0.8036452759737871,
     "weighted_f1": 0.846052579426606
    }
