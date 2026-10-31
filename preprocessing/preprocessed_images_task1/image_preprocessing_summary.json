@@ -1,0 +1,81 @@
+{
+    "total_images_verified": 18082,
+    "missing_images_count": 0,
+    "corrupt_images_count": 0,
+    "color_modes_distribution": {
+        "RGB": 17890,
+        "RGBA": 188,
+        "L": 1,
+        "P": 3
+    },
+    "dimensions": {
+        "min_width": 18,
+        "max_width": 1200,
+        "mean_width": 866.6,
+        "min_height": 16,
+        "max_height": 1200,
+        "mean_height": 655.9
+    },
+    "content_hash_cross_split_duplicates": {
+        "train_unique_hashes": 13430,
+        "dev_unique_hashes": 2220,
+        "test_unique_hashes": 2220,
+        "train_dev_overlap": 48,
+        "train_test_overlap": 42,
+        "dev_test_overlap": 13,
+        "note": "Image file paths are 100% distinct across splits; hash overlap reflects retweeted identical images."
+    },
+    "multimodal_option_1_weighted": {
+        "file": "task1_multimodal_train_weighted.tsv",
+        "total_samples": 13608,
+        "text_class_weights": {
+            "class_0_weight": 1.7139,
+            "class_1_weight": 0.706,
+            "imbalance_ratio_1_to_0": 2.4277
+        },
+        "image_class_weights": {
+            "class_0_weight": 1.0389,
+            "class_1_weight": 0.9639,
+            "imbalance_ratio_1_to_0": 1.0779
+        },
+        "description": "All 13,608 training rows intact with explicit text and image class weights for dual-head loss"
+    },
+    "multimodal_option_2_balanced": {
+        "file": "task1_multimodal_train_balanced.tsv",
+        "total_samples": 7940,
+        "text_distribution": {
+            "informative": 3970,
+            "not_informative": 3970,
+            "ratio": "50.0% / 50.0%"
+        },
+        "image_distribution_in_subset": {
+            "informative": 3318,
+            "not_informative": 4622,
+            "ratio": "41.8% / 58.2%"
+        },
+        "image_class_weights": {
+            "class_0_weight": 0.8589,
+            "class_1_weight": 1.1965,
+            "imbalance_ratio_1_to_0": 0.7179
+        },
+        "description": "Undersampled text to exact 50/50 balance (3,970 informative + 3,970 not_informative = 7,940 rows)"
+    },
+    "text_image_alignment": {
+        "contingency_table": {
+            "informative": {
+                "informative": 8431,
+                "not_informative": 943
+            },
+            "not_informative": {
+                "informative": 4431,
+                "not_informative": 4277
+            }
+        },
+        "agreement_counts": {
+            "Positive": 12708,
+            "Negative": 5374
+        },
+        "agreement_rate_percent": 70.28,
+        "disagreement_rate_percent": 29.72
+    }
+}

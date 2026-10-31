@@ -1,0 +1,130 @@
+{
+    "row_counts": {
+        "train": 13608,
+        "dev": 2237,
+        "test": 2237
+    },
+    "unique_tweets": {
+        "train": 11584,
+        "dev": 2237,
+        "test": 2237
+    },
+    "class_distribution_text": {
+        "train": {
+            "informative": 9638,
+            "not_informative": 3970
+        },
+        "dev": {
+            "informative": 1612,
+            "not_informative": 625
+        },
+        "test": {
+            "informative": 1612,
+            "not_informative": 625
+        }
+    },
+    "class_distribution_image": {
+        "train": {
+            "informative": 7059,
+            "not_informative": 6549
+        },
+        "dev": {
+            "informative": 1164,
+            "not_informative": 1073
+        },
+        "test": {
+            "informative": 1151,
+            "not_informative": 1086
+        }
+    },
+    "empty_or_trivial_counts": {
+        "train": 0,
+        "dev": 0,
+        "test": 0
+    },
+    "token_length_distribution": {
+        "train": {
+            "min": 3,
+            "max": 26,
+            "mean": 13.93,
+            "median": 14.0,
+            "p90": 19.0,
+            "p95": 20.0,
+            "p99": 23.0
+        },
+        "dev": {
+            "min": 4,
+            "max": 28,
+            "mean": 13.86,
+            "median": 14.0,
+            "p90": 18.0,
+            "p95": 20.0,
+            "p99": 23.0
+        },
+        "test": {
+            "min": 4,
+            "max": 25,
+            "mean": 13.79,
+            "median": 14.0,
+            "p90": 18.0,
+            "p95": 20.0,
+            "p99": 22.64
+        }
+    },
+    "class_weights_training": {
+        "balanced_weights": {
+            "0": 1.713853904282116,
+            "1": 0.7059555924465657
+        },
+        "bce_pos_weight": 0.41191118489313133,
+        "imbalance_ratio_pos_to_neg": 2.427707808564232,
+        "class_0_not_informative_weight": 1.7139,
+        "class_1_informative_weight": 0.706
+    },
+    "class_weighted_training_option_a": {
+        "row_level": {
+            "file": "task1_text_train_weighted.tsv",
+            "total_samples": 13608,
+            "class_0_not_informative_weight": 1.7139,
+            "class_1_informative_weight": 0.706,
+            "bce_pos_weight": 0.41191118489313133,
+            "loss_code_pytorch": "criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.7139, 0.7060]))",
+            "sklearn_code": "LogisticRegression(class_weight=\"balanced\")"
+        },
+        "unique_tweet_level": {
+            "file": "task1_text_train_unique_weighted.tsv",
+            "total_samples": 11584,
+            "class_0_not_informative_weight": 1.7557,
+            "class_1_informative_weight": 0.6991
+        }
+    },
+    "balanced_training_option_b": {
+        "row_level": {
+            "file": "task1_text_train_balanced.tsv",
+            "total_samples": 7940,
+            "informative_count": 3970,
+            "not_informative_count": 3970,
+            "balance_percentage": "50.0% / 50.0%"
+        },
+        "unique_tweet_level": {
+            "file": "task1_text_train_unique_balanced.tsv",
+            "total_samples": 6598,
+            "informative_count": 3299,
+            "not_informative_count": 3299,
+            "balance_percentage": "50.0% / 50.0%"
+        }
+    },
+    "overall_totals": {
+        "total_rows": 18082,
+        "total_unique_tweets": 16058,
+        "total_text_informative": 12862,
+        "total_text_not_informative": 5220,
+        "total_image_informative": 9374,
+        "total_image_not_informative": 8708
+    },
+    "sequence_length_recommendation": {
+        "recommended_max_seq_length": 64,
+        "upper_bound_max_seq_length": 128,
+        "rationale": "Maximum whitespace token length across all 18,082 rows is 28 tokens (99th percentile is 23.0). Under BERTweet's FastBPE subword tokenizer, max_length=64 or 128 guarantees zero truncation."
+    }
+}
