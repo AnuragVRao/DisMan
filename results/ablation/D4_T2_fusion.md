@@ -12,6 +12,7 @@
 | L4a: CLIP B/32 + DistilBERT cross-attention (demo model) | 0.5849 ± 0.0080 | 0.5984 ± 0.0101 | 0.8004 ± 0.0057 | 0.7994 ± 0.0063 | 0.6104 ± 0.0076 | 0.7172 ± 0.0091 | 0.9395 ± 0.0030 | 0.9527 ± 0.0041 |
 | late fusion (calibrated avg): BERTweet + CLIP L/14 head | 0.5974 ± 0.0033 | 0.6223 ± 0.0068 | 0.8044 ± 0.0031 | 0.7999 ± 0.0034 | 0.6905 ± 0.0076 | 0.7230 ± 0.0047 | 0.9200 ± 0.0019 | 0.9355 ± 0.0031 |
 | early fusion BERTweet (fine-tuned) + ResNet50 (frozen) [guide's core model] | 0.5605 ± 0.0097 | 0.5535 ± 0.0040 | 0.7510 ± 0.0151 | 0.7485 ± 0.0187 | 0.5873 ± 0.0177 | 0.6532 ± 0.0127 | 0.9140 ± 0.0076 | 0.9430 ± 0.0042 |
+| post-hoc: early fusion BERTweet (fine-tuned) + CLIP B/32 (frozen) | 0.5709 ± 0.0021 | 0.6063 ± 0.0101 | 0.7981 ± 0.0057 | 0.7933 ± 0.0060 | 0.6458 ± 0.0118 | 0.7139 ± 0.0075 | 0.9397 ± 0.0012 | 0.9489 ± 0.0011 |
 
 ## Pre-registered comparisons (dev paired bootstrap, seed-averaged, 10,000 resamples; dev decides, test is reporting only)
 
@@ -29,6 +30,14 @@
 | bertweet_text_matched − t2_distilbert_text (bertweet_matched_vs_distilbert_text, post-hoc) | dev | weighted_f1 | +0.0195 | [+0.0052, +0.0336] | better |
 | bertweet_text_matched − t2_distilbert_text (bertweet_matched_vs_distilbert_text, post-hoc) | test | macro_f1 | +0.0138 | [-0.0071, +0.0353] | not distinguishable |
 | bertweet_text_matched − t2_distilbert_text (bertweet_matched_vs_distilbert_text, post-hoc) | test | weighted_f1 | +0.0269 | [+0.0123, +0.0410] | better |
+| t2_early_bertweet_clip_b32 − t2_L4a (posthoc_clip_b32_vs_L4a, post-hoc) | dev | macro_f1 | -0.0139 | [-0.0317, +0.0025] | not distinguishable |
+| t2_early_bertweet_clip_b32 − t2_L4a (posthoc_clip_b32_vs_L4a, post-hoc) | dev | weighted_f1 | -0.0047 | [-0.0122, +0.0031] | not distinguishable |
+| t2_early_bertweet_clip_b32 − t2_L4a (posthoc_clip_b32_vs_L4a, post-hoc) | test | macro_f1 | +0.0078 | [-0.0178, +0.0337] | not distinguishable |
+| t2_early_bertweet_clip_b32 − t2_L4a (posthoc_clip_b32_vs_L4a, post-hoc) | test | weighted_f1 | -0.0023 | [-0.0102, +0.0059] | not distinguishable |
+| t2_early_bertweet_clip_b32 − t2_early_bertweet_resnet50 (posthoc_clip_b32_vs_core, post-hoc) | dev | macro_f1 | +0.0104 | [-0.0192, +0.0434] | not distinguishable |
+| t2_early_bertweet_clip_b32 − t2_early_bertweet_resnet50 (posthoc_clip_b32_vs_core, post-hoc) | dev | weighted_f1 | +0.0294 | [+0.0155, +0.0437] | better |
+| t2_early_bertweet_clip_b32 − t2_early_bertweet_resnet50 (posthoc_clip_b32_vs_core, post-hoc) | test | macro_f1 | +0.0528 | [+0.0269, +0.0785] | better |
+| t2_early_bertweet_clip_b32 − t2_early_bertweet_resnet50 (posthoc_clip_b32_vs_core, post-hoc) | test | weighted_f1 | +0.0471 | [+0.0342, +0.0599] | better |
 
 ## Fusion gain = fused − best single modality (per seed, best on dev macro-F1 among BERTweet text-only and the CLIP L/14 image head)
 
@@ -36,6 +45,7 @@
 |---|---|---|---|---|
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | -0.0150 ± 0.0013 | -0.0096 ± 0.0031 | -0.0214 ± 0.0093 | -0.0120 ± 0.0029 |
 | t2_early_bertweet_resnet50 | -0.0519 ± 0.0103 | -0.0572 ± 0.0199 | -0.0903 ± 0.0122 | -0.0653 ± 0.0186 |
+| t2_early_bertweet_clip_b32 | -0.0415 ± 0.0034 | -0.0278 ± 0.0011 | -0.0375 ± 0.0158 | -0.0182 ± 0.0091 |
 
 ### Fusion gain vs own components = fused − the better (per seed, on dev macro-F1) of the two single-modality models it is built from; mean ± std over seeds
 
@@ -44,6 +54,7 @@
 | t2_early_bertweet_resnet50 | bertweet_text_matched + d1_resnet50 | +0.0187 ± 0.0106 | +0.0231 ± 0.0216 | +0.0270 ± 0.0026 | +0.0158 ± 0.0137 |
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | bertweet_text_rule8 + t2_img_clip_l14_inv | -0.0150 ± 0.0013 | -0.0096 ± 0.0031 | -0.0214 ± 0.0093 | -0.0120 ± 0.0029 |
 | t2_L4a | t2_distilbert_text + t2_img_clip_b32 | +0.0170 ± 0.0161 | +0.0081 ± 0.0048 | -0.0029 ± 0.0088 | +0.0072 ± 0.0070 |
+| t2_early_bertweet_clip_b32 | bertweet_text_matched + t2_img_clip_b32 | +0.0030 ± 0.0073 | +0.0034 ± 0.0033 | +0.0049 ± 0.0119 | +0.0049 ± 0.0073 |
 
 (The late-fusion row equals the 'best single modality' table above, since its components are the same two models; the core model's components are BERTweet text-only (matched recipe, its own) and the stored frozen-ResNet50 image-only head.)
 
@@ -59,6 +70,7 @@
 | t2_L4a | 0.745 ± 0.026 | 0.652 ± 0.023 | 0.867 ± 0.008 | 0.866 ± 0.008 | 0.549 ± 0.009 | 0.549 ± 0.009 | 0.753 ± 0.004 | 0.750 ± 0.005 |
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | 0.729 ± 0.019 | 0.638 ± 0.017 | 0.880 ± 0.001 | 0.877 ± 0.001 | 0.573 ± 0.012 | 0.573 ± 0.012 | 0.753 ± 0.006 | 0.743 ± 0.006 |
 | t2_early_bertweet_resnet50 | 0.670 ± 0.022 | 0.586 ± 0.020 | 0.836 ± 0.014 | 0.832 ± 0.016 | 0.503 ± 0.008 | 0.503 ± 0.008 | 0.691 ± 0.016 | 0.686 ± 0.021 |
+| t2_early_bertweet_clip_b32 | 0.713 ± 0.041 | 0.624 ± 0.036 | 0.860 ± 0.011 | 0.858 ± 0.013 | 0.565 ± 0.009 | 0.565 ± 0.009 | 0.755 ± 0.009 | 0.745 ± 0.009 |
 
 Table VIII check: L4a reproduces the report's subset numbers with the present-classes definition (agreed 0.745 vs stored 0.745, disagreed 0.549 vs stored 0.549); the all-8 definition gives 0.652 / 0.549.
 
@@ -68,6 +80,7 @@ Table VIII check: L4a reproduces the report's subset numbers with the present-cl
 |---|---|---|---|---|
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | +0.0209 | +0.0201 | -0.0409 | -0.0343 |
 | t2_early_bertweet_resnet50 | -0.0381 | -0.0242 | -0.1114 | -0.0955 |
+| t2_early_bertweet_clip_b32 | +0.0053 | +0.0005 | -0.0487 | -0.0320 |
 
 ## Tie-break applied to the two pre-registered comparisons (dev macro-F1)
 
