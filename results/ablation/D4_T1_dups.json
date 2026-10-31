@@ -1,0 +1,228 @@
+{
+ "text": {
+  "threshold": 0.9,
+  "n_test": 2237,
+  "n_exact": 1,
+  "n_near_incl_exact": 2,
+  "n_near_not_exact": 1,
+  "n_exact_with_conflicting_or_mixed_train_label": 0,
+  "n_empty_after_normalisation": 0,
+  "flagged_agreed": 1,
+  "flagged_disagreed": 1,
+  "rescored": {
+   "tfidf_lr": {
+    "label": "TF-IDF + LR",
+    "n_before": 2237,
+    "n_after": 2235,
+    "before": {
+     "acc": 0.7943674564148413,
+     "weighted_f1": 0.7969586580300447,
+     "macro_f1": 0.7512887295620834
+    },
+    "after": {
+     "acc": 0.7946308724832215,
+     "weighted_f1": 0.7971741665030584,
+     "macro_f1": 0.7516260826932505
+    },
+    "delta": {
+     "acc": 0.0002634160683802067,
+     "weighted_f1": 0.00021550847301365916,
+     "macro_f1": 0.0003373531311671174
+    }
+   },
+   "bertweet": {
+    "label": "BERTweet (3 seeds)",
+    "n_before": 2237,
+    "n_after": 2235,
+    "before": {
+     "acc": 0.8401132469080613,
+     "weighted_f1": 0.838226275305861,
+     "macro_f1": 0.7970401036574272
+    },
+    "after": {
+     "acc": 0.8402684563758389,
+     "weighted_f1": 0.8383544414253706,
+     "macro_f1": 0.7972775174348795
+    },
+    "delta": {
+     "acc": 0.00015520946777758393,
+     "weighted_f1": 0.00012816611950960954,
+     "macro_f1": 0.00023741377745234438
+    }
+   },
+   "bertweet_deploy": {
+    "label": "BERTweet, deployed checkpoint",
+    "n_before": 2237,
+    "n_after": 2235,
+    "before": {
+     "acc": 0.8480107286544479,
+     "weighted_f1": 0.8442747222402588,
+     "macro_f1": 0.8023720139356598
+    },
+    "after": {
+     "acc": 0.8483221476510067,
+     "weighted_f1": 0.8445482729927116,
+     "macro_f1": 0.8027812332351749
+    },
+    "delta": {
+     "acc": 0.0003114189965587322,
+     "weighted_f1": 0.00027355075245283356,
+     "macro_f1": 0.0004092192995150956
+    }
+   }
+  }
+ },
+ "image": {
+  "threshold": 0.98,
+  "n_test": 2237,
+  "n_exact_md5": 57,
+  "n_near_incl_exact": 142,
+  "n_near_not_exact": 85,
+  "exact_same_tweet_id": 0,
+  "flagged_agreed": 97,
+  "flagged_disagreed": 45,
+  "rescored": {
+   "img_resnet50": {
+    "label": "ResNet50 head",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.6922962300700343,
+     "weighted_f1": 0.7015884503516198,
+     "macro_f1": 0.6436153063340591
+    },
+    "after": {
+     "acc": 0.6906921241050119,
+     "weighted_f1": 0.6994309428551119,
+     "macro_f1": 0.6455709132518476
+    },
+    "delta": {
+     "acc": -0.0016041059650223621,
+     "weighted_f1": -0.0021575074965078933,
+     "macro_f1": 0.0019556069177885105
+    }
+   },
+   "img_dinov2": {
+    "label": "DINOv2 head",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.7068991208463716,
+     "weighted_f1": 0.7181207828805497,
+     "macro_f1": 0.6679728007260225
+    },
+    "after": {
+     "acc": 0.7043754972155926,
+     "weighted_f1": 0.7152667707499631,
+     "macro_f1": 0.6692120183873388
+    },
+    "delta": {
+     "acc": -0.0025236236307790705,
+     "weighted_f1": -0.0028540121305865584,
+     "macro_f1": 0.0012392176613162942
+    }
+   },
+   "img_clip_l14": {
+    "label": "CLIP L/14 head",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.7545820295037998,
+     "weighted_f1": 0.7608273714278954,
+     "macro_f1": 0.711941153603457
+    },
+    "after": {
+     "acc": 0.7532219570405728,
+     "weighted_f1": 0.7594935615502462,
+     "macro_f1": 0.7147594685397253
+    },
+    "delta": {
+     "acc": -0.0013600724632270023,
+     "weighted_f1": -0.0013338098776491947,
+     "macro_f1": 0.0028183149362682736
+    }
+   },
+   "bertweet": {
+    "label": "BERTweet text-only (reference)",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.8401132469080613,
+     "weighted_f1": 0.838226275305861,
+     "macro_f1": 0.7970401036574272
+    },
+    "after": {
+     "acc": 0.8353221957040572,
+     "weighted_f1": 0.8334939666645225,
+     "macro_f1": 0.7943438238031169
+    },
+    "delta": {
+     "acc": -0.0047910512040041375,
+     "weighted_f1": -0.004732308641338556,
+     "macro_f1": -0.002696279854310313
+    }
+   },
+   "late_bertweet+img_clip_l14": {
+    "label": "late fusion",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.8451795559529133,
+     "weighted_f1": 0.8446119979485677,
+     "macro_f1": 0.8064057967068253
+    },
+    "after": {
+     "acc": 0.8402545743834526,
+     "weighted_f1": 0.83983812390866,
+     "macro_f1": 0.8036299982173083
+    },
+    "delta": {
+     "acc": -0.00492498156946064,
+     "weighted_f1": -0.0047738740399076995,
+     "macro_f1": -0.002775798489517034
+    }
+   },
+   "early_bertweet_resnet50": {
+    "label": "core model BERTweet + ResNet50",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.8459246014006855,
+     "weighted_f1": 0.8444589007192419,
+     "macro_f1": 0.8051093161133759
+    },
+    "after": {
+     "acc": 0.8408910103420842,
+     "weighted_f1": 0.8394896965903973,
+     "macro_f1": 0.8020063942761456
+    },
+    "delta": {
+     "acc": -0.005033591058601239,
+     "weighted_f1": -0.0049692041288446065,
+     "macro_f1": -0.003102921837230266
+    }
+   },
+   "early_bertweet_clip_l14": {
+    "label": "BERTweet + CLIP L/14",
+    "n_before": 2237,
+    "n_after": 2095,
+    "before": {
+     "acc": 0.8472656832066757,
+     "weighted_f1": 0.8449473857673592,
+     "macro_f1": 0.8048341040751096
+    },
+    "after": {
+     "acc": 0.8421638822593476,
+     "weighted_f1": 0.8398114082382596,
+     "macro_f1": 0.8014319652842433
+    },
+    "delta": {
+     "acc": -0.00510180094732815,
+     "weighted_f1": -0.005135977529099556,
+     "macro_f1": -0.0034021387908662604
+    }
+   }
+  }
+ },
+ "note": "'near' includes exact; rows flagged by either test are removed; train/index unchanged"
+}
