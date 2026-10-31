@@ -25,6 +25,10 @@ TABLE = [("t2_majority", "majority class ('Not humanitarian')", 1), ("t2_tfidf_l
          ("t2_img_clip_b32", "image-only head, CLIP B/32", 3), ("t2_img_clip_l14_inv", "image-only head, CLIP L/14", 3), ("t2_L4a", "L4a: CLIP B/32 + DistilBERT cross-attention (demo model)", 3),
          (LATE, "late fusion (calibrated avg): BERTweet + CLIP L/14 head", 3), (CORE, "early fusion BERTweet (fine-tuned) + ResNet50 (frozen) [guide's core model]", 3)]
 KEYS = ("macro_f1", "weighted_f1", "acc", "balanced_acc", "mcc", "top2_acc", "macro_roc_auc")
+POST = "t2_early_bertweet_clip_b32"                                  # post-hoc arm (rule 20), included once all three seeds exist
+HAS_POST = all((RES / "D4" / f"T2_{POST}_seed{s}.json").exists() for s in SEEDS)
+if HAS_POST:
+    TABLE.append((POST, "post-hoc: early fusion BERTweet (fine-tuned) + CLIP B/32 (frozen)", 3))
 
 
 def boot(y, p, idx, k=8):
@@ -73,6 +77,9 @@ if __name__ == "__main__":
     for key, (a, b) in {"core_vs_L4a": (CORE, L4A), "core_vs_image_only_clip_b32": (CORE, IMG_B32)}.items():
         out["comparisons"][key] = dict(a=a, b=b, dev=compare(a, b, y, "dev"), test=compare(a, b, y, "test"))
     out["posthoc"]["bertweet_matched_vs_distilbert_text"] = dict(a="bertweet_text_matched", b="t2_distilbert_text", dev=compare("bertweet_text_matched", "t2_distilbert_text", y, "dev"), test=compare("bertweet_text_matched", "t2_distilbert_text", y, "test"))
+    if HAS_POST:
+        for key, (a_, b_) in {"posthoc_clip_b32_vs_L4a": (POST, L4A), "posthoc_clip_b32_vs_core": (POST, CORE)}.items():
+            out["posthoc"][key] = dict(a=a_, b=b_, dev=compare(a_, b_, y, "dev"), test=compare(a_, b_, y, "test"))
     # fusion gain
     raw = {sp: pd.read_csv(SPLIT_DIR / f"task_humanitarian_text_img_{sp}.tsv", sep="\t", dtype=str).drop_duplicates(subset=["image_id"]).set_index("image_id") for sp in ("dev", "test")}
     agree = {sp: (raw[sp].loc[D["ids"][sp], "label_text"].map(cc.t2_normalise).values == raw[sp].loc[D["ids"][sp], "label_image"].map(cc.t2_normalise).values) for sp in raw}
@@ -81,7 +88,7 @@ if __name__ == "__main__":
     best_single = {}
     for s in SEEDS:
         t, i = load(TEXT, s), load(IMG, s); best_single[s] = t if t["dev"]["macro_f1"] >= i["dev"]["macro_f1"] else i
-    for n in (LATE, CORE):
+    for n in (LATE, CORE) + ((POST,) if HAS_POST else ()):
         per = []
         for s in SEEDS:
             f = load(n, s); b = best_single[s]
@@ -94,7 +101,7 @@ if __name__ == "__main__":
                                std={g: {k: float(np.std([p[g][k] for p in per], ddof=1)) for k in ("macro_f1", "weighted_f1")} for g in keys})
     for sp_name, m in (("agreed", agree["test"]), ("disagreed", ~agree["test"])):
         out["subsets"][sp_name] = {}
-        for n in (TEXT, "bertweet_text_matched", "t2_distilbert_text", IMG, IMG_B32, L4A, LATE, CORE):
+        for n in (TEXT, "bertweet_text_matched", "t2_distilbert_text", IMG, IMG_B32, L4A, LATE, CORE) + ((POST,) if HAS_POST else ()):
             v = {k: [subset(y["test"], load(n, s)["probs_test"], m)[k] for s in SEEDS] for k in ("macro_f1", "macro_f1_all8", "weighted_f1", "acc")}
             out["subsets"][sp_name][n] = {**{k: float(np.mean(x)) for k, x in v.items()}, **{k + "_std": float(np.std(x, ddof=1)) for k, x in v.items()}}
         out["subsets"][sp_name]["n"] = int(m.sum())
@@ -113,6 +120,8 @@ if __name__ == "__main__":
             pr = np.array(r[f"pred_{sp}"]); o[sp] = dict(macro_f1=float(_f1(y[sp], pr, labels=list(range(8)), average="macro", zero_division=0)), weighted_f1=float(_f1(y[sp], pr, labels=list(range(8)), average="weighted", zero_division=0)))
         o["name"] = name; return o
     own = {CORE: ("bertweet_text_matched", None), LATE: (TEXT, IMG), L4A: ("t2_distilbert_text", IMG_B32)}
+    if HAS_POST:
+        own[POST] = ("bertweet_text_matched", IMG_B32)
     for fused, (tx, im) in own.items():
         per = []
         for s in SEEDS:
@@ -143,7 +152,7 @@ if __name__ == "__main__":
     md += (f"\n## Test set by label agreement (normalised label_text == label_image): agreed n={a['n_agree']}, disagreed n={a['n_disagree']}; 'Not humanitarian' share {a['not_humanitarian_share_agree']:.2f} (agreed) vs "
            f"{a['not_humanitarian_share_disagree']:.2f} (disagreed). Reported macro-F1 averages the classes present in the subset's true labels or predictions (the report's Table VIII convention); the fixed 8-class average (absent classes score 0) is in the `all8` columns. Mean ± std over 3 seeds, descriptive only.\n\n"
            "| Model | agreed macro-F1 (present) | agreed macro-F1 (all8) | agreed wF1 | agreed acc | disagreed macro-F1 (present) | disagreed macro-F1 (all8) | disagreed wF1 | disagreed acc |\n|---|---|---|---|---|---|---|---|---|\n")
-    for n in (TEXT, "bertweet_text_matched", "t2_distilbert_text", IMG, IMG_B32, L4A, LATE, CORE):
+    for n in (TEXT, "bertweet_text_matched", "t2_distilbert_text", IMG, IMG_B32, L4A, LATE, CORE) + ((POST,) if HAS_POST else ()):
         md += f"| {n} | " + " | ".join(f"{out['subsets'][g][n][k]:.3f} ± {out['subsets'][g][n][k + '_std']:.3f}" for g in ("agreed", "disagreed") for k in ("macro_f1", "macro_f1_all8", "weighted_f1", "acc")) + " |\n"
     tv = out["table_viii_check"]
     md += (f"\nTable VIII check: L4a reproduces the report's subset numbers with the present-classes definition (agreed {tv['agreed']['here']:.3f} vs stored {tv['agreed']['stored_a1']:.3f}, disagreed {tv['disagreed']['here']:.3f} vs stored {tv['disagreed']['stored_a1']:.3f}); "
