@@ -968,8 +968,8 @@ Test set by label agreement (normalised label_text == label_image; agreed n=955,
 
 #### 9.12.6 Error analysis (rule-based; categories are not human-verified)
 
-* `d4.err.T1` BERTweet (deployed; bertweet_deploy seed 42, dev temperature 1.825): 340 errors on 2237 test rows; text-image mismatch 134, label ambiguity 50, model error 156. The 12 sampled rows are in `docs/day4_error_analysis.md`.
-* `d4.err.T2` L4a seed 42 (the demo's Task 2 model): 440 errors on 2237 test rows; text-image mismatch 318, label ambiguity 69, model error 53. The 12 sampled rows are in `docs/day4_error_analysis.md`.
+* `d4.err.T1` BERTweet (deployed checkpoint, bertweet_deploy seed 42; dev temperature 1.825): 340 errors on 2237 test rows; text-image mismatch 134, label ambiguity 8, model error 198. The 12 sampled rows are in `docs/day4_error_analysis.md`.
+* `d4.err.T2` L4a seed 42 (the demo's Task 2 model; temperature 1.185): 440 errors on 2237 test rows; text-image mismatch 318, label ambiguity 3, model error 119. The 12 sampled rows are in `docs/day4_error_analysis.md`.
 
 #### 9.12.7 Justification of each architectural choice (choice → alternatives → result on dev → verdict → basis)
 

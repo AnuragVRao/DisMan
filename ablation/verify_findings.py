@@ -1614,6 +1614,11 @@ import verify_day4  # noqa: E402
 _n_before = len(checks)
 verify_day4.run_checks(LINES, checks, bad)
 print(f"section 9.12 (Day 4): {len(checks) - _n_before} numeric checks")
+if (Path(__file__).resolve().parent.parent / "report_v2" / "main.tex").exists():                   # Part F1: report_v2 and the dossier
+    import verify_report_v2  # noqa: E402
+    _n_rep = len(checks)
+    verify_report_v2.run_checks(checks, bad)
+    print(f"report_v2 + dossier: {len(checks) - _n_rep} checks")
 print(f"{len(checks)} numeric checks against docs/ablation_findings.md; {len(bad)} mismatches")
 for k, e, found in bad:
     print(f"  MISMATCH [{k}] expected {e!r} | line: {found}")
