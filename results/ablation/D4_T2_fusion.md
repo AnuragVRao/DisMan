@@ -37,20 +37,34 @@
 | late_bertweet_text_rule8+t2_img_clip_l14_inv | -0.0150 ± 0.0013 | -0.0096 ± 0.0031 | -0.0214 ± 0.0093 | -0.0120 ± 0.0029 |
 | t2_early_bertweet_resnet50 | -0.0519 ± 0.0103 | -0.0572 ± 0.0199 | -0.0903 ± 0.0122 | -0.0653 ± 0.0186 |
 
-## Test set by label agreement (normalised label_text == label_image): agreed n=955, disagreed n=1282; 'Not humanitarian' share 0.53 (agreed) vs 0.43 (disagreed). Macro-F1 over all 8 classes (classes absent from a subset score 0), descriptive only.
+### Fusion gain vs own components = fused − the better (per seed, on dev macro-F1) of the two single-modality models it is built from; mean ± std over seeds
 
-| Model | agreed macro-F1 | agreed wF1 | agreed acc | disagreed macro-F1 | disagreed wF1 | disagreed acc |
-|---|---|---|---|---|---|---|
-| bertweet_text_rule8 | 0.4191 | 0.7445 | 0.7127 | 0.1942 | 0.3346 | 0.3001 |
-| t2_img_clip_l14_inv | 0.6195 | 0.8599 | 0.8558 | 0.6140 | 0.7868 | 0.7800 |
-| t2_img_clip_b32 | 0.6089 | 0.8496 | 0.8454 | 0.5634 | 0.7534 | 0.7449 |
-| t2_L4a | 0.6520 | 0.8672 | 0.8660 | 0.5490 | 0.7532 | 0.7499 |
-| late_bertweet_text_rule8+t2_img_clip_l14_inv | 0.6378 | 0.8800 | 0.8768 | 0.5731 | 0.7525 | 0.7426 |
-| t2_early_bertweet_resnet50 | 0.5862 | 0.8357 | 0.8321 | 0.5026 | 0.6914 | 0.6862 |
+| Fused model | own components | dev gain macro-F1 | dev gain wF1 | test gain macro-F1 | test gain wF1 |
+|---|---|---|---|---|---|
+| t2_early_bertweet_resnet50 | bertweet_text_matched + d1_resnet50 | +0.0187 ± 0.0106 | +0.0231 ± 0.0216 | +0.0270 ± 0.0026 | +0.0158 ± 0.0137 |
+| late_bertweet_text_rule8+t2_img_clip_l14_inv | bertweet_text_rule8 + t2_img_clip_l14_inv | -0.0150 ± 0.0013 | -0.0096 ± 0.0031 | -0.0214 ± 0.0093 | -0.0120 ± 0.0029 |
+| t2_L4a | t2_distilbert_text + t2_img_clip_b32 | +0.0170 ± 0.0161 | +0.0081 ± 0.0048 | -0.0029 ± 0.0088 | +0.0072 ± 0.0070 |
+
+(The late-fusion row equals the 'best single modality' table above, since its components are the same two models; the core model's components are BERTweet text-only (matched recipe, its own) and the stored frozen-ResNet50 image-only head.)
+
+## Test set by label agreement (normalised label_text == label_image): agreed n=955, disagreed n=1282; 'Not humanitarian' share 0.53 (agreed) vs 0.43 (disagreed). Reported macro-F1 averages the classes present in the subset's true labels or predictions (the report's Table VIII convention); the fixed 8-class average (absent classes score 0) is in the `all8` columns. Mean ± std over 3 seeds, descriptive only.
+
+| Model | agreed macro-F1 (present) | agreed macro-F1 (all8) | agreed wF1 | agreed acc | disagreed macro-F1 (present) | disagreed macro-F1 (all8) | disagreed wF1 | disagreed acc |
+|---|---|---|---|---|---|---|---|---|
+| bertweet_text_rule8 | 0.479 ± 0.035 | 0.419 ± 0.030 | 0.744 ± 0.012 | 0.713 ± 0.018 | 0.194 ± 0.004 | 0.194 ± 0.004 | 0.335 ± 0.017 | 0.300 ± 0.014 |
+| bertweet_text_matched | 0.504 ± 0.023 | 0.441 ± 0.021 | 0.737 ± 0.008 | 0.716 ± 0.010 | 0.201 ± 0.020 | 0.201 ± 0.020 | 0.375 ± 0.021 | 0.354 ± 0.020 |
+| t2_distilbert_text | 0.482 ± 0.061 | 0.422 ± 0.053 | 0.703 ± 0.017 | 0.685 ± 0.019 | 0.198 ± 0.010 | 0.198 ± 0.010 | 0.359 ± 0.002 | 0.338 ± 0.005 |
+| t2_img_clip_l14_inv | 0.708 ± 0.024 | 0.620 ± 0.021 | 0.860 ± 0.005 | 0.856 ± 0.005 | 0.614 ± 0.011 | 0.614 ± 0.011 | 0.787 ± 0.003 | 0.780 ± 0.003 |
+| t2_img_clip_b32 | 0.696 ± 0.031 | 0.609 ± 0.027 | 0.850 ± 0.003 | 0.845 ± 0.004 | 0.563 ± 0.004 | 0.563 ± 0.004 | 0.753 ± 0.005 | 0.745 ± 0.005 |
+| t2_L4a | 0.745 ± 0.026 | 0.652 ± 0.023 | 0.867 ± 0.008 | 0.866 ± 0.008 | 0.549 ± 0.009 | 0.549 ± 0.009 | 0.753 ± 0.004 | 0.750 ± 0.005 |
+| late_bertweet_text_rule8+t2_img_clip_l14_inv | 0.729 ± 0.019 | 0.638 ± 0.017 | 0.880 ± 0.001 | 0.877 ± 0.001 | 0.573 ± 0.012 | 0.573 ± 0.012 | 0.753 ± 0.006 | 0.743 ± 0.006 |
+| t2_early_bertweet_resnet50 | 0.670 ± 0.022 | 0.586 ± 0.020 | 0.836 ± 0.014 | 0.832 ± 0.016 | 0.503 ± 0.008 | 0.503 ± 0.008 | 0.691 ± 0.016 | 0.686 ± 0.021 |
+
+Table VIII check: L4a reproduces the report's subset numbers with the present-classes definition (agreed 0.745 vs stored 0.745, disagreed 0.549 vs stored 0.549); the all-8 definition gives 0.652 / 0.549.
 
 ### Fusion gain on the subsets (test; fused − best single modality of that seed)
 
 | Fused model | agreed macro-F1 | agreed wF1 | disagreed macro-F1 | disagreed wF1 |
 |---|---|---|---|---|
-| late_bertweet_text_rule8+t2_img_clip_l14_inv | +0.0183 | +0.0201 | -0.0409 | -0.0343 |
-| t2_early_bertweet_resnet50 | -0.0333 | -0.0242 | -0.1114 | -0.0955 |
+| late_bertweet_text_rule8+t2_img_clip_l14_inv | +0.0209 | +0.0201 | -0.0409 | -0.0343 |
+| t2_early_bertweet_resnet50 | -0.0381 | -0.0242 | -0.1114 | -0.0955 |

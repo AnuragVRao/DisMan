@@ -37,8 +37,11 @@ def boot(y, p, idx):
 
 
 def subset_metrics(y, p, mask):
-    ev = M.evaluate(y[mask], p[mask], d4.LABELS)
-    return dict(n=int(mask.sum()), acc=ev["acc"], weighted_f1=ev["weighted_f1"], macro_f1=ev["macro_f1"])
+    """`macro_f1` (reported) averages the classes present in the subset's true labels or predictions (the report's Table VIII convention); `macro_f1_all2` is the fixed 2-class average."""
+    from sklearn.metrics import f1_score
+    yt, pr = y[mask], p[mask].argmax(1); present = sorted(set(yt) | set(pr))
+    return dict(n=int(mask.sum()), acc=float((yt == pr).mean()), weighted_f1=float(f1_score(yt, pr, labels=[0, 1], average="weighted", zero_division=0)),
+                macro_f1=float(f1_score(yt, pr, labels=present, average="macro", zero_division=0)), macro_f1_all2=float(f1_score(yt, pr, labels=[0, 1], average="macro", zero_division=0)))
 
 
 def load(name, seed):
@@ -83,7 +86,7 @@ if __name__ == "__main__":
         agree = lt == li
         out["subsets"][sp] = dict(n_agree=int(agree.sum()), n_disagree=int((~agree).sum()), informative_share_agree=float((y[sp][agree] == 0).mean()), informative_share_disagree=float((y[sp][~agree] == 0).mean()), models={})
         for n in [TEXT, IMAGE] + [f for f, _ in fused]:
-            out["subsets"][sp]["models"][n] = {nm: {k: float(np.mean([subset_metrics(y[sp], R[n][s][f"probs_{sp}"], m)[k] for s in SEEDS])) for k in ("acc", "weighted_f1", "macro_f1")}
+            out["subsets"][sp]["models"][n] = {nm: {k: float(np.mean([subset_metrics(y[sp], R[n][s][f"probs_{sp}"], m)[k] for s in SEEDS])) for k in ("acc", "weighted_f1", "macro_f1", "macro_f1_all2")}
                                                for nm, m in (("agree", agree), ("disagree", ~agree))}
     (RES / "D4_T1_fusion.json").write_text(json.dumps(out, indent=1))
     # --- markdown
