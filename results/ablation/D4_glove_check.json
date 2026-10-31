@@ -1,0 +1,9 @@
+{
+ "url": "https://huggingface.co/stanfordnlp/glove/resolve/main/glove.twitter.27B.zip",
+ "file": "glove.twitter.27B.zip",
+ "bytes": 1520408741,
+ "sha256": "3123e7f5c3f6a30095d413b12fc3284bbf717acd2a9bed63d1c7c13bf5223352",
+ "member": "glove.twitter.27B.200d.txt",
+ "n_vectors": 1193517,
+ "dim": 200
+}
