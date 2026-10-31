@@ -1,0 +1,508 @@
+{
+ "audit": {
+  "t2_tfidf_lr_seed42": "PASS",
+  "t2_tfidf_svm_seed42": "PASS",
+  "t2_tfidf_cnb_seed42": "PASS",
+  "bertweet_text_matched_seed42": "PASS",
+  "bertweet_text_matched_seed43": "PASS",
+  "bertweet_text_matched_seed44": "PASS",
+  "bertweet_text_rule8_seed42": "PASS",
+  "bertweet_text_rule8_seed43": "PASS",
+  "bertweet_text_rule8_seed44": "PASS"
+ },
+ "models": {
+  "t2_tfidf_lr": {
+   "label": "TF-IDF + LR (class-weighted)",
+   "n_seeds": 1,
+   "dev_macro_f1": [
+    0.27004797800927466,
+    null
+   ],
+   "dev_weighted_f1": [
+    0.49265013053174467,
+    null
+   ],
+   "dev_acc": [
+    0.472954850245865,
+    null
+   ],
+   "dev_balanced_acc": [
+    0.3090485817069809,
+    null
+   ],
+   "dev_mcc": [
+    0.30199101338476125,
+    null
+   ],
+   "dev_top2_acc": [
+    0.6897630755476084,
+    null
+   ],
+   "dev_macro_roc_auc": [
+    0.7484804966911026,
+    null
+   ],
+   "dev_ece": [
+    0.08457672282095724,
+    null
+   ],
+   "test_macro_f1": [
+    0.27793785195129767,
+    null
+   ],
+   "test_weighted_f1": [
+    0.47539353126791334,
+    null
+   ],
+   "test_acc": [
+    0.4573088958426464,
+    null
+   ],
+   "test_balanced_acc": [
+    0.3569929179290226,
+    null
+   ],
+   "test_mcc": [
+    0.2880258540780106,
+    null
+   ],
+   "test_top2_acc": [
+    0.6866338846669647,
+    null
+   ],
+   "test_macro_roc_auc": [
+    0.7114551445617474,
+    null
+   ],
+   "test_ece": [
+    0.07409773342845265,
+    null
+   ],
+   "test_per_class_f1": {
+    "Affected individuals": 0.14423076923076922,
+    "Infrastructure and utility damage": 0.394273127753304,
+    "Injured or dead people": 0.1917808219178082,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.5798082346305696,
+    "Other relevant information": 0.4827586206896552,
+    "Rescue, volunteering or donation effort": 0.36942675159235666,
+    "Vehicle damage": 0.061224489795918366
+   },
+   "test_per_class_recall": {
+    "Affected individuals": 0.17045454545454544,
+    "Infrastructure and utility damage": 0.39082969432314413,
+    "Injured or dead people": 0.7,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.4872037914691943,
+    "Other relevant information": 0.5709969788519638,
+    "Rescue, volunteering or donation effort": 0.453125,
+    "Vehicle damage": 0.08333333333333333
+   },
+   "best_epochs": [
+    null
+   ]
+  },
+  "t2_tfidf_svm": {
+   "label": "TF-IDF + LinearSVC (CV-calibrated on train)",
+   "n_seeds": 1,
+   "dev_macro_f1": [
+    0.22720250459690572,
+    null
+   ],
+   "dev_weighted_f1": [
+    0.5120834983810076,
+    null
+   ],
+   "dev_acc": [
+    0.554760840411265,
+    null
+   ],
+   "dev_balanced_acc": [
+    0.2224850937762268,
+    null
+   ],
+   "dev_mcc": [
+    0.29342283366082256,
+    null
+   ],
+   "dev_top2_acc": [
+    0.7577112203844435,
+    null
+   ],
+   "dev_macro_roc_auc": [
+    0.7355112540884402,
+    null
+   ],
+   "dev_ece": [
+    0.039715990515183604,
+    null
+   ],
+   "test_macro_f1": [
+    0.22734447022219947,
+    null
+   ],
+   "test_weighted_f1": [
+    0.5027674984200413,
+    null
+   ],
+   "test_acc": [
+    0.548949485918641,
+    null
+   ],
+   "test_balanced_acc": [
+    0.22284811852360614,
+    null
+   ],
+   "test_mcc": [
+    0.2927040440433765,
+    null
+   ],
+   "test_top2_acc": [
+    0.7554760840411265,
+    null
+   ],
+   "test_macro_roc_auc": [
+    0.717147680825766,
+    null
+   ],
+   "test_ece": [
+    0.03513346754578754,
+    null
+   ],
+   "test_per_class_f1": {
+    "Affected individuals": 0.0,
+    "Infrastructure and utility damage": 0.37702871410736577,
+    "Injured or dead people": 0.0,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.6866820631254812,
+    "Other relevant information": 0.45694200351493847,
+    "Rescue, volunteering or donation effort": 0.2981029810298103,
+    "Vehicle damage": 0.0
+   },
+   "test_per_class_recall": {
+    "Affected individuals": 0.0,
+    "Infrastructure and utility damage": 0.3296943231441048,
+    "Injured or dead people": 0.0,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.8454976303317535,
+    "Other relevant information": 0.39274924471299094,
+    "Rescue, volunteering or donation effort": 0.21484375,
+    "Vehicle damage": 0.0
+   },
+   "best_epochs": [
+    null
+   ]
+  },
+  "t2_tfidf_cnb": {
+   "label": "TF-IDF + ComplementNB",
+   "n_seeds": 1,
+   "dev_macro_f1": [
+    0.238499085923708,
+    null
+   ],
+   "dev_weighted_f1": [
+    0.5242315739233454,
+    null
+   ],
+   "dev_acc": [
+    0.5449262405006705,
+    null
+   ],
+   "dev_balanced_acc": [
+    0.23896458839981832,
+    null
+   ],
+   "dev_mcc": [
+    0.3108713758431195,
+    null
+   ],
+   "dev_top2_acc": [
+    0.7407241841752347,
+    null
+   ],
+   "dev_macro_roc_auc": [
+    0.7143576761206905,
+    null
+   ],
+   "dev_ece": [
+    0.32449081702719434,
+    null
+   ],
+   "test_macro_f1": [
+    0.24795681332534802,
+    null
+   ],
+   "test_weighted_f1": [
+    0.521827975319196,
+    null
+   ],
+   "test_acc": [
+    0.5458202950379973,
+    null
+   ],
+   "test_balanced_acc": [
+    0.24575667716724547,
+    null
+   ],
+   "test_mcc": [
+    0.31546296877409197,
+    null
+   ],
+   "test_top2_acc": [
+    0.7362539114886008,
+    null
+   ],
+   "test_macro_roc_auc": [
+    0.7323030321175519,
+    null
+   ],
+   "test_ece": [
+    0.3268720374208434,
+    null
+   ],
+   "test_per_class_f1": {
+    "Affected individuals": 0.0594059405940594,
+    "Infrastructure and utility damage": 0.43249176728869376,
+    "Injured or dead people": 0.0,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.6829896907216495,
+    "Other relevant information": 0.48562300319488816,
+    "Rescue, volunteering or donation effort": 0.3231441048034934,
+    "Vehicle damage": 0.0
+   },
+   "test_per_class_recall": {
+    "Affected individuals": 0.03409090909090909,
+    "Infrastructure and utility damage": 0.43013100436681223,
+    "Injured or dead people": 0.0,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.7535545023696683,
+    "Other relevant information": 0.459214501510574,
+    "Rescue, volunteering or donation effort": 0.2890625,
+    "Vehicle damage": 0.0
+   },
+   "best_epochs": [
+    null
+   ]
+  },
+  "bertweet_text_matched": {
+   "label": "BERTweet text-only, DistilBERT-matched recipe (10 ep) [primary]",
+   "n_seeds": 3,
+   "dev_macro_f1": [
+    0.3113215398926225,
+    0.0010347824425422521
+   ],
+   "dev_weighted_f1": [
+    0.5392425528532286,
+    0.003574268390484631
+   ],
+   "dev_acc": [
+    0.5163164953062137,
+    0.0052703737695804645
+   ],
+   "dev_balanced_acc": [
+    0.36195365925580614,
+    0.025279119375196668
+   ],
+   "dev_mcc": [
+    0.35652924443249717,
+    0.0037460148379721337
+   ],
+   "dev_top2_acc": [
+    0.73923409327969,
+    0.014195022264385106
+   ],
+   "dev_macro_roc_auc": [
+    0.7775291186668775,
+    0.008153264386295982
+   ],
+   "dev_ece": [
+    0.10275328844143433,
+    0.06727033909794397
+   ],
+   "test_macro_f1": [
+    0.3075652472517745,
+    0.017695653650706387
+   ],
+   "test_weighted_f1": [
+    0.5261733386463252,
+    0.012394419980010089
+   ],
+   "test_acc": [
+    0.5082700044702727,
+    0.013101788904562232
+   ],
+   "test_balanced_acc": [
+    0.36022051199956767,
+    0.006639077236667983
+   ],
+   "test_mcc": [
+    0.34351138569039613,
+    0.013849469396422495
+   ],
+   "test_top2_acc": [
+    0.7310385933541946,
+    0.02188303879810464
+   ],
+   "test_macro_roc_auc": [
+    0.7914130940935576,
+    0.013432710530899363
+   ],
+   "test_ece": [
+    0.11544769342020207,
+    0.07098656133911131
+   ],
+   "test_per_class_f1": {
+    "Affected individuals": 0.11591477362779816,
+    "Infrastructure and utility damage": 0.4383644707703705,
+    "Injured or dead people": 0.20233356211393275,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.6453519311609814,
+    "Other relevant information": 0.5446101478005764,
+    "Rescue, volunteering or donation effort": 0.3838211527742214,
+    "Vehicle damage": 0.13012593976631515
+   },
+   "test_per_class_recall": {
+    "Affected individuals": 0.12500000000000003,
+    "Infrastructure and utility damage": 0.4963609898107715,
+    "Injured or dead people": 0.5,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.5579778830963665,
+    "Other relevant information": 0.5599194360523666,
+    "Rescue, volunteering or donation effort": 0.4388020833333333,
+    "Vehicle damage": 0.2037037037037037
+   },
+   "best_epochs": [
+    8,
+    8,
+    4
+   ]
+  },
+  "bertweet_text_rule8": {
+   "label": "BERTweet text-only, rule-8 recipe (4 ep, lr 2e-5)",
+   "n_seeds": 3,
+   "dev_macro_f1": [
+    0.3083222620652477,
+    0.0025109276949298103
+   ],
+   "dev_weighted_f1": [
+    0.5260938843237697,
+    0.00563949678800105
+   ],
+   "dev_acc": [
+    0.4950081954999255,
+    0.008390945149933616
+   ],
+   "dev_balanced_acc": [
+    0.39443416479739296,
+    0.013448068068019443
+   ],
+   "dev_mcc": [
+    0.34716764248156434,
+    0.010729074080970378
+   ],
+   "dev_top2_acc": [
+    0.6927432573386977,
+    0.000930561466010778
+   ],
+   "dev_macro_roc_auc": [
+    0.7778484314311832,
+    0.012801651006409922
+   ],
+   "dev_ece": [
+    0.06666176654062289,
+    0.007248580431185847
+   ],
+   "test_macro_f1": [
+    0.3009617848246598,
+    0.0046951664776324065
+   ],
+   "test_weighted_f1": [
+    0.5067206080805337,
+    0.004563710720752557
+   ],
+   "test_acc": [
+    0.47623305021606316,
+    0.00364082602380289
+   ],
+   "test_balanced_acc": [
+    0.3903392339708959,
+    0.0053491645536957195
+   ],
+   "test_mcc": [
+    0.3250886309785533,
+    0.005231580434442538
+   ],
+   "test_top2_acc": [
+    0.6843987483236477,
+    0.005155369957385257
+   ],
+   "test_macro_roc_auc": [
+    0.7872675198653715,
+    0.004528745947027599
+   ],
+   "test_ece": [
+    0.08073335652448771,
+    0.01729497166956291
+   ],
+   "test_per_class_f1": {
+    "Affected individuals": 0.16500069194021671,
+    "Infrastructure and utility damage": 0.35178783177001116,
+    "Injured or dead people": 0.17983717053608098,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.6338697479758446,
+    "Other relevant information": 0.5474911956873582,
+    "Rescue, volunteering or donation effort": 0.3957958898981703,
+    "Vehicle damage": 0.13391175078959597
+   },
+   "test_per_class_recall": {
+    "Affected individuals": 0.3068181818181818,
+    "Infrastructure and utility damage": 0.3158660844250364,
+    "Injured or dead people": 0.6,
+    "Missing or found people": 0.0,
+    "Not humanitarian": 0.5330173775671406,
+    "Other relevant information": 0.595166163141994,
+    "Rescue, volunteering or donation effort": 0.45703125,
+    "Vehicle damage": 0.3148148148148148
+   },
+   "best_epochs": [
+    4,
+    4,
+    3
+   ]
+  }
+ },
+ "arm_selection": {
+  "comparison": "matched minus rule8, dev macro-F1, seed-averaged paired bootstrap",
+  "n_boot": 10000,
+  "point": 0.0029992778273747835,
+  "ci95": [
+   -0.009727472134756254,
+   0.015859108859405013
+  ],
+  "tied": true,
+  "pick": "bertweet_text_rule8 (tied on dev -> simpler, rule 13)"
+ },
+ "distilbert_text_only": {
+  "source": "results/ablation/B/t2_text_only_seed{42,43,44}.json (no stored predictions: no paired bootstrap possible)",
+  "test_macro_f1": [
+   0.2937422773682139,
+   0.01404735046671828
+  ],
+  "dev_macro_f1": [
+   0.29479884210329727,
+   0.004820992317962245
+  ],
+  "test_acc": 0.4860676501266577,
+  "test_weighted_f1": 0.49927812141177363,
+  "per_class_f1": {
+   "Affected individuals": 0.17244309808964983,
+   "Infrastructure and utility damage": 0.42132900016884517,
+   "Injured or dead people": 0.21809492777234715,
+   "Missing or found people": 0.0,
+   "Not humanitarian": 0.6145218654779953,
+   "Other relevant information": 0.4881997937305092,
+   "Rescue, volunteering or donation effort": 0.368060229971278,
+   "Vehicle damage": 0.06728930373508686
+  }
+ }
+}
