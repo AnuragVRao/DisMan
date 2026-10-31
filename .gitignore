@@ -9,3 +9,7 @@ demo_examples/*.jpg
 demo_examples/*.jpeg
 demo_examples/*.png
 report/
+
+# Day 4 run logs (archived in results/ablation/d4_logs.tar.gz)
+results/ablation/d4_*.log
+results/ablation/verify_day4_*.log

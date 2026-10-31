@@ -22,6 +22,8 @@ and rebuilt it as `capstone-v2.ipynb`. The full audit, tables, figures and limit
 | T2 Humanitarian (8 classes) | 0.7975 | 0.5865 | 0.7968 | 2237 |
 | T3 Damage severity (3 classes, tweet-disjoint index) | 0.6673 | 0.4914 | 0.6202 | 529 |
 
+> **Task 1 has since changed.** The table above is the corrected v2 baseline (TF-IDF + logistic regression). The demo now serves a fine-tuned BERTweet for Task 1 (test weighted F1 0.8382 ± 0.0022 and macro-F1 0.7970 ± 0.0009 as 3-seed means; deployed checkpoint 0.8443 / 0.8024), chosen by a pre-registered dev rule; see "Task 1 backend" below and `docs/report_dossier.md`.
+
 > **What does the demo serve?** The live demo serves the ablation study's L4a seed-42 Task 2 model (test accuracy 0.8033, macro-F1 0.6080) and a hybrid Task 3 (a logistic probe predicts the damage level, the five most similar past cases are shown as evidence, and a disagreement is flagged for human review), with temperature-scaled confidences (`demo/calibration.json`). The numbers listed above are for the v2 pipeline. `CAPSTONE_T3_HYBRID=0` restores v2's 5-NN vote and `CAPSTONE_T2_CKPT=artifacts/task2_model.pt` selects v2's own Task 2 checkpoint (see `docs/ablation_findings.md`).
 
 Task 3 is lower than the old notebook's number on purpose: the old evaluation was inflated by test-set leakage and polluted by a
@@ -74,12 +76,19 @@ $env:HF_HUB_OFFLINE = "1"
 In Command Prompt, use `set HF_HUB_OFFLINE=1` for the first line instead.
 
 Then open **http://127.0.0.1:7860**. Everything loads from `artifacts/`, so no internet connection is needed. Loading takes a few
-seconds and a prediction takes about 0.1-0.2 s on the GPU (about 1.8 s end to end through the web request).
+seconds. Measured on the RTX 4050 laptop GPU (`results/ablation/D4_t1_latency.json`, medians): the Task 1 model call takes 0.28 ms (TF-IDF) or 8.4 ms (BERTweet), the whole cascade in-process 25.6 / 35.1 ms (without upload or file transfer), and a full HTTP round trip through the running Gradio server, including the image upload and the five retrieved images, about 1.75 / 1.78 s. (The earlier "0.1-0.2 s model call" has no recorded benchmark; the "1.8 s" figure matches the HTTP round trip.)
+
+### Task 1 backend (BERTweet by default, TF-IDF as a fallback)
+Task 1 uses a fine-tuned BERTweet (`vinai/bertweet-base`), chosen over TF-IDF + logistic regression by a rule fixed in advance (`ablation/SELECTION_RULE_DAY4.md`, results in `results/ablation/D4_switch_rule_T1.json`).
+* **Checkpoint:** `artifacts/task1_bertweet/` (about 517 MB: `model.safetensors`, tokenizer files, `t1_meta.json` with the labels, maximum length and dev temperature). It is **git-ignored and must be handed over separately** (zip the folder with the rest of `artifacts/`). The demo loads it from disk only; the `emoji` package must be installed for BERTweet's tokenizer normalisation.
+* **It is a retrain of seed 42** (the original runs saved no weights): dev weighted F1 0.8289 against 0.8321 originally, 94.3% test-prediction agreement. See the "Deviations" section of `ablation/SELECTION_RULE_DAY4.md`.
+* **Fallback:** `CAPSTONE_T1=tfidf` (environment variable) or `Pipeline(t1_backend="tfidf")` serves the original TF-IDF + logistic regression from `artifacts/task1_pipeline.joblib`, which stays in `artifacts/` (git-ignored). On CPU only, set `CAPSTONE_T1=tfidf` for the fastest start.
+* **Confidence:** the displayed probability is temperature-scaled (T = 1.825, fitted on the dev logits of the deployed checkpoint, stored in `demo/calibration.json`).
 
 ### Use it
 1. Upload an image and paste the tweet text, then press **Analyse**. Or click one of the six **Preloaded examples** (test-split tweets).
 2. Read the four outputs:
-   * **Informative?** A badge from the text-only Task 1 model. It is a badge, never a gate: Tasks 2 and 3 always run.
+   * **Informative?** A badge from the text-only Task 1 model (a fine-tuned BERTweet with a temperature-calibrated confidence; see "Task 1 backend"). It is a badge, never a gate: Tasks 2 and 3 always run.
    * **Humanitarian category:** probability bars over 8 classes. This includes its own "Not humanitarian" class.
    * **Damage severity:** the predicted label and a bar titled *agreement among similar past cases (k=5 vote share)*. This is a vote
      share among retrieved neighbours, **not a calibrated probability**.
@@ -158,6 +167,33 @@ python s1_zeroshot.py              # dev selection, one test evaluation, results
 python tools/s1_extras.py          # trivial baselines and image-only k-NN rows (appended to the same CSV)
 python tools/s1_sanity.py          # feature sanity checks -> results/s1_sanity.txt
 ```
+
+**Day 4 tables (model exploration; one command per table).** Use the Python 3.13 interpreter with CUDA PyTorch, `transformers`, `emoji`; run from `ablation/`. Every command reads or writes `results/ablation/`; the rules were committed in `ablation/SELECTION_RULE_DAY4.md` before the runs.
+```
+cd ablation
+python d4_t1_classical.py                 # Task 1 TF-IDF + LR / NB / RF / SVM            -> D4/T1_*  (then d4_t1_step2.py: fair NB, majority, weighting, GloVe check, D4_T1_summary.{json,md})
+python d4_t1_bertweet.py                  # Task 1 BERTweet, seeds 42-44 (add --noweight, or `42 --save` for the deployed checkpoint)
+python d4_t1_bilstm.py                    # Task 1 BiLSTM + GloVe Twitter 200d (needs artifacts/glove/glove.twitter.27B.zip)
+python d4_t1_extract_images.py resnet50 dinov2 clip_l14; python d4_t1_heads.py resnet50 dinov2 clip_l14    # Task 1 image heads
+python d4_t1_fusion.py T1 bertweet img_clip_l14; python d4_t1_early_fusion.py resnet50  # late and early fusion (also: clip_l14)
+python d4_t1_switch.py                    # the pre-registered switch rule             -> D4_switch_rule_T1.json
+python d4_t1_fusion_gain.py               # Task 1 fusion gain, bootstrap, agreed/disagreed -> D4_T1_fusion.{json,md}
+python d4_t2_classical.py; python d4_t2_bertweet_text.py matched; python d4_t2_bertweet_text.py rule8    # Task 2 text models
+python d4_t2_reinfer.py                   # probabilities of the existing L4a / DistilBERT / image-only checkpoints (reproduces the stored results)
+python d4_t2_early_fusion.py              # the guide's core model (add --clip_b32 for the post-hoc backbone swap)
+python d4_t2_summary.py; python d4_t2_fusion_analysis.py   # Task 2 tables, comparisons, tie-break, subsets -> D4_T2_text_summary.*, D4_T2_fusion.*
+python d4_fusion_both.py                  # fusion gain, both tasks, both baselines    -> D4_fusion_gain_both.*
+python d4_t1_dups.py                      # Task 1 text and image duplicates           -> D4_T1_dups.*
+python d4_t1_lodo.py                      # Task 1 leave-one-disaster-out with BERTweet (about 35 min)  -> D4_T1_lodo.*
+python d4_t1_calib_ofli.py                # Task 1 calibration and the indicative Ofli row
+python d4_error_analysis.py               # error analysis, contact sheets            -> docs/day4_error_analysis.*, report_v2/figures/contact_*
+python d4_t1_latency.py; python d4_t1_http_latency.py   # latency (in-process, then through the Gradio server)
+python d4_make_findings.py                # section 9.12 of docs/ablation_findings.md + docs/day4_justification_table.tex
+python d4_make_figures.py; python d4_make_pipeline_fig.py                  # report_v2/figures
+python d4_build_report_v2.py; python d4_check_tex.py; python d4_make_dossier.py   # report_v2/main.tex (+ static checks), docs/report_dossier.md
+python verify_findings.py --write-log     # re-derives every number (docs section 9.12, report_v2 table cells, dossier tokens)
+```
+Training logs are archived in `results/ablation/d4_logs.tar.gz`. Run the new Task 1 scripts only in a process that has not imported a Task 2 module (and vice versa): `d4_t1_data.py` / `d4_t2_data.py` assert this.
 
 **`artifacts/` is git-ignored** (the Task 2 checkpoint exceeds GitHub's 100 MB limit). Recreate it with the full retrain above, or
 unzip a backup copy into the repository root.
