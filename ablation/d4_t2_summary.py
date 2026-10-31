@@ -12,7 +12,9 @@ from common import RES
 
 SEEDS = (42, 43, 44)
 KEYS = ("macro_f1", "weighted_f1", "acc", "balanced_acc", "mcc", "top2_acc", "macro_roc_auc", "ece")
-MODELS = [("t2_tfidf_lr", "TF-IDF + LR (class-weighted)", 1), ("t2_tfidf_svm", "TF-IDF + LinearSVC (CV-calibrated on train)", 1), ("t2_tfidf_cnb", "TF-IDF + ComplementNB", 1),
+MODELS = [("t2_majority", "majority class ('Not humanitarian') (post-hoc)", 1), ("t2_tfidf_lr", "TF-IDF + LR (class-weighted)", 1),
+          ("t2_tfidf_svm", "TF-IDF + LinearSVC (class-weighted, CV-calibrated on train)", 1), ("t2_tfidf_cnb", "TF-IDF + ComplementNB, unweighted (reference)", 1),
+          ("t2_tfidf_cnb_bal", "TF-IDF + ComplementNB, balanced sample weights (post-hoc)", 1),
           ("bertweet_text_matched", "BERTweet text-only, DistilBERT-matched recipe (10 ep) [primary]", 3), ("bertweet_text_rule8", "BERTweet text-only, rule-8 recipe (4 ep, lr 2e-5)", 3)]
 
 
@@ -62,6 +64,17 @@ if __name__ == "__main__":
     md += f"| DistilBERT text-only (existing, Part B) | {d['dev_macro_f1'][0]:.4f} ± {d['dev_macro_f1'][1]:.4f} | {d['test_macro_f1'][0]:.4f} ± {d['test_macro_f1'][1]:.4f} | {d['test_weighted_f1']:.4f} | {d['test_acc']:.4f} | n/a | n/a | n/a | n/a | n/a |\n"
     s = out["arm_selection"]
     md += f"\nArm selection (rule 13): matched − rule8, dev macro-F1 {s['point']:+.4f}, 95% CI [{s['ci95'][0]:+.4f}, {s['ci95'][1]:+.4f}] -> {'tied' if s['tied'] else 'resolved'}; pick: {s['pick']}.\n"
+    w = {n: out["models"][n]["dev_macro_f1"][0] for n in ("t2_tfidf_lr", "t2_tfidf_svm", "t2_tfidf_cnb_bal")}
+    md += (f"\nClass-weighted classical models, selected on dev macro-F1: " + ", ".join(f"{n} {v:.4f}" for n, v in w.items()) + f" -> best: {max(w, key=w.get)}. "
+           f"The unweighted ComplementNB (dev {out['models']['t2_tfidf_cnb']['dev_macro_f1'][0]:.4f}) is kept as a reference row; weighting did not help it.\n")
+    bt = [r["dev"]["macro_f1"] for r in ra]; dd = [x["dev_macro_f1"] for x in ds]
+    every = min(bt) > max(dd)
+    out["bertweet_vs_distilbert_dev"] = dict(bertweet_matched_per_seed=bt, distilbert_per_seed=dd, every_bertweet_seed_exceeds_every_distilbert_seed=bool(every))
+    md += ("\nBERTweet (matched recipe) vs DistilBERT text-only, per-seed dev macro-F1: BERTweet " + ", ".join(f"{v:.4f}" for v in bt) + "; DistilBERT " + ", ".join(f"{v:.4f}" for v in dd) + ". "
+           + ("Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed; no paired CI: DistilBERT stored no predictions); test not resolvable (means differ by less than the seed spread). "
+              if every else "Nominally better, not established. ")
+           + "Confound: BERTweet reads the raw tweet text with its own normalisation, DistilBERT read the cleaned text, and the encoders differ in size, so the gap is not attributable to the encoder alone.\n")
+    (RES / "D4_T2_text_summary.json").write_text(json.dumps(out, indent=1))
     md += "\n## Test per-class F1 (mean over seeds)\n\n| Class | " + " | ".join(["TF-IDF LR", "BERTweet matched", "BERTweet rule8", "DistilBERT"]) + " |\n|---|---|---|---|---|\n"
     for l in out["models"]["t2_tfidf_lr"]["test_per_class_f1"]:
         md += f"| {l} | {out['models']['t2_tfidf_lr']['test_per_class_f1'][l]:.3f} | {out['models'][a]['test_per_class_f1'][l]:.3f} | {out['models'][b]['test_per_class_f1'][l]:.3f} | {d['per_class_f1'][l]:.3f} |\n"
