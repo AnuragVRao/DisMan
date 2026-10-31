@@ -36,11 +36,18 @@ else:
     T2_CKPT = T2_CKPT_V2
 
 
+T1_BERTWEET = ART / "task1_bertweet"
+
+
 class Pipeline:
-    def __init__(self, device=None, hybrid_t3=None):
+    def __init__(self, device=None, hybrid_t3=None, t1_backend=None):
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
         self.cfg = json.load(open(ART / "config.json"))
-        self.t1 = joblib.load(ART / "task1_pipeline.joblib")
+        # Task 1 backend: fine-tuned BERTweet (default when artifacts/task1_bertweet exists; pre-registered switch rule, results/ablation/D4_switch_rule_T1.json) or the original
+        # TF-IDF + LR joblib (kept in the repo; CAPSTONE_T1=tfidf or Pipeline(t1_backend="tfidf")).
+        self.t1_backend = t1_backend or os.environ.get("CAPSTONE_T1") or ("bertweet" if T1_BERTWEET.exists() else "tfidf")
+        assert self.t1_backend in ("bertweet", "tfidf"), self.t1_backend
+        self.t1 = joblib.load(ART / "task1_pipeline.joblib") if self.t1_backend == "tfidf" else None
         self.clip, self.proc = cc.load_clip(self.device, ART / "clip")
         self.sbert = cc.load_sbert(self.device, ART / "sbert")
         self.tok = DistilBertTokenizerFast.from_pretrained(ART / "tokenizer")
@@ -51,6 +58,11 @@ class Pipeline:
         self.t2_ckpt = T2_CKPT.name
         # Temperatures for the displayed confidences (fitted on dev, see demo/calibration.json). They never change a predicted label.
         self.calib = json.load(open(Path(__file__).resolve().parent / "calibration.json"))
+        if self.t1_backend == "bertweet":
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from t1_bertweet import T1Bertweet
+            c1 = self.calib.get("t1", {})
+            self.t1_bw = T1Bertweet(T1_BERTWEET, self.device, c1["temperature"] if c1.get("checkpoint") == "task1_bertweet" else 1.0)
         self.t2_T = float(self.calib["t2"]["temperature"]) if self.t2_ckpt == self.calib["t2"]["checkpoint"] else 1.0   # only valid for that checkpoint
         self.t2.to(self.device).eval()
         self.index = faiss.read_index(str(ART / "task3_index.faiss"))
@@ -76,9 +88,14 @@ class Pipeline:
         clean = cc.clean_tweet(text)
 
         # Task 1 (text only; a badge, never a gate)
-        p1 = self.t1.predict_proba([clean])[0]
-        cls = list(self.t1.classes_)
-        t1 = dict(label=cls[int(p1.argmax())], prob=float(p1.max()), probs=dict(zip(cls, map(float, p1))))
+        if self.t1_backend == "bertweet":      # raw text: BERTweet normalises @mentions / URLs / emoji itself; confidence is temperature-scaled on dev
+            p1, p1_raw = self.t1_bw.predict(text); cls = self.t1_bw.labels
+            t1 = dict(label=cls[int(p1.argmax())], prob=float(p1.max()), probs=dict(zip(cls, map(float, p1))), model="BERTweet (fine-tuned)",
+                      temperature=self.t1_bw.T, label_unscaled=cls[int(p1_raw.argmax())])
+        else:
+            p1 = self.t1.predict_proba([clean])[0]
+            cls = list(self.t1.classes_)
+            t1 = dict(label=cls[int(p1.argmax())], prob=float(p1.max()), probs=dict(zip(cls, map(float, p1))), model="TF-IDF + LR")
 
         # shared embeddings
         img_raw = cc.clip_image_features(self.clip, self.proc, [image], self.device)

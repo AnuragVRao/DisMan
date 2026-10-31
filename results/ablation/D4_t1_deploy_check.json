@@ -1,0 +1,29 @@
+{
+ "deployed_run": "bertweet_deploy seed 42 (retrained with --save)",
+ "original_run": "bertweet seed 42 (no weights kept)",
+ "prediction_agreement": {
+  "dev": 0.9427805096110863,
+  "test": 0.9432275368797497
+ },
+ "dev_wf1": {
+  "original": 0.8321345665157371,
+  "deployed": 0.828912288958198
+ },
+ "test_wf1": {
+  "original": 0.8361683944912933,
+  "deployed": 0.8442747222402588
+ },
+ "best_epoch": {
+  "original": 2,
+  "deployed": 3
+ },
+ "temperature": 1.8249178910828932,
+ "ece_dev": {
+  "before": 0.10216459186410368,
+  "after": 0.04176448697789043
+ },
+ "ece_test": {
+  "before": 0.08824753106839511,
+  "after": 0.044272879740827116
+ }
+}

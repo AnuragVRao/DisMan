@@ -13,5 +13,13 @@
   "ece_before": 0.07699999548999892,
   "ece_after": 0.03809758695417854,
   "source": "results/ablation/X/c_calibration_t3_probe_seed42.json"
+ },
+ "t1": {
+  "checkpoint": "task1_bertweet",
+  "temperature": 1.8249178910828932,
+  "ece_before": 0.10216459186410368,
+  "ece_after": 0.04176448697789043,
+  "source": "results/ablation/D4_t1_deploy_check.json",
+  "note": "fitted on the dev split on the deployed weights (seed 42 retrain); applies only to artifacts/task1_bertweet; argmax unchanged"
  }
 }

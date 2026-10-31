@@ -17,7 +17,7 @@ def badge(t1):
     informative = t1["label"] == "informative"
     color, word = ("#1a7f37", "INFORMATIVE") if informative else ("#6e7781", "NOT INFORMATIVE")
     return (f"<span style='background:{color};color:#fff;padding:6px 14px;border-radius:14px;font-weight:600'>"
-            f"{word}</span> &nbsp; text-only model, p = {t1['prob']:.2f}")
+            f"{word}</span> &nbsp; {t1.get('model', 'text-only model')} (text only), p = {t1['prob']:.2f}")
 
 
 def disagreement(t1, t2):

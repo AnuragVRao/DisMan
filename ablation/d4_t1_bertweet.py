@@ -16,7 +16,8 @@ import metrics_all as M
 from common import cc
 
 NOWEIGHT = "--noweight" in sys.argv          # post-hoc arm (SELECTION_RULE_DAY4.md rule 10): plain unweighted cross-entropy
-NAME, MAXLEN, LR, EPOCHS, BATCH = "bertweet_noweight" if NOWEIGHT else "bertweet", 128, 2e-5, 4, 32
+SAVE = "--save" in sys.argv                  # step 4: retrain the dev-selected seed, keep the weights (artifacts/task1_bertweet) and a temperature fitted on dev
+NAME, MAXLEN, LR, EPOCHS, BATCH = "bertweet_noweight" if NOWEIGHT else ("bertweet_deploy" if SAVE else "bertweet"), 128, 2e-5, 4, 32
 DEV = torch.device("cuda")
 
 
@@ -42,7 +43,7 @@ def predict(model, ids, mask):
 
 
 if __name__ == "__main__":
-    seeds = [int(s) for s in sys.argv[1:] if s != "--noweight"] or [42, 43, 44]
+    seeds = [int(s) for s in sys.argv[1:] if not s.startswith("--")] or [42, 43, 44]
     D = d4.data(); S = D["S"]
     tok = AutoTokenizer.from_pretrained("vinai/bertweet-base", use_fast=False, normalization=True)
     probe = tok.tokenize("Flood in #Houston! @NWS see https://t.co/abc 😢")
@@ -83,6 +84,15 @@ if __name__ == "__main__":
         zd, zt = predict(model, *X["dev"]), predict(model, *X["test"])
         row = M.save_run("T1", NAME, seed, d4.LABELS, D["y"]["dev"], zd, D["y"]["test"], zt, extra=dict(best_epoch=best_ep, wall_clock_s=time.time() - t0, **d4_prov.prov("informative", "vinai/bertweet-base")))
         t = row["test"]
+        if SAVE:
+            import json as _json
+            from common import ART
+            out = ART / "task1_bertweet"; out.mkdir(parents=True, exist_ok=True)
+            model.save_pretrained(out); tok.save_pretrained(out)
+            T = M.fit_temperature(zd, D["y"]["dev"])
+            (out / "t1_meta.json").write_text(_json.dumps(dict(labels=d4.LABELS, seed=seed, best_epoch=best_ep, dev_weighted_f1=best, temperature_dev=T, max_len=MAXLEN,
+                                                               init_from="vinai/bertweet-base", normalization=True, input="raw tweet_text (not clean_tweet)", train_split_sha256=row["train_split_sha256"]), indent=1))
+            print(f"saved {out}; dev temperature {T:.3f}", flush=True)
         print(f"DONE seed {seed}: best ep {best_ep} dev wF1 {best:.4f} | test acc {t['acc']:.4f} wF1 {t['weighted_f1']:.4f} macroF1 {t['macro_f1']:.4f} "
               f"MCC {t['mcc']:.4f} AUC {t['roc_auc']:.4f}", flush=True)
         del model, opt; torch.cuda.empty_cache()

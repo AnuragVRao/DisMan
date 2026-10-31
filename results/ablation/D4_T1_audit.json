@@ -1,4 +1,8 @@
 {
+ "T1_bertweet_deploy_seed42": {
+  "ok": true,
+  "problems": []
+ },
  "T1_bertweet_noweight_seed42": {
   "ok": true,
   "problems": []
