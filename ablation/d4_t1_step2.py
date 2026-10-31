@@ -115,7 +115,9 @@ KEYS = ("acc", "weighted_f1", "macro_f1", "balanced_acc", "mcc", "roc_auc")
 def summary():
     import os
     rows = []
-    extra = [(n, l) for n, l in (("late_bertweet+img_clip_l14", "late fusion"), ) if os.path.exists(M.RUN_DIR / f"T1_{n}_seed42.json")]
+    extra = [(n, l) for n, l in (("late_bertweet+img_clip_l14", "late fusion (calibrated avg) BERTweet + CLIP L/14 head"),
+                                 ("early_bertweet_resnet50", "early fusion BERTweet (fine-tuned) + ResNet50 (frozen) [guide's core model]"),
+                                 ("early_bertweet_clip_l14", "early fusion BERTweet (fine-tuned) + CLIP L/14 (frozen) [optional]")) if os.path.exists(M.RUN_DIR / f"T1_{n}_seed42.json")]
     for name, label in MODELS + extra:
         runs = []
         for s in SEEDS:

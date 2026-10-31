@@ -35,6 +35,30 @@
   "ok": true,
   "problems": []
  },
+ "T1_early_bertweet_clip_l14_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_early_bertweet_clip_l14_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_early_bertweet_clip_l14_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_early_bertweet_resnet50_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_early_bertweet_resnet50_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_early_bertweet_resnet50_seed44": {
+  "ok": true,
+  "problems": []
+ },
  "T1_img_clip_l14_seed42": {
   "ok": true,
   "problems": []
@@ -68,6 +92,18 @@
   "problems": []
  },
  "T1_img_resnet50_seed44": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_late_bertweet+img_clip_l14_seed42": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_late_bertweet+img_clip_l14_seed43": {
+  "ok": true,
+  "problems": []
+ },
+ "T1_late_bertweet+img_clip_l14_seed44": {
   "ok": true,
   "problems": []
  },
