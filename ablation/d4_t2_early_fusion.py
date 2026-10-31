@@ -19,7 +19,8 @@ import metrics_all as M
 from common import ABL_ART, cc
 
 HUB_ID, MAXLEN, BATCH, WD, E = "vinai/bertweet-base", 128, 32, 1e-4, 10
-NAME = "t2_early_bertweet_resnet50"
+FEAT = "clip_b32" if "--clip_b32" in sys.argv else "resnet50"          # --clip_b32 = post-hoc arm, rule 20
+NAME = "t2_early_bertweet_clip_b32" if FEAT == "clip_b32" else "t2_early_bertweet_resnet50"
 DEV = torch.device("cuda")
 
 
@@ -53,12 +54,19 @@ def logits(model, ids, mask, x):
 
 
 if __name__ == "__main__":
-    seeds = [int(s) for s in sys.argv[1:]] or [42, 43, 44]
+    seeds = [int(s) for s in sys.argv[1:] if not s.startswith("--")] or [42, 43, 44]
     d4_prov.assert_init(HUB_ID, "humanitarian")
     D = d4.data(); S, labels, y = D["S"], D["labels"], D["y"]; NC = len(labels); ALL = list(range(NC))
-    fc = d4_prov.check_t2_cache("resnet50", D["ids"])                       # row order = T2 split image_id order; pretrained, frozen hub encoder
-    IMG = {s: torch.tensor(np.load(ABL_ART / "d2_feats" / "resnet50" / f"humanitarian_{s}.npy"), dtype=torch.float32) for s in S}
-    assert all(len(IMG[s]) == len(S[s]) and IMG[s].shape[1] == 2048 and torch.isfinite(IMG[s]).all() for s in S)
+    if FEAT == "resnet50":
+        fc = d4_prov.check_t2_cache("resnet50", D["ids"])                   # row order = T2 split image_id order; pretrained, frozen hub encoder
+        IMG = {s: torch.tensor(np.load(ABL_ART / "d2_feats" / "resnet50" / f"humanitarian_{s}.npy"), dtype=torch.float32) for s in S}
+        D_IMG = 2048
+    else:                                                                    # post-hoc arm: L4a's cached CLIP B/32 vectors (cc.cached asserts the row order = image_id order)
+        from d4_t2_reinfer import clip_prov
+        from common import ART
+        IMG = {s: torch.tensor(cc.cached(ART / "emb" / f"clip_humanitarian_{s}.npy", D["ids"][s], lambda: (_ for _ in ()).throw(RuntimeError("cache miss"))), dtype=torch.float32) for s in S}
+        fc = clip_prov(ART / "emb", "openai/clip-vit-base-patch32"); D_IMG = 512
+    assert all(len(IMG[s]) == len(S[s]) and IMG[s].shape[1] == D_IMG and torch.isfinite(IMG[s]).all() for s in S)
     tok = AutoTokenizer.from_pretrained(HUB_ID, use_fast=False, normalization=True)
     probe = tok.tokenize("Flood in #Houston! @NWS see https://t.co/abc")
     assert "HTTPURL" in probe and "@USER" in probe, "BERTweet normalisation did not run"
@@ -89,7 +97,7 @@ if __name__ == "__main__":
                 best, best_ep = f, ep; best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         model.load_state_dict(best_state)
         zd, zt = logits(model, *X["dev"], IMG["dev"]), logits(model, *X["test"], IMG["test"])
-        row = M.save_run("T2", NAME, seed, labels, y["dev"], zd, y["test"], zt, extra=dict(best_epoch=best_ep, dev_history=hist, wall_clock_s=time.time() - t0, **dict(d4_prov.prov("humanitarian", HUB_ID), feature_cache=fc)))
+        row = M.save_run("T2", NAME, seed, labels, y["dev"], zd, y["test"], zt, extra=dict(best_epoch=best_ep, dev_history=hist, wall_clock_s=time.time() - t0, posthoc=(FEAT == 'clip_b32'), **dict(d4_prov.prov("humanitarian", HUB_ID), feature_cache=fc)))
         t = row["test"]
         print(f"DONE {NAME} seed {seed}: best ep {best_ep} dev macro-F1 {best:.4f} | test acc {t['acc']:.4f} macro-F1 {t['macro_f1']:.4f} wF1 {t['weighted_f1']:.4f} bal-acc {t['balanced_acc']:.4f} "
               f"top-2 {t['top2_acc']:.4f} MCC {t['mcc']:.4f}", flush=True)
