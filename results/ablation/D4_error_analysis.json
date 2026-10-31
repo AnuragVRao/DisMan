@@ -1,50 +1,141 @@
 {
  "T1": {
-  "model": "BERTweet (deployed; bertweet_deploy seed 42, dev temperature 1.825)",
+  "model": "BERTweet (deployed checkpoint, bertweet_deploy seed 42; dev temperature 1.825)",
   "n_test": 2237,
   "n_errors": 340,
   "by_category": {
-   "model error": 156,
+   "model error": 198,
    "text-image mismatch": 134,
-   "label ambiguity": 50
+   "label ambiguity": 8
   },
+  "cap_per_pair": 6,
   "sample_test_rows": [
-   9,
-   18,
-   27,
-   29,
-   21,
-   24,
-   108,
-   135,
    7,
+   9,
    12,
    13,
-   23
-  ]
+   21,
+   23,
+   18,
+   81,
+   99,
+   106,
+   112,
+   135
+  ],
+  "sample_categories": {
+   "model error": 5,
+   "text-image mismatch": 5,
+   "label ambiguity": 2
+  },
+  "ranked_pairs": [
+   [
+    "not_informative",
+    "informative",
+    214
+   ],
+   [
+    "informative",
+    "not_informative",
+    126
+   ]
+  ],
+  "near_dup_kind": "text",
+  "partners": {
+   "informative": "not_informative",
+   "not_informative": "informative"
+  }
  },
  "T2": {
-  "model": "L4a seed 42 (the demo's Task 2 model)",
+  "model": "L4a seed 42 (the demo's Task 2 model; temperature 1.185)",
   "n_test": 2237,
   "n_errors": 440,
   "by_category": {
    "text-image mismatch": 318,
-   "label ambiguity": 69,
-   "model error": 53
+   "model error": 119,
+   "label ambiguity": 3
   },
+  "cap_per_pair": 3,
   "sample_test_rows": [
-   2,
-   11,
-   19,
-   28,
    39,
    44,
-   103,
-   137,
+   206,
    43,
+   45,
    51,
-   118,
-   204
-  ]
+   11,
+   137,
+   202,
+   38,
+   131,
+   182
+  ],
+  "sample_categories": {
+   "model error": 6,
+   "text-image mismatch": 6
+  },
+  "ranked_pairs": [
+   [
+    "Not humanitarian",
+    "Other relevant information",
+    78
+   ],
+   [
+    "Not humanitarian",
+    "Rescue, volunteering or donation effort",
+    56
+   ],
+   [
+    "Other relevant information",
+    "Not humanitarian",
+    47
+   ],
+   [
+    "Not humanitarian",
+    "Infrastructure and utility damage",
+    33
+   ],
+   [
+    "Rescue, volunteering or donation effort",
+    "Not humanitarian",
+    26
+   ],
+   [
+    "Infrastructure and utility damage",
+    "Rescue, volunteering or donation effort",
+    24
+   ],
+   [
+    "Infrastructure and utility damage",
+    "Not humanitarian",
+    20
+   ],
+   [
+    "Affected individuals",
+    "Infrastructure and utility damage",
+    16
+   ],
+   [
+    "Vehicle damage",
+    "Infrastructure and utility damage",
+    15
+   ],
+   [
+    "Affected individuals",
+    "Rescue, volunteering or donation effort",
+    12
+   ]
+  ],
+  "near_dup_kind": "image",
+  "partners": {
+   "Affected individuals": "Infrastructure and utility damage",
+   "Infrastructure and utility damage": "Rescue, volunteering or donation effort",
+   "Injured or dead people": "Rescue, volunteering or donation effort",
+   "Missing or found people": "Rescue, volunteering or donation effort",
+   "Not humanitarian": "Other relevant information",
+   "Other relevant information": "Not humanitarian",
+   "Rescue, volunteering or donation effort": "Not humanitarian",
+   "Vehicle damage": "Infrastructure and utility damage"
+  }
  }
 }
