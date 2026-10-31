@@ -1,0 +1,67 @@
+{
+    "label_map": {
+        "little_or_no_damage": 0,
+        "mild_damage": 1,
+        "severe_damage": 2
+    },
+    "row_counts": {
+        "train": 2468,
+        "dev": 529,
+        "test": 529
+    },
+    "unique_tweets": {
+        "train": 2286,
+        "dev": 519,
+        "test": 523
+    },
+    "class_distribution": {
+        "train": {
+            "severe_damage": 1548,
+            "mild_damage": 587,
+            "little_or_no_damage": 333
+        },
+        "dev": {
+            "severe_damage": 332,
+            "mild_damage": 126,
+            "little_or_no_damage": 71
+        },
+        "test": {
+            "severe_damage": 332,
+            "mild_damage": 126,
+            "little_or_no_damage": 71
+        }
+    },
+    "class_weights_training": {
+        "weights_dict": {
+            "0": 2.4705,
+            "1": 1.4015,
+            "2": 0.5314
+        },
+        "pytorch_weight_tensor": [
+            2.4705,
+            1.4015,
+            0.5314
+        ],
+        "class_names": [
+            "little_or_no_damage",
+            "mild_damage",
+            "severe_damage"
+        ]
+    },
+    "resampling_concepts": {
+        "concept_1_weighted": {
+            "file": "task3_multimodal_train_weighted.tsv",
+            "rows": 2468
+        },
+        "concept_2_oversampled": {
+            "file": "task3_multimodal_train_oversampled.tsv",
+            "rows": 4644,
+            "per_class": 1548
+        },
+        "concept_3_undersampled": {
+            "file": "task3_multimodal_train_undersampled.tsv",
+            "rows": 999,
+            "per_class": 333
+        }
+    }
+}

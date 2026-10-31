@@ -1,0 +1,179 @@
+{
+    "label_map": {
+        "affected_individuals": 0,
+        "infrastructure_and_utility_damage": 1,
+        "injured_or_dead_people": 2,
+        "missing_or_found_people": 3,
+        "not_humanitarian": 4,
+        "other_relevant_information": 5,
+        "rescue_volunteering_or_donation_effort": 6,
+        "vehicle_damage": 7
+    },
+    "row_counts": {
+        "train": 13608,
+        "dev": 2237,
+        "test": 2237
+    },
+    "unique_tweets": {
+        "train": 11584,
+        "dev": 2237,
+        "test": 2237
+    },
+    "class_distribution_text": {
+        "train": {
+            "other_relevant_information": 4817,
+            "not_humanitarian": 3970,
+            "rescue_volunteering_or_donation_effort": 2867,
+            "infrastructure_and_utility_damage": 1102,
+            "injured_or_dead_people": 393,
+            "affected_individuals": 384,
+            "vehicle_damage": 46,
+            "missing_or_found_people": 29
+        },
+        "dev": {
+            "other_relevant_information": 844,
+            "not_humanitarian": 625,
+            "rescue_volunteering_or_donation_effort": 453,
+            "infrastructure_and_utility_damage": 164,
+            "injured_or_dead_people": 70,
+            "affected_individuals": 67,
+            "vehicle_damage": 8,
+            "missing_or_found_people": 6
+        },
+        "test": {
+            "other_relevant_information": 844,
+            "not_humanitarian": 625,
+            "rescue_volunteering_or_donation_effort": 454,
+            "infrastructure_and_utility_damage": 164,
+            "injured_or_dead_people": 70,
+            "affected_individuals": 67,
+            "vehicle_damage": 7,
+            "missing_or_found_people": 6
+        }
+    },
+    "class_distribution_image": {
+        "train": {
+            "not_humanitarian": 6565,
+            "infrastructure_and_utility_damage": 2761,
+            "other_relevant_information": 1860,
+            "rescue_volunteering_or_donation_effort": 1694,
+            "affected_individuals": 397,
+            "vehicle_damage": 230,
+            "injured_or_dead_people": 92,
+            "missing_or_found_people": 9
+        },
+        "dev": {
+            "not_humanitarian": 1088,
+            "infrastructure_and_utility_damage": 405,
+            "other_relevant_information": 338,
+            "rescue_volunteering_or_donation_effort": 281,
+            "affected_individuals": 77,
+            "vehicle_damage": 38,
+            "injured_or_dead_people": 8,
+            "missing_or_found_people": 2
+        },
+        "test": {
+            "not_humanitarian": 1055,
+            "infrastructure_and_utility_damage": 458,
+            "other_relevant_information": 331,
+            "rescue_volunteering_or_donation_effort": 256,
+            "affected_individuals": 88,
+            "vehicle_damage": 36,
+            "injured_or_dead_people": 10,
+            "missing_or_found_people": 3
+        }
+    },
+    "class_distribution_joint": {
+        "train": {
+            "not_humanitarian": 5260,
+            "other_relevant_information": 3294,
+            "rescue_volunteering_or_donation_effort": 2323,
+            "infrastructure_and_utility_damage": 1905,
+            "affected_individuals": 424,
+            "injured_or_dead_people": 244,
+            "vehicle_damage": 134,
+            "missing_or_found_people": 24
+        },
+        "dev": {
+            "not_humanitarian": 889,
+            "other_relevant_information": 605,
+            "rescue_volunteering_or_donation_effort": 353,
+            "infrastructure_and_utility_damage": 251,
+            "affected_individuals": 71,
+            "injured_or_dead_people": 42,
+            "vehicle_damage": 22,
+            "missing_or_found_people": 4
+        },
+        "test": {
+            "not_humanitarian": 849,
+            "other_relevant_information": 578,
+            "rescue_volunteering_or_donation_effort": 340,
+            "infrastructure_and_utility_damage": 319,
+            "affected_individuals": 86,
+            "injured_or_dead_people": 41,
+            "vehicle_damage": 19,
+            "missing_or_found_people": 5
+        }
+    },
+    "class_weights_training": {
+        "text_head_weights": {
+            "0": 4.4297,
+            "1": 1.5436,
+            "2": 4.3282,
+            "3": 58.6552,
+            "4": 0.4285,
+            "5": 0.3531,
+            "6": 0.5933,
+            "7": 36.9783
+        },
+        "image_head_weights": {
+            "0": 4.2846,
+            "1": 0.6161,
+            "2": 18.4891,
+            "3": 189.0,
+            "4": 0.2591,
+            "5": 0.9145,
+            "6": 1.0041,
+            "7": 7.3957
+        },
+        "joint_head_weights": {
+            "0": 4.0118,
+            "1": 0.8929,
+            "2": 6.9713,
+            "3": 70.875,
+            "4": 0.3234,
+            "5": 0.5164,
+            "6": 0.7322,
+            "7": 12.694
+        },
+        "pytorch_text_weight_tensor": [
+            4.4297,
+            1.5436,
+            4.3282,
+            58.6552,
+            0.4285,
+            0.3531,
+            0.5933,
+            36.9783
+        ],
+        "pytorch_image_weight_tensor": [
+            4.2846,
+            0.6161,
+            18.4891,
+            189.0,
+            0.2591,
+            0.9145,
+            1.0041,
+            7.3957
+        ]
+    },
+    "oversampling_concept_2": {
+        "text_oversampled_file": "task2_text_train_oversampled.tsv",
+        "text_multimodal_oversampled_file": "task2_multimodal_train_oversampled.tsv",
+        "text_oversampled_rows": 38536,
+        "text_samples_per_class": 4817,
+        "image_oversampled_file": "task2_image_train_oversampled.tsv",
+        "image_oversampled_rows": 52520,
+        "image_samples_per_class": 6565
+    }
+}
