@@ -10,7 +10,7 @@ import re
 from common import ABL_ART, SPLIT_DIR
 
 TASKS = {"informative": ("label_text", "T1"), "humanitarian": ("label_image", "T2")}
-HUB = {"microsoft/resnet-50", "facebook/dinov2-base", "openai/clip-vit-large-patch14", "vinai/bertweet-base", "distilbert-base-uncased",
+HUB = {"openai/clip-vit-base-patch32", "microsoft/resnet-50", "facebook/dinov2-base", "openai/clip-vit-large-patch14", "vinai/bertweet-base", "distilbert-base-uncased",
        "sentence-transformers/all-MiniLM-L6-v2", "sentence-transformers/all-mpnet-base-v2"}
 _C = {}
 
@@ -81,3 +81,14 @@ BACKFILL = {"tfidf_lr": ("none (TF-IDF + LR fit on T1 train)", None), "tfidf_nb"
             "img_resnet50": ("none (head trained from scratch on frozen microsoft/resnet-50 features)", "resnet50"),
             "img_dinov2": ("none (head trained from scratch on frozen facebook/dinov2-base features)", "dinov2"),
             "img_clip_l14": ("none (head trained from scratch on frozen openai/clip-vit-large-patch14 features)", "clip_l14")}
+
+
+def check_t2_cache(name, ids_by_split):
+    """Task 2 frozen-feature cache (artifacts/ablation/d2_feats/<name>): row order equals the T2 split image_id order, and the encoder is a pretrained, frozen hub model
+    (the cache holds fixed features extracted once with the hub weights in eval mode; no training touches the encoder)."""
+    d = ABL_ART / "d2_feats" / name
+    meta = json.load(open(d / "meta.json"))
+    assert meta["model"] in HUB, f"{name}: encoder {meta['model']!r} is not a known pretrained hub model"
+    for s, ids in ids_by_split.items():
+        assert json.load(open(d / f"humanitarian_{s}.ids.json")) == list(ids), f"{name}/{s}: cache row order differs from the T2 split image_id order"
+    return dict(path=str(d.relative_to(ABL_ART.parent.parent)), sha256=cache_sha(d), encoder=meta["model"], frozen=True)
