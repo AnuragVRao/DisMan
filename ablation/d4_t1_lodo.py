@@ -79,10 +79,17 @@ if __name__ == "__main__":
         rows.append(r); print(f"{e}: held-out macro-F1 {r['held_out']['macro_f1']:.3f} / in-dist {r['in_dist']['macro_f1']:.3f} (n={r['held_out']['n']}, {r['minutes']:.1f} min; elapsed {(time.time() - t_start) / 60:.1f} min)", flush=True)
         del model, opt; torch.cuda.empty_cache()
     # TF-IDF + LR (c2_lodo's model) for the same table
-    import c2_lodo
-    tf = {}
-    for e, m, indist, _ in c2_lodo.run_t1():
-        tf[e] = dict(held_out=m, in_dist=indist)
+    # (c2_lodo.py has no __main__ guard: importing it re-runs the old C2 experiment and rewrites results/ablation/C, so its TF-IDF model is repeated here instead)
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    mk = lambda: Pipeline([("tfidf", TfidfVectorizer(max_features=50_000, ngram_range=(1, 2), sublinear_tf=True, min_df=2)), ("clf", LogisticRegression(max_iter=1000, C=1.0, class_weight="balanced", random_state=cc.SEED))])
+    trd, ted = S["train"], S["test"]; full_tf = mk().fit(trd.text, trd.label); tf = {}
+    lab_ix = lambda a: np.array([d4.LABELS.index(x) for x in a])
+    for e in events:
+        fit_, held_ = trd[trd.event_name != e], ted[ted.event_name == e]
+        yh = lab_ix(held_.label)
+        tf[e] = dict(held_out=score(yh, lab_ix(mk().fit(fit_.text, fit_.label).predict(held_.text))), in_dist=score(yh, lab_ix(full_tf.predict(held_.text))))
     avg = lambda k, which: float(np.mean([r[which][k] for r in rows]))
     out = dict(seed=SEED, single_seed=True, recipe="BERTweet, 4 epochs, lr 2e-5, weighted CE, epoch by dev weighted F1 on the other events' dev rows", rows=rows, tfidf=tf,
                average=dict(bertweet_held_out=avg("macro_f1", "held_out"), bertweet_in_dist=avg("macro_f1", "in_dist"),
