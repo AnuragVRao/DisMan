@@ -8,19 +8,22 @@
    "median_ms": 0.2757500042207539,
    "p95_ms": 0.3510999958962202,
    "mean_ms": 0.2816990006249398,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "text -> Task 1 probabilities only (TF-IDF: clean_tweet + predict_proba; BERTweet: tokenizer + forward + softmax); in-process, no image, no other tasks, no UI"
   },
   "bertweet_cuda": {
    "median_ms": 8.359199913684279,
    "p95_ms": 14.13279992993921,
    "mean_ms": 9.099230994470417,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "text -> Task 1 probabilities only (TF-IDF: clean_tweet + predict_proba; BERTweet: tokenizer + forward + softmax); in-process, no image, no other tasks, no UI"
   },
   "bertweet_cpu": {
    "median_ms": 19.358100020326674,
    "p95_ms": 22.71449996624142,
    "mean_ms": 19.47046300279908,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "text -> Task 1 probabilities only (TF-IDF: clean_tweet + predict_proba; BERTweet: tokenizer + forward + softmax); in-process, no image, no other tasks, no UI"
   }
  },
  "end_to_end": {
@@ -28,25 +31,46 @@
    "median_ms": 25.62590001616627,
    "p95_ms": 33.089300035499036,
    "mean_ms": 26.2201010028366,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "Pipeline.predict(image, text) in-process: CLIP image features, Task 1, Task 2, Task 3 with retrieval; excludes the Gradio handler, JSON/HTTP, file upload and gallery image transfer (the 'handler only' number)"
   },
   "bertweet_cuda": {
    "median_ms": 35.14829999767244,
    "p95_ms": 47.62740002479404,
    "mean_ms": 35.83511100616306,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "Pipeline.predict(image, text) in-process: CLIP image features, Task 1, Task 2, Task 3 with retrieval; excludes the Gradio handler, JSON/HTTP, file upload and gallery image transfer (the 'handler only' number)"
   },
   "tfidf_cpu": {
    "median_ms": 91.06809995137155,
    "p95_ms": 100.8187000406906,
    "mean_ms": 91.960159993032,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "Pipeline.predict(image, text) in-process: CLIP image features, Task 1, Task 2, Task 3 with retrieval; excludes the Gradio handler, JSON/HTTP, file upload and gallery image transfer (the 'handler only' number)"
   },
   "bertweet_cpu": {
    "median_ms": 110.84865004522726,
    "p95_ms": 121.220099972561,
    "mean_ms": 111.59747800556943,
-   "n": 100
+   "n": 100,
+   "what_is_measured": "Pipeline.predict(image, text) in-process: CLIP image features, Task 1, Task 2, Task 3 with retrieval; excludes the Gradio handler, JSON/HTTP, file upload and gallery image transfer (the 'handler only' number)"
   }
- }
+ },
+ "http_round_trip": {
+  "tfidf_gpu_server": {
+   "median_ms": 1754.245699965395,
+   "p95_ms": 1801.5787999611348,
+   "mean_ms": 1755.7215633297649,
+   "n": 30,
+   "what_is_measured": "gradio_client -> running demo/app.py (GPU) -> all outputs incl. the 5 gallery images downloaded; includes image upload, Gradio queue, handler and file transfer"
+  },
+  "bertweet_gpu_server": {
+   "median_ms": 1783.3704000222497,
+   "p95_ms": 1869.8229000438005,
+   "mean_ms": 1789.3494166589032,
+   "n": 30,
+   "what_is_measured": "gradio_client -> running demo/app.py (GPU) -> all outputs incl. the 5 gallery images downloaded; includes image upload, Gradio queue, handler and file transfer"
+  }
+ },
+ "note": "The numbers in README.md / report SIV-E ('0.1-0.2 s model call, ~1.8 s end to end') have no benchmark script or log in the repo (first stated in the README, commit e1afcb4, 2026-10-22); what they measured is not recorded."
 }

@@ -8,6 +8,10 @@
 | early fusion BERTweet (fine-tuned) + ResNet50 (frozen)  [guide's core model] | +0.0040 ± 0.0035 | +0.0047 ± 0.0061 | +0.0062 ± 0.0014 | +0.0081 ± 0.0036 | True / True |
 | early fusion BERTweet (fine-tuned) + CLIP L/14 (frozen)  [optional] | +0.0043 ± 0.0012 | +0.0043 ± 0.0016 | +0.0067 ± 0.0045 | +0.0078 ± 0.0055 | True / True |
 
+All fusion variants tie with each other on dev (mean dev weighted F1 spread 0.0003: late_bertweet+img_clip_l14 0.8346, early_bertweet_resnet50 0.8345, early_bertweet_clip_l14 0.8348); none is 'best', and the variant used in comparison (i) below was only the nominal dev maximum.
+
+Late fusion has a lower test ROC-AUC (0.8841) than BERTweet alone (0.8972) although its F1 is higher: equal-weight averaging with a weaker image model (CLIP head test ROC-AUC 0.7967) plausibly degrades the ranking while leaving the thresholded labels slightly better. This explanation was not tested, and the weights were not tuned (tuning them would be a post-hoc arm).
+
 ## Paired bootstrap, seed-averaged, 10,000 resamples (dev decides; test is reporting only)
 
 | Comparison | split | metric | point | 95% CI | verdict |

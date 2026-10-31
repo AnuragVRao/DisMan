@@ -94,6 +94,12 @@ if __name__ == "__main__":
         md += (f"| {g['label']} | {f4(g['mean']['dev']['weighted_f1'])} ± {g['std']['dev']['weighted_f1']:.4f} | {f4(g['mean']['dev']['macro_f1'])} ± {g['std']['dev']['macro_f1']:.4f} | "
                f"{f4(g['mean']['test']['weighted_f1'])} ± {g['std']['test']['weighted_f1']:.4f} | {f4(g['mean']['test']['macro_f1'])} ± {g['std']['test']['macro_f1']:.4f} | "
                f"{g['positive_every_seed_weighted_f1_dev']} / {g['positive_every_seed_weighted_f1_test']} |\n")
+    dm = {n: float(np.mean([R[n][s]["dev"]["weighted_f1"] for s in SEEDS])) for n, _ in fused}; spread = max(dm.values()) - min(dm.values())
+    auc = {n: float(np.mean([R[n][s]["test"]["roc_auc"] for s in SEEDS])) for n in [TEXT, IMAGE] + [n for n, _ in fused]}
+    md += (f"\nAll fusion variants tie with each other on dev (mean dev weighted F1 spread {spread:.4f}: " + ", ".join(f"{n} {v:.4f}" for n, v in dm.items()) + "); none is 'best', and the variant used in comparison (i) below was only the nominal dev maximum.\n")
+    if "late_bertweet+img_clip_l14" in auc:
+        md += (f"\nLate fusion has a lower test ROC-AUC ({auc['late_bertweet+img_clip_l14']:.4f}) than BERTweet alone ({auc[TEXT]:.4f}) although its F1 is higher: equal-weight averaging with a weaker image model "
+               f"(CLIP head test ROC-AUC {auc[IMAGE]:.4f}) plausibly degrades the ranking while leaving the thresholded labels slightly better. This explanation was not tested, and the weights were not tuned (tuning them would be a post-hoc arm).\n")
     md += "\n## Paired bootstrap, seed-averaged, 10,000 resamples (dev decides; test is reporting only)\n\n| Comparison | split | metric | point | 95% CI | verdict |\n|---|---|---|---|---|---|\n"
     for key, c in out["bootstrap"].items():
         for sp in ("dev", "test"):
