@@ -1,0 +1,165 @@
+{
+ "sizes": {
+  "T1": {
+   "train": 13608,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T2": {
+   "train": 13608,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T3": {
+   "train": 2468,
+   "dev": 529,
+   "test": 529
+  }
+ },
+ "by_tweet_id": {
+  "T1_train": {
+   "T2_train": 8409,
+   "T2_dev": 1588,
+   "T2_test": 1587,
+   "T3_train": 1667,
+   "T3_dev": 396,
+   "T3_test": 385
+  },
+  "T1_dev": {
+   "T2_train": 1572,
+   "T2_dev": 344,
+   "T2_test": 321,
+   "T3_train": 291,
+   "T3_dev": 66,
+   "T3_test": 78
+  },
+  "T1_test": {
+   "T2_train": 1603,
+   "T2_dev": 305,
+   "T2_test": 329,
+   "T3_train": 328,
+   "T3_dev": 57,
+   "T3_test": 60
+  }
+ },
+ "unique_tweet_id": {
+  "T1": {
+   "train": 11584,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T2": {
+   "train": 11584,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T3": {
+   "train": 2286,
+   "dev": 519,
+   "test": 523
+  }
+ },
+ "within_task_overlap_tweet_id": {
+  "T1": {
+   "train&dev": 0,
+   "train&test": 0,
+   "dev&test": 0
+  },
+  "T2": {
+   "train&dev": 0,
+   "train&test": 0,
+   "dev&test": 0
+  },
+  "T3": {
+   "train&dev": 62,
+   "train&test": 62,
+   "dev&test": 16
+  }
+ },
+ "by_image_path": {
+  "T1_train": {
+   "T2_train": 10433,
+   "T2_dev": 1588,
+   "T2_test": 1587,
+   "T3_train": 1849,
+   "T3_dev": 406,
+   "T3_test": 391
+  },
+  "T1_dev": {
+   "T2_train": 1572,
+   "T2_dev": 344,
+   "T2_test": 321,
+   "T3_train": 291,
+   "T3_dev": 66,
+   "T3_test": 78
+  },
+  "T1_test": {
+   "T2_train": 1603,
+   "T2_dev": 305,
+   "T2_test": 329,
+   "T3_train": 328,
+   "T3_dev": 57,
+   "T3_test": 60
+  }
+ },
+ "unique_image_path": {
+  "T1": {
+   "train": 13608,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T2": {
+   "train": 13608,
+   "dev": 2237,
+   "test": 2237
+  },
+  "T3": {
+   "train": 2468,
+   "dev": 529,
+   "test": 529
+  }
+ },
+ "within_task_overlap_image_path": {
+  "T1": {
+   "train&dev": 0,
+   "train&test": 0,
+   "dev&test": 0
+  },
+  "T2": {
+   "train&dev": 0,
+   "train&test": 0,
+   "dev&test": 0
+  },
+  "T3": {
+   "train&dev": 0,
+   "train&test": 0,
+   "dev&test": 0
+  }
+ },
+ "by_image_id": {
+  "T1_train": {
+   "T2_train": 10433,
+   "T2_dev": 1588,
+   "T2_test": 1587,
+   "T3_train": 1848,
+   "T3_dev": 406,
+   "T3_test": 391
+  },
+  "T1_dev": {
+   "T2_train": 1572,
+   "T2_dev": 344,
+   "T2_test": 321,
+   "T3_train": 291,
+   "T3_dev": 66,
+   "T3_test": 78
+  },
+  "T1_test": {
+   "T2_train": 1603,
+   "T2_dev": 305,
+   "T2_test": 329,
+   "T3_train": 328,
+   "T3_dev": 57,
+   "T3_test": 60
+  }
+ }
+}
