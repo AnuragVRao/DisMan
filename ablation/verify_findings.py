@@ -1608,6 +1608,12 @@ bad.extend(("tex:" + a1, e1, f1) for a1, e1, f1 in tex_bad)
 bad.extend(("tex-uncovered", tok, ctx) for _, tok, ctx in uncovered)
 
 # ── report ────────────────────────────────────────────────────────────────────
+# ── Day 4 (section 9.12): re-derived independently from the stored dev/test probabilities (ablation/verify_day4.py)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import verify_day4  # noqa: E402
+_n_before = len(checks)
+verify_day4.run_checks(LINES, checks, bad)
+print(f"section 9.12 (Day 4): {len(checks) - _n_before} numeric checks")
 print(f"{len(checks)} numeric checks against docs/ablation_findings.md; {len(bad)} mismatches")
 for k, e, found in bad:
     print(f"  MISMATCH [{k}] expected {e!r} | line: {found}")

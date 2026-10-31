@@ -1,6 +1,8 @@
 """Day 4 part of verify_findings.py: re-derive every number of docs/ablation_findings.md section 9.12 from the stored run JSONs (results/ablation/D4/*.json: y and dev/test probabilities)
 with code that is independent of metrics_all.py and of the analysis scripts: sklearn metrics, and a bootstrap built on a bincount confusion matrix per resample (the analysis scripts use boolean masks).
-Row ids (`d4.<...>`) locate one document line each; every recomputed number string must occur on that line. Called from verify_findings.py: run(LINES, checks, bad)."""
+Row ids (`d4.<...>`) locate one document line each; every recomputed number string must occur on that line. Called from verify_findings.py: run(LINES, checks, bad).
+Tolerance: the stored probabilities are rounded to 6 decimals while the stored metrics came from the unrounded values, so ROC-AUC (and only ROC-AUC) is allowed +-0.0001 in its last printed digit
+(mean and std each); every other number must match exactly."""
 import glob
 import json
 import re
@@ -50,6 +52,14 @@ def avg(task, name, key, sp):
 
 def ms(v):
     return f"{v.mean():.4f}" + (f" ± {v.std(ddof=1):.4f}" if len(v) > 1 else "")
+
+
+def ms_k(v, k):
+    """Like ms(), but ROC-AUC columns accept +-0.0001 on the mean and on the std (see the module docstring)."""
+    if k != "auc":
+        return ms(v)
+    m, sd = v.mean(), (v.std(ddof=1) if len(v) > 1 else None)
+    return tuple(f"{m + dm:.4f}" + (f" ± {sd + ds:.4f}" if sd is not None else "") for dm in (0, 1e-4, -1e-4) for ds in ((0, 1e-4, -1e-4) if sd is not None else (0,)))
 
 
 def sgs(v):
@@ -112,14 +122,15 @@ def run_checks(LINES, checks, bad):
         if l is None:
             bad.append((key, "row id not found exactly once in section 9.12", "")); return
         for s in ([strings] if isinstance(strings, str) else strings):
-            ok = s in l; checks.append((key, s, ok))
+            alts = s if isinstance(s, tuple) else (s,)             # a tuple = alternatives (ROC-AUC tolerance)
+            ok = any(a in l for a in alts); checks.append((key, alts[0], ok))
             if not ok:
-                bad.append((key, s, l.strip()[:240]))
+                bad.append((key, alts[0], l.strip()[:240]))
 
     ids = lambda prefix: sorted({m for l in LINES for m in re.findall(r"`d4\." + re.escape(prefix) + r"\.([A-Za-z0-9_+.]+)`", l)})
     # ---- Task 1 table
     for n in [i for i in ids("t1") if i not in ("switch", "bilstm_tie", "weighting")]:
-        ck(f"`d4.t1.{n}`", [f"| {len(seeds_of('T1', n))} |", ms(avg("T1", n, "wf1", "dev"))] + [ms(avg("T1", n, k, "test")) for k in ("acc", "wf1", "mf1", "bal", "mcc", "auc")])
+        ck(f"`d4.t1.{n}`", [f"| {len(seeds_of('T1', n))} |", ms(avg("T1", n, "wf1", "dev"))] + [ms_k(avg("T1", n, k, "test"), k) for k in ("acc", "wf1", "mf1", "bal", "mcc", "auc")])
     # ---- switch rule, BiLSTM tie, weighting
     base = [met("T1", "tfidf_lr", 42, "dev")["wf1"]] * 3
     y = run("T1", "tfidf_lr", 42)["y"]["dev"]; idx = resample_idx(len(y), N_BOOT); fb = cm_stats(y, run("T1", "tfidf_lr", 42)["p"]["dev"].argmax(1), idx, 2)["weighted"]
@@ -180,11 +191,11 @@ def run_checks(LINES, checks, bad):
     # ---- Task 2 tables
     for n in ids("t2"):
         K = "t2"
-        ck(f"`d4.t2.{n}`", [ms(avg("T2", n, "mf1", "dev"))] + [ms(avg("T2", n, k, "test")) for k in ("mf1", "wf1", "acc", "bal", "mcc", "top2", "auc")])
+        ck(f"`d4.t2.{n}`", [ms(avg("T2", n, "mf1", "dev"))] + [ms_k(avg("T2", n, k, "test"), k) for k in ("mf1", "wf1", "acc", "bal", "mcc", "top2", "auc")])
     for n in ids("t2t"):
         if n in ("arm", "vs_distilbert"):
             continue
-        ck(f"`d4.t2t.{n}`", [ms(avg("T2", n, "mf1", "dev"))] + [ms(avg("T2", n, k, "test")) for k in ("mf1", "wf1", "acc", "bal", "mcc", "top2", "auc")])
+        ck(f"`d4.t2t.{n}`", [ms(avg("T2", n, "mf1", "dev"))] + [ms_k(avg("T2", n, k, "test"), k) for k in ("mf1", "wf1", "acc", "bal", "mcc", "top2", "auc")])
     pt, lo, hi, vd = paired("T2", "bertweet_text_matched", "bertweet_text_rule8", "dev", "macro")
     ck("`d4.t2t.arm`", [f"{sgs(pt)} [{lo:+.4f}, {hi:+.4f}]", "tied" if lo <= 0 <= hi else "resolved", "bertweet_text_rule8 (tied on dev -> simpler, rule 13)" if lo <= 0 <= hi else "pick"])
     pd_ = {sp: {k: paired("T2", "bertweet_text_matched", "t2_distilbert_text", sp, kk) for k, kk in (("mf1", "macro"), ("wf1", "weighted"))} for sp in ("dev", "test")}

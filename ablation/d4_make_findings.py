@@ -158,7 +158,8 @@ def jrows(t1, sw, wt, tie1, fu1, t2, t2t, pc):
          "CLIP L/14 better than every alternative", "pre-registered Day 2 rule (§9.10, §9.11): resolvable"),
         ("t2_fusion", "Task 2 fusion: the guide's core model (BERTweet + ResNet50) is not adopted; image-only / L4a remain", "late fusion (calibrated), L4a cross-attention, concat, gated-late (§9.10), the core model BERTweet + ResNet50",
          f"core minus L4a, dev macro-F1 {sg(c1['point'])} {ci(c1['ci95'])}; core minus image-only CLIP B/32 head {sg(c2['point'])} {ci(c2['ci95'])}; trainable parameters {pc['core_bertweet_resnet50']:,} (core), {pc['t2_L4a']:,} (L4a), {pc['t2_img_clip_b32_head']:,} (image-only head)",
-         "tied on dev macro-F1 (dev weighted F1: worse, corroboration only); test macro-F1 worse for both (reporting only)", "tie-break (rule 2: fewest trainable parameters): L4a over the core model; the image-only head over the core model"),
+         "tied on dev macro-F1 (dev weighted F1: worse, corroboration only); test macro-F1 worse for both (reporting only). Post-hoc, single factor changed: BERTweet + CLIP B/32 concat is not distinguishable from L4a (rows d4.t2b.posthoc_clip_b32_vs_L4a.*) and, against the core model, dev macro-F1 does not resolve it while dev weighted F1 and test are better (rows d4.t2b.posthoc_clip_b32_vs_core.*), which is consistent with the ResNet50 features, not BERTweet, being the weak part of the core model",
+         "tie-break (rule 2: fewest trainable parameters): L4a over the core model; the image-only head over the core model"),
         ("t2_loss", "Task 2 loss: inverse-frequency weighted cross-entropy (kept)", "9 alternatives (§9.9, Table XIII): unweighted, sqrt-inverse, effective number, focal 1/2, focal 2 + inverse, sampler, logit adjustment, post-hoc",
          "dev macro-F1 on L/14: focal loss (gamma 1) 0.6321, unweighted 0.6237, inverse-frequency 0.6124; on B/32: focal loss (gamma 2) 0.6016, inverse-frequency 0.5679; best minus inverse-frequency +0.0197 [-0.0122, +0.0480] (L/14), +0.0337 [-0.0019, +0.0651] (B/32)",
          "7 of 10 arms tied with the best on both backbones; the two backbones pick different arms", "no new loss adopted (rule 5 of the imbalance selection rule); inverse-frequency is 'not shown worse', not 'as good'"),
@@ -173,7 +174,7 @@ def JUSTIFICATION(t1, sw, wt, tie1, fu1, t2, t2t, pc):
     out = ["| id | Choice | Alternatives tried | Result (dev unless stated) | Verdict | Basis |\n|---|---|---|---|---|---|"]
     for i, c, a, r, v, b in rows:
         out.append(f"| `d4.j.{i}` | {c} | {a} | {r} | {v} | {b} |")
-    out.append("\n`d4.j.limits` **Limitations.** (1) Three seeds per model and no multiplicity correction: about 15-20 new comparisons, all exploratory. (2) The deployed Task 1 checkpoint is a retrain of seed 42 (dev weighted F1 0.8289 against 0.8321 originally; 94.3% test-prediction agreement); same-seed run-to-run variation (0.0032) exceeds the inter-seed dev spread (0.0030), so seed selection is within noise. "
+    out.append("\n`d4.j.limits` **Limits of these choices.** (1) Three seeds per model and no multiplicity correction: about 15-20 new comparisons, all exploratory. (2) The deployed Task 1 checkpoint is a retrain of seed 42 (dev weighted F1 0.8289 against 0.8321 originally; 94.3% test-prediction agreement); same-seed run-to-run variation (0.0032) exceeds the inter-seed dev spread (0.0030), so seed selection is within noise. "
                "(3) The Task 1 and Task 2 splits overlap by tweet (1,603 of the 2,237 Task 1 test rows are in the Task 2 train split), so no Task 1 model may use anything trained on Task 2; this is asserted in the code. (4) The error-analysis categories are assigned by rule, not by human inspection.\n")
     return "\n".join(out)
 
