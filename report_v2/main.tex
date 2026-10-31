@@ -484,27 +484,27 @@ Fused & logistic probe & 0.593 & 0.684 & 0.615 \\
 
 \begin{table*}[t]
 \centering
-\caption{Leave-one-disaster-out macro-F1 (held out / in-distribution). Per-event macro-F1 averages the classes present in that event, so the averages differ from the pooled scores. Task 2 uses the image-only model (three seeds); Tasks 1 and 3 are deterministic.}
+\caption{Leave-one-disaster-out macro-F1 (held out / in-distribution). Per-event macro-F1 averages the classes present in that event, so the averages differ from the pooled scores. Task 2 uses the image-only model (three seeds); Task 3 and the Task 1 TF-IDF column are deterministic; $^{\dagger}$ Task 1 BERTweet is a single seed (42) per fold, selected on the other events' development rows.}
 \label{tab:lodo}
 \footnotesize
-\begin{tabular}{lrrccc}
+\begin{tabular}{lrrcccc}
 \toprule
-Held-out event & T2 test rows & T3 test rows & T1 (text) & T2 (image, $n$=3) & T3 (5-NN) \\
+Held-out event & T2 test rows & T3 test rows & T1 TF-IDF & T1 BERTweet$^{\dagger}$ & T2 (image, $n$=3) & T3 (5-NN) \\
 \midrule
-California wildfires & 216 & 87 & 0.615 / 0.606 & 0.664 / 0.691 & 0.309 / 0.315 \\
-Hurricane Harvey & 572 & 132 & 0.735 / 0.758 & 0.590 / 0.599 & 0.481 / 0.494 \\
-Hurricane Irma & 559 & 120 & 0.675 / 0.697 & 0.534 / 0.536 & 0.271 / 0.483 \\
-Hurricane Maria & 518 & 133 & 0.692 / 0.742 & 0.526 / 0.542 & 0.389 / 0.343 \\
-Iraq--Iran earthquake & 73 & 23 & 0.622 / 0.625 & 0.421 / 0.558 & 0.293 / 0.302 \\
-Mexico earthquake & 176 & 21 & 0.628 / 0.638 & 0.568 / 0.660 & 0.462 / 0.417 \\
-Sri Lanka floods & 123 & 13 & 0.793 / 0.932 & 0.700 / 0.711 & 0.273 / 0.316 \\
+California wildfires & 216 & 87 & 0.615 / 0.606 & 0.662 / 0.637 & 0.664 / 0.691 & 0.309 / 0.315 \\
+Hurricane Harvey & 572 & 132 & 0.735 / 0.758 & 0.809 / 0.824 & 0.590 / 0.599 & 0.481 / 0.494 \\
+Hurricane Irma & 559 & 120 & 0.675 / 0.697 & 0.743 / 0.738 & 0.534 / 0.536 & 0.271 / 0.483 \\
+Hurricane Maria & 518 & 133 & 0.692 / 0.742 & 0.793 / 0.808 & 0.526 / 0.542 & 0.389 / 0.343 \\
+Iraq--Iran earthquake & 73 & 23 & 0.622 / 0.625 & 0.665 / 0.716 & 0.421 / 0.558 & 0.293 / 0.302 \\
+Mexico earthquake & 176 & 21 & 0.628 / 0.638 & 0.665 / 0.749 & 0.568 / 0.660 & 0.462 / 0.417 \\
+Sri Lanka floods & 123 & 13 & 0.793 / 0.932 & 0.978 / 0.955 & 0.700 / 0.711 & 0.273 / 0.316 \\
 \midrule
-Average over events & 2,237 & 529 & 0.680 / 0.714 & 0.572 / 0.614 & 0.354 / 0.381 \\
+Average over events & 2,237 & 529 & 0.680 / 0.714 & 0.759 / 0.775 & 0.572 / 0.614 & 0.354 / 0.381 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Task~1 loses 0.034 on average, concentrated in the Sri Lanka floods (0.932 to 0.793), the only flood event. Task~2 loses most on the two earthquakes (Iraq--Iran $-0.137$, Mexico $-0.092$), while the hurricanes and the flood change by less than 0.02; the wildfire change ($-0.026$) is within its seed spread ($\pm0.099$). Pooled over all rows, the Task~2 drop at seed 42 is $-0.073$ (bootstrap $[-0.108, -0.036]$), larger than the per-event average because macro-F1 weights classes equally: 0.052 of it comes from \emph{injured or dead people}, whose F1 falls from 0.609 to 0.190, and without that 10-row class the drop is $-0.020$. This matches the ladder: without earthquake data that class scores 0.167 (L0) and 0.190 (here); with it, 0.632 (L1) and 0.609 (in-distribution). Task~3 changes are mixed in sign, and three events have only 13--23 test images, so they are indicative only. Text and image fail on different unseen events: text on the flood, images on the earthquakes.
+Task~1 with TF-IDF loses 0.034 on average, concentrated in the Sri Lanka floods (0.932 to 0.793), the only flood event; the BERTweet model (one seed per fold) loses 0.016 on average, most on the Mexico earthquake (0.749 to 0.665); with one seed per fold the per-event numbers are indicative only. Task~2 loses most on the two earthquakes (Iraq--Iran $-0.137$, Mexico $-0.092$), while the hurricanes and the flood change by less than 0.02; the wildfire change ($-0.026$) is within its seed spread ($\pm0.099$). Pooled over all rows, the Task~2 drop at seed 42 is $-0.073$ (bootstrap $[-0.108, -0.036]$), larger than the per-event average because macro-F1 weights classes equally: 0.052 of it comes from \emph{injured or dead people}, whose F1 falls from 0.609 to 0.190, and without that 10-row class the drop is $-0.020$. This matches the ladder: without earthquake data that class scores 0.167 (L0) and 0.190 (here); with it, 0.632 (L1) and 0.609 (in-distribution). Task~3 changes are mixed in sign, and three events have only 13--23 test images, so they are indicative only. Text and image fail on different unseen events: text on the flood, images on the earthquakes. \todo{With BERTweet (single seed) the flood is no longer the text model's weak event (held out 0.978 against 0.955 in distribution, 107 rows); its largest losses are on the earthquakes. Rewrite this sentence.}
 
 \subsection{Confidence and Calibration}
 \label{sec:calib}
@@ -663,7 +663,7 @@ At our guide's request we compared the candidate models of the two task lists (T
 (\texttt{SELECTION\_RULE\_DAY4.md}); arms added after seeing earlier results are marked $^\ast$. Development data decide, the test split is scored once, ties go to the model with the fewest trainable parameters, every neural model has three seeds, and no multiplicity correction is applied to the roughly twenty added comparisons.
 Provenance fields stored with every run (task, label column, hash of the training split, initialisation) guard against using weights trained on another task (Section~\ref{sec:data_integrity}).
 
-\textbf{Task~1.} Table~\ref{tab:t1explore} and Fig.~\ref{fig:t1models} list the models. All image heads score against the text label, so they are far below the text models (0.761 for the best head against 0.838 for BERTweet; the majority class scores 0.604). The classical text models plateau between 0.794 and 0.811 development weighted F1; naive Bayes needs class weights
+\textbf{Task~1.} Table~\ref{tab:t1explore} and Fig.~\ref{fig:t1models} list the models. All image heads score against the text label, so they are far below the text models (0.761 for the best head against 0.838 for BERTweet; the majority class scores 0.604). The class-weighted classical text models (logistic regression, balanced naive Bayes, Complement NB, random forest, linear SVM) plateau between 0.786 and 0.811 development weighted F1; naive Bayes needs class weights
 (macro-F1 0.588 unweighted against 0.737 balanced). The BiLSTM is tied with TF-IDF and logistic regression (+0.0005 [$-$0.0129, +0.0133] on development weighted F1; post-hoc). BERTweet is best on development data, and the rule fixed in advance (switch if the paired development interval of the seed-averaged gain excludes zero and the gain is positive at every seed) is met
 (+0.0195 [+0.0049, +0.0340]; per seed +0.0212, +0.0182, +0.0191), so BERTweet replaced TF-IDF as the deployed Task~1 model; the lower bound is small, the test gap is larger (0.838 against 0.797). Latency is not a reason to keep TF-IDF (Table~\ref{tab:latency}).
 Table~\ref{tab:weight1} shows what loss weighting does (Section~\ref{sec:imbalance}).
@@ -904,9 +904,9 @@ Task 3: logistic probe predicts, 5-NN supplies the evidence & v2's 5-NN majority
 
 \section{Discussion}
 
-\textbf{The image carries the humanitarian task.} A 0.2M-parameter classifier on a frozen CLIP vector matches a 67M-parameter fusion model. This is a property of the task as labelled rather than a failure of fusion: the target is the image's annotation, so text can help only where the tweet describes the same thing as the image, and Table~\ref{tab:agree} shows that it does help there. Evaluating on text labels, or on the agreed subset as Ofli et al.\ did, would favour fusion.
+\textbf{The image carries the humanitarian task.} A 0.2M-parameter classifier on a frozen CLIP vector matches a 67M-parameter fusion model. This is a property of the task as labelled rather than a failure of fusion: the target is the image's annotation, so text can help only where the tweet describes the same thing as the image, and Table~\ref{tab:agree} shows that it does help there. Evaluating on text labels, or on the agreed subset as Ofli et al.\ did, would favour fusion. \todo{Partly contradicted by Task~1: on the full text-labelled Task~1, fusion is not distinguishable from text-only on development data (Section~\ref{sec:explore}); fusion gains appear on the agreed rows only. Rewrite.}
 
-\textbf{Each modality helps where it describes the label being scored.}\label{sec:discussion_modality} The same pattern holds in both tasks (Fig.~\ref{fig:agree}). Task~1 is scored against the text label: fusion with image features gains weighted F1 on rows where the text and image labels agree and loses on rows where they disagree (late fusion: +0.041 against BERTweet on agreed rows, $-$0.061 on disagreed rows). Task~2 is scored against the image label and shows the mirror image: the text model collapses on disagreed rows, and fusion helps only on agreed rows. The label source, not the architecture, decides which modality carries the task; evaluating Task~2 on text labels, or Task~1 on image labels, would reverse the ranking.
+\textbf{Each modality helps where it describes the label being scored.}\label{sec:discussion_modality} The same pattern holds in both tasks (Fig.~\ref{fig:agree}). Task~1 is scored against the text label: fusion with image features gains weighted F1 on rows where the text and image labels agree and loses on rows where they disagree (late fusion: +0.041 against BERTweet on agreed rows, $-$0.061 on disagreed rows). Task~2 is scored against the image label and shows the mirror image: the text model collapses on disagreed rows, and fusion helps only on agreed rows. The subset results suggest that the label source, not the architecture, decides which modality carries the task; we did not train or score Task~2 on text labels or Task~1 on image labels, so this is an interpretation. \todo{Soften or cut: it rests on the descriptive agreed/disagreed split only.}
 
 \textbf{Retrieval is better as evidence than as a vote.} Nearest-neighbour voting gives an intuitive explanation but a weaker prediction than a probe on the same features. Keeping the two roles separate preserves the explanation and adds a confidence signal: when the two disagree, both are close to guessing, and the tool asks a human to look.
 
