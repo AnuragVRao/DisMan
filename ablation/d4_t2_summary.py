@@ -67,12 +67,20 @@ if __name__ == "__main__":
     w = {n: out["models"][n]["dev_macro_f1"][0] for n in ("t2_tfidf_lr", "t2_tfidf_svm", "t2_tfidf_cnb_bal")}
     md += (f"\nClass-weighted classical models, selected on dev macro-F1: " + ", ".join(f"{n} {v:.4f}" for n, v in w.items()) + f" -> best: {max(w, key=w.get)}. "
            f"The unweighted ComplementNB (dev {out['models']['t2_tfidf_cnb']['dev_macro_f1'][0]:.4f}) is kept as a reference row; weighting did not help it.\n")
+    from d4_t2_fusion_analysis import compare
+    import d4_t2_data as _d4
+    _y = {sp: _d4.data()["y"][sp] for sp in ("dev", "test")}
+    pb = {sp: compare("bertweet_text_matched", "t2_distilbert_text", _y, sp) for sp in ("dev", "test")}
+    out["bertweet_matched_vs_distilbert_paired"] = pb
     bt = [r["dev"]["macro_f1"] for r in ra]; dd = [x["dev_macro_f1"] for x in ds]
     every = min(bt) > max(dd)
     out["bertweet_vs_distilbert_dev"] = dict(bertweet_matched_per_seed=bt, distilbert_per_seed=dd, every_bertweet_seed_exceeds_every_distilbert_seed=bool(every))
     md += ("\nBERTweet (matched recipe) vs DistilBERT text-only, per-seed dev macro-F1: BERTweet " + ", ".join(f"{v:.4f}" for v in bt) + "; DistilBERT " + ", ".join(f"{v:.4f}" for v in dd) + ". "
-           + ("Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed; no paired CI: DistilBERT stored no predictions); test not resolvable (means differ by less than the seed spread). "
-              if every else "Nominally better, not established. ")
+           + (("Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed), but " if every else "Nominally better, not established; ")
+              + "the paired bootstrap (post-hoc; DistilBERT predictions re-inferred from its checkpoints, d4_t2_reinfer.py; seed-averaged, 10,000 resamples) gives, for macro-F1, "
+              + f"dev {pb['dev']['macro_f1']['point']:+.4f} [{pb['dev']['macro_f1']['ci95'][0]:+.4f}, {pb['dev']['macro_f1']['ci95'][1]:+.4f}] ({pb['dev']['macro_f1']['verdict']}) and "
+              + f"test {pb['test']['macro_f1']['point']:+.4f} [{pb['test']['macro_f1']['ci95'][0]:+.4f}, {pb['test']['macro_f1']['ci95'][1]:+.4f}] ({pb['test']['macro_f1']['verdict']}); for weighted F1, "
+              + f"dev {pb['dev']['weighted_f1']['point']:+.4f} ({pb['dev']['weighted_f1']['verdict']}) and test {pb['test']['weighted_f1']['point']:+.4f} ({pb['test']['weighted_f1']['verdict']}). ")
            + "Confound: BERTweet reads the raw tweet text with its own normalisation, DistilBERT read the cleaned text, and the encoders differ in size, so the gap is not attributable to the encoder alone.\n")
     (RES / "D4_T2_text_summary.json").write_text(json.dumps(out, indent=1))
     md += "\n## Test per-class F1 (mean over seeds)\n\n| Class | " + " | ".join(["TF-IDF LR", "BERTweet matched", "BERTweet rule8", "DistilBERT"]) + " |\n|---|---|---|---|---|\n"

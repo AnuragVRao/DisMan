@@ -15,7 +15,7 @@ Arm selection (rule 13): matched − rule8, dev macro-F1 +0.0030, 95% CI [-0.009
 
 Class-weighted classical models, selected on dev macro-F1: t2_tfidf_lr 0.2700, t2_tfidf_svm 0.2272, t2_tfidf_cnb_bal 0.2165 -> best: t2_tfidf_lr. The unweighted ComplementNB (dev 0.2385) is kept as a reference row; weighting did not help it.
 
-BERTweet (matched recipe) vs DistilBERT text-only, per-seed dev macro-F1: BERTweet 0.3108, 0.3125, 0.3106; DistilBERT 0.2984, 0.2967, 0.2893. Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed; no paired CI: DistilBERT stored no predictions); test not resolvable (means differ by less than the seed spread). Confound: BERTweet reads the raw tweet text with its own normalisation, DistilBERT read the cleaned text, and the encoders differ in size, so the gap is not attributable to the encoder alone.
+BERTweet (matched recipe) vs DistilBERT text-only, per-seed dev macro-F1: BERTweet 0.3108, 0.3125, 0.3106; DistilBERT 0.2984, 0.2967, 0.2893. Better on dev at every seed (every BERTweet seed exceeds every DistilBERT seed), but the paired bootstrap (post-hoc; DistilBERT predictions re-inferred from its checkpoints, d4_t2_reinfer.py; seed-averaged, 10,000 resamples) gives, for macro-F1, dev +0.0165 [-0.0004, +0.0334] (not distinguishable) and test +0.0138 [-0.0071, +0.0353] (not distinguishable); for weighted F1, dev +0.0195 (better) and test +0.0269 (better). Confound: BERTweet reads the raw tweet text with its own normalisation, DistilBERT read the cleaned text, and the encoders differ in size, so the gap is not attributable to the encoder alone.
 
 ## Test per-class F1 (mean over seeds)
 

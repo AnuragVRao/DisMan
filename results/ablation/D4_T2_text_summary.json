@@ -689,6 +689,44 @@
    "Vehicle damage": 0.06728930373508686
   }
  },
+ "bertweet_matched_vs_distilbert_paired": {
+  "dev": {
+   "macro_f1": {
+    "point": 0.01652269778932519,
+    "ci95": [
+     -0.00040514075609502666,
+     0.03338538026274677
+    ],
+    "verdict": "not distinguishable"
+   },
+   "weighted_f1": {
+    "point": 0.019481692120805267,
+    "ci95": [
+     0.0051724626023118584,
+     0.03363956881240399
+    ],
+    "verdict": "better"
+   }
+  },
+  "test": {
+   "macro_f1": {
+    "point": 0.01382296988356054,
+    "ci95": [
+     -0.0070914902037680526,
+     0.03530756819843437
+    ],
+    "verdict": "not distinguishable"
+   },
+   "weighted_f1": {
+    "point": 0.0268952172345517,
+    "ci95": [
+     0.012336884874162778,
+     0.041019583513109595
+    ],
+    "verdict": "better"
+   }
+  }
+ },
  "bertweet_vs_distilbert_dev": {
   "bertweet_matched_per_seed": [
    0.3108382120579,
