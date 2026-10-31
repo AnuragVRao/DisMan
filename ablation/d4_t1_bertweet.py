@@ -14,7 +14,8 @@ import d4_t1_data as d4
 import metrics_all as M
 from common import cc
 
-NAME, MAXLEN, LR, EPOCHS, BATCH = "bertweet", 128, 2e-5, 4, 32
+NOWEIGHT = "--noweight" in sys.argv          # post-hoc arm (SELECTION_RULE_DAY4.md rule 10): plain unweighted cross-entropy
+NAME, MAXLEN, LR, EPOCHS, BATCH = "bertweet_noweight" if NOWEIGHT else "bertweet", 128, 2e-5, 4, 32
 DEV = torch.device("cuda")
 
 
@@ -23,17 +24,24 @@ def encode(tok, texts):
     return e["input_ids"], e["attention_mask"]
 
 
+def trim(ids, mask):
+    """Dynamic padding: cut the batch to its longest sequence (same outputs as full padding, attention-masked; much faster on short tweets)."""
+    L = int(mask.sum(1).max())
+    return ids[:, :L], mask[:, :L]
+
+
 @torch.no_grad()
 def predict(model, ids, mask):
     model.eval(); out = []
     for i in range(0, len(ids), 128):
+        a, m = trim(ids[i:i + 128], mask[i:i + 128])
         with torch.autocast("cuda", dtype=torch.float16):
-            out.append(model(input_ids=ids[i:i + 128].to(DEV), attention_mask=mask[i:i + 128].to(DEV)).logits.float().cpu())
+            out.append(model(input_ids=a.to(DEV), attention_mask=m.to(DEV)).logits.float().cpu())
     return torch.cat(out).numpy()
 
 
 if __name__ == "__main__":
-    seeds = [int(s) for s in sys.argv[1:]] or [42, 43, 44]
+    seeds = [int(s) for s in sys.argv[1:] if s != "--noweight"] or [42, 43, 44]
     D = d4.data(); S = D["S"]
     tok = AutoTokenizer.from_pretrained("vinai/bertweet-base", use_fast=False, normalization=True)
     probe = tok.tokenize("Flood in #Houston! @NWS see https://t.co/abc 😢")
@@ -45,6 +53,8 @@ if __name__ == "__main__":
         t0 = time.time(); cc.seed_all(seed)
         model = AutoModelForSequenceClassification.from_pretrained("vinai/bertweet-base", num_labels=2).to(DEV)
         cnt = np.bincount(D["y"]["train"], minlength=2).astype("float32"); w = 1.0 / cnt; w /= w.sum() / 2
+        if NOWEIGHT:
+            w = np.ones(2, dtype="float32")
         crit = nn.CrossEntropyLoss(weight=torch.tensor(w, device=DEV))
         opt = AdamW(model.parameters(), lr=LR, weight_decay=0.01)
         n = len(ytr); steps = EPOCHS * ((n + BATCH - 1) // BATCH)
@@ -56,8 +66,9 @@ if __name__ == "__main__":
             for i in range(0, n, BATCH):
                 b = perm[i:i + BATCH]
                 opt.zero_grad(set_to_none=True)
+                a, m = trim(X["train"][0][b], X["train"][1][b])
                 with torch.autocast("cuda", dtype=torch.float16):
-                    logits = model(input_ids=X["train"][0][b].to(DEV), attention_mask=X["train"][1][b].to(DEV)).logits
+                    logits = model(input_ids=a.to(DEV), attention_mask=m.to(DEV)).logits
                 loss = crit(logits.float(), ytr[b].to(DEV))
                 scaler.scale(loss).backward(); scaler.unscale_(opt)
                 nn.utils.clip_grad_norm_(model.parameters(), 1.0)
