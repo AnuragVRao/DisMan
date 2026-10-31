@@ -1,0 +1,289 @@
+{
+ "seed": 42,
+ "single_seed": true,
+ "recipe": "BERTweet, 4 epochs, lr 2e-5, weighted CE, epoch by dev weighted F1 on the other events' dev rows",
+ "rows": [
+  {
+   "event": "california_wildfires",
+   "n_train": 12469,
+   "n_dev": 2027,
+   "best_epoch": 2,
+   "dev_weighted_f1": 0.8328753944833723,
+   "held_out": {
+    "n": 240,
+    "acc": 0.8083333333333333,
+    "macro_f1": 0.6617232503983331,
+    "macro_f1_fixed": 0.6617232503983331,
+    "weighted_f1": 0.8083333333333333
+   },
+   "in_dist": {
+    "n": 240,
+    "acc": 0.775,
+    "macro_f1": 0.6369341102644555,
+    "macro_f1_fixed": 0.6369341102644555,
+    "weighted_f1": 0.7843287763334829
+   },
+   "minutes": 4.65027821858724
+  },
+  {
+   "event": "hurricane_harvey",
+   "n_train": 10323,
+   "n_dev": 1656,
+   "best_epoch": 3,
+   "dev_weighted_f1": 0.8274020473585754,
+   "held_out": {
+    "n": 568,
+    "acc": 0.8679577464788732,
+    "macro_f1": 0.8093097999543418,
+    "macro_f1_fixed": 0.8093097999543418,
+    "weighted_f1": 0.8688886662649768
+   },
+   "in_dist": {
+    "n": 568,
+    "acc": 0.8820422535211268,
+    "macro_f1": 0.8235656830246413,
+    "macro_f1_fixed": 0.8235656830246413,
+    "weighted_f1": 0.88079046149215
+   },
+   "minutes": 3.5926498055458067
+  },
+  {
+   "event": "hurricane_irma",
+   "n_train": 10187,
+   "n_dev": 1702,
+   "best_epoch": 3,
+   "dev_weighted_f1": 0.8242215926212383,
+   "held_out": {
+    "n": 548,
+    "acc": 0.8047445255474452,
+    "macro_f1": 0.7427602514663754,
+    "macro_f1_fixed": 0.7427602514663754,
+    "weighted_f1": 0.8160353412722497
+   },
+   "in_dist": {
+    "n": 548,
+    "acc": 0.8175182481751825,
+    "macro_f1": 0.7379244380679101,
+    "macro_f1_fixed": 0.7379244380679101,
+    "weighted_f1": 0.8217351387768923
+   },
+   "minutes": 3.9302356521288555
+  },
+  {
+   "event": "hurricane_maria",
+   "n_train": 10146,
+   "n_dev": 1685,
+   "best_epoch": 2,
+   "dev_weighted_f1": 0.8509631930880353,
+   "held_out": {
+    "n": 542,
+    "acc": 0.8099630996309963,
+    "macro_f1": 0.7930369727773885,
+    "macro_f1_fixed": 0.7930369727773885,
+    "weighted_f1": 0.8059226693498125
+   },
+   "in_dist": {
+    "n": 542,
+    "acc": 0.8154981549815498,
+    "macro_f1": 0.8075721426948421,
+    "macro_f1_fixed": 0.8075721426948421,
+    "weighted_f1": 0.816074592238765
+   },
+   "minutes": 3.616338260968526
+  },
+  {
+   "event": "iraq_iran_earthquake",
+   "n_train": 13156,
+   "n_dev": 2165,
+   "best_epoch": 2,
+   "dev_weighted_f1": 0.8366931393667963,
+   "held_out": {
+    "n": 73,
+    "acc": 0.821917808219178,
+    "macro_f1": 0.6645457758925415,
+    "macro_f1_fixed": 0.6645457758925415,
+    "weighted_f1": 0.8187703675726454
+   },
+   "in_dist": {
+    "n": 73,
+    "acc": 0.8493150684931506,
+    "macro_f1": 0.7161541180629197,
+    "macro_f1_fixed": 0.7161541180629197,
+    "weighted_f1": 0.846651849484546
+   },
+   "minutes": 4.686984244982401
+  },
+  {
+   "event": "mexico_earthquake",
+   "n_train": 12564,
+   "n_dev": 2060,
+   "best_epoch": 2,
+   "dev_weighted_f1": 0.8278904036456178,
+   "held_out": {
+    "n": 159,
+    "acc": 0.7672955974842768,
+    "macro_f1": 0.6645378342932087,
+    "macro_f1_fixed": 0.6645378342932087,
+    "weighted_f1": 0.7404384548320657
+   },
+   "in_dist": {
+    "n": 159,
+    "acc": 0.7924528301886793,
+    "macro_f1": 0.749247311827957,
+    "macro_f1_fixed": 0.749247311827957,
+    "weighted_f1": 0.7917982011226078
+   },
+   "minutes": 4.688429959615072
+  },
+  {
+   "event": "srilanka_floods",
+   "n_train": 12803,
+   "n_dev": 2127,
+   "best_epoch": 1,
+   "dev_weighted_f1": 0.8264267341790587,
+   "held_out": {
+    "n": 107,
+    "acc": 0.9813084112149533,
+    "macro_f1": 0.9780917280917281,
+    "macro_f1_fixed": 0.9780917280917281,
+    "weighted_f1": 0.9813084112149533
+   },
+   "in_dist": {
+    "n": 107,
+    "acc": 0.9626168224299065,
+    "macro_f1": 0.9545840407470289,
+    "macro_f1_fixed": 0.9545840407470289,
+    "weighted_f1": 0.9619027973914286
+   },
+   "minutes": 5.025387394428253
+  }
+ ],
+ "tfidf": {
+  "california_wildfires": {
+   "held_out": {
+    "acc": 0.7083333333333334,
+    "macro_f1": 0.6153493909698691,
+    "weighted_f1": 0.7398533137955247,
+    "macro_f1_fixed_labels": 0.6153493909698691,
+    "n": 240
+   },
+   "in_dist": {
+    "acc": 0.7875,
+    "macro_f1": 0.6055557345879927,
+    "weighted_f1": 0.7819188875640488,
+    "macro_f1_fixed_labels": 0.6055557345879927,
+    "n": 240
+   }
+  },
+  "hurricane_harvey": {
+   "held_out": {
+    "acc": 0.8045774647887324,
+    "macro_f1": 0.7350289775282315,
+    "weighted_f1": 0.8115084136909816,
+    "macro_f1_fixed_labels": 0.7350289775282315,
+    "n": 568
+   },
+   "in_dist": {
+    "acc": 0.8274647887323944,
+    "macro_f1": 0.7582012788434807,
+    "weighted_f1": 0.8311102366212845,
+    "macro_f1_fixed_labels": 0.7582012788434807,
+    "n": 568
+   }
+  },
+  "hurricane_irma": {
+   "held_out": {
+    "acc": 0.7755474452554745,
+    "macro_f1": 0.6748151042797389,
+    "weighted_f1": 0.7798409548708337,
+    "macro_f1_fixed_labels": 0.6748151042797389,
+    "n": 548
+   },
+   "in_dist": {
+    "acc": 0.801094890510949,
+    "macro_f1": 0.6971961290257169,
+    "weighted_f1": 0.8001238740484701,
+    "macro_f1_fixed_labels": 0.6971961290257169,
+    "n": 548
+   }
+  },
+  "hurricane_maria": {
+   "held_out": {
+    "acc": 0.7232472324723247,
+    "macro_f1": 0.6922552804905746,
+    "weighted_f1": 0.7135172010361939,
+    "macro_f1_fixed_labels": 0.6922552804905746,
+    "n": 542
+   },
+   "in_dist": {
+    "acc": 0.7453874538745388,
+    "macro_f1": 0.7422285328297101,
+    "weighted_f1": 0.7484410775512065,
+    "macro_f1_fixed_labels": 0.7422285328297101,
+    "n": 542
+   }
+  },
+  "iraq_iran_earthquake": {
+   "held_out": {
+    "acc": 0.7534246575342466,
+    "macro_f1": 0.6224137931034484,
+    "weighted_f1": 0.7717052432687767,
+    "macro_f1_fixed_labels": 0.6224137931034484,
+    "n": 73
+   },
+   "in_dist": {
+    "acc": 0.8082191780821918,
+    "macro_f1": 0.625366568914956,
+    "weighted_f1": 0.8010484875266138,
+    "macro_f1_fixed_labels": 0.625366568914956,
+    "n": 73
+   }
+  },
+  "mexico_earthquake": {
+   "held_out": {
+    "acc": 0.710691823899371,
+    "macro_f1": 0.6278998778998779,
+    "weighted_f1": 0.6996528977661053,
+    "macro_f1_fixed_labels": 0.6278998778998779,
+    "n": 159
+   },
+   "in_dist": {
+    "acc": 0.7232704402515723,
+    "macro_f1": 0.6384869780901199,
+    "weighted_f1": 0.710057433161476,
+    "macro_f1_fixed_labels": 0.6384869780901199,
+    "n": 159
+   }
+  },
+  "srilanka_floods": {
+   "held_out": {
+    "acc": 0.8037383177570093,
+    "macro_f1": 0.7933413041478892,
+    "weighted_f1": 0.8111028690634694,
+    "macro_f1_fixed_labels": 0.7933413041478892,
+    "n": 107
+   },
+   "in_dist": {
+    "acc": 0.9439252336448598,
+    "macro_f1": 0.9318760611205432,
+    "weighted_f1": 0.9428541960871427,
+    "macro_f1_fixed_labels": 0.9318760611205432,
+    "n": 107
+   }
+  }
+ },
+ "average": {
+  "bertweet_held_out": 0.7591436589819882,
+  "bertweet_in_dist": 0.7751402635271077,
+  "tfidf_held_out": 0.6801576754885186,
+  "tfidf_in_dist": 0.7141301833446457
+ },
+ "provenance": {
+  "task_name": "informative",
+  "label_col": "label_text",
+  "train_split_sha256": "abb8180a6825d07cff02793aaf958b734079088da0872e348e76a4d59015a43c",
+  "init_from": "vinai/bertweet-base",
+  "feature_cache": null
+ },
+ "total_minutes": 30.58275042374929
+}
