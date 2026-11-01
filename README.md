@@ -1,241 +1,246 @@
-# CrisisMMD disaster-triage pipeline
+# CrisisMMD Disaster-Triage Pipeline
 
-An audited and corrected multimodal pipeline for disaster tweets (CrisisMMD v2.0), wrapped into a live triage demo.
-Give it a tweet's image and text; it answers three questions and shows the evidence.
+An audited, corrected and extended multimodal pipeline for disaster tweets, built on **CrisisMMD v2.0**. Given a tweet's image and text it answers three questions and shows the supporting evidence through a live Gradio demo.
 
-| Stage | Question | Model | Input |
+| Task | Question | Model | Input |
 |---|---|---|---|
-| Task 1 | Is the tweet informative? | TF-IDF + Logistic Regression | text only |
-| Task 2 | Which humanitarian category? (8 classes) | frozen CLIP ViT-B/32 image vector + fine-tuned DistilBERT, cross-attention, MLP | image + text |
-| Task 3 | How severe is the damage? (3 classes) | CLIP image + SBERT text vector, FAISS index, 5-NN vote | image + text |
+| 1 | Is the tweet informative? | Fine-tuned BERTweet (TF-IDF + logistic regression kept as a fallback) | text |
+| 2 | Which humanitarian category? (8 classes) | Frozen CLIP ViT-B/32 image vector + fine-tuned DistilBERT, cross-attention, MLP | image + text |
+| 3 | How severe is the damage? (3 classes) | CLIP image + SBERT text vector, logistic probe; FAISS 5-NN retrieves similar past cases as evidence | image + text |
 
-The demo also shows the five most similar past cases (with their images, tweets and labels) from the damage-train index.
+The project began as a Kaggle notebook (`capstone-final.ipynb`, kept unmodified). We audited it, fixed a set of verified bugs, rebuilt it as `capstone-v2.ipynb`, and then ran a series of pre-registered ablations and model explorations on top of it.
 
-This project started from `capstone-final.ipynb` (a Kaggle notebook, kept unmodified). We audited it, fixed a set of verified bugs
-and rebuilt it as `capstone-v2.ipynb`. The full audit, tables, figures and limitations are in **[RESULTS.md](RESULTS.md)**.
+---
 
-## Results (test split, seed 42)
+## Contents
+1. [Results](#1-results)
+2. [The audit: what was wrong with the original notebook](#2-the-audit)
+3. [Ablation and exploration studies](#3-ablation-and-exploration-studies)
+4. [Live demo](#4-live-demo)
+5. [Reproducing the work](#5-reproducing-the-work)
+6. [Repository layout](#6-repository-layout)
+7. [Limitations and future work](#7-limitations-and-future-work)
+8. [Data and references](#8-data-and-references)
+
+---
+
+## 1. Results
+
+Corrected v2 baseline, test split, seed 42:
 
 | Task | Accuracy | Macro-F1 | Weighted-F1 | n |
 |---|---|---|---|---|
-| T1 Informative (text-only) | 0.7944 | 0.7513 | 0.7970 | 2237 |
+| T1 Informative (text-only, TF-IDF + LR) | 0.7944 | 0.7513 | 0.7970 | 2237 |
 | T2 Humanitarian (8 classes) | 0.7975 | 0.5865 | 0.7968 | 2237 |
 | T3 Damage severity (3 classes, tweet-disjoint index) | 0.6673 | 0.4914 | 0.6202 | 529 |
 
-> **Task 1 has since changed.** The table above is the corrected v2 baseline (TF-IDF + logistic regression). The demo now serves a fine-tuned BERTweet for Task 1 (test weighted F1 0.8382 ± 0.0022 and macro-F1 0.7970 ± 0.0009 as 3-seed means; deployed checkpoint 0.8443 / 0.8024), chosen by a pre-registered dev rule; see "Task 1 backend" below and `docs/report_dossier.md`.
+Models that the demo now serves:
 
-> **What does the demo serve?** The live demo serves the ablation study's L4a seed-42 Task 2 model (test accuracy 0.8033, macro-F1 0.6080) and a hybrid Task 3 (a logistic probe predicts the damage level, the five most similar past cases are shown as evidence, and a disagreement is flagged for human review), with temperature-scaled confidences (`demo/calibration.json`). The numbers listed above are for the v2 pipeline. `CAPSTONE_T3_HYBRID=0` restores v2's 5-NN vote and `CAPSTONE_T2_CKPT=artifacts/task2_model.pt` selects v2's own Task 2 checkpoint (see `docs/ablation_findings.md`).
+* **Task 1:** fine-tuned BERTweet, selected over TF-IDF + LR by a rule fixed before the runs. Test weighted-F1 0.8382 ± 0.0022 and macro-F1 0.7970 ± 0.0009 (3-seed means); the deployed checkpoint scores 0.8443 / 0.8024.
+* **Task 2:** the L4a seed-42 model from the ablation study (test accuracy 0.8033, macro-F1 0.6080).
+* **Task 3:** a hybrid. A logistic probe predicts the level (macro-F1 0.6146 against 0.4914 for the plain 5-NN vote; paired bootstrap difference +0.123, 95% CI [+0.062, +0.186]). The five nearest past cases are shown as evidence, and probe/neighbour disagreement (34.8% of test queries) is flagged for human review.
+* Confidences are temperature-scaled (`demo/calibration.json`).
 
-Task 3 is lower than the old notebook's number on purpose: the old evaluation was inflated by test-set leakage and polluted by a
-class that does not exist in the test split (details in RESULTS.md). The old and corrected rows are not on identical test sets
-(the old path bug removed two events), and the comparison with the CrisisMMD authors' numbers is indicative only. Both caveats are
-explained in RESULTS.md. The old-vs-corrected table is `results/before_after.csv`.
+Task 3 is lower than the original notebook's number on purpose: the old evaluation was inflated by test-set leakage and polluted by a class that does not exist in the test split (section 2).
 
-### Extra experiment: can damage severity be classified with no training? (S1)
+### Can damage severity be classified with no training? (CLIP zero-shot)
 
-We tested CLIP zero-shot (image only, text prompts as class descriptions) on the same 529 damage-test rows. Prompt wording was fixed and
-committed before any result existed, the best of three prompt sets was chosen on **dev** only, and test was scored once.
+Prompts were fixed before any result existed, the best of three prompt sets was chosen on dev, and test was scored once (529 damage-test rows).
 
-| Method | Accuracy | Macro-F1 | Weighted-F1 | Recall Severe / Mild / Little |
-|---|---|---|---|---|
-| Task 3 k-NN, image + text (headline) | 0.667 | 0.491 | 0.620 | 92% / 18% / 32% |
-| Task 3 k-NN, CLIP image only | 0.675 | 0.507 | 0.641 | 91% / 27% / 28% |
-| CLIP zero-shot (prompt set E3) | 0.303 | 0.299 | 0.349 | 26% / 37% / 38% |
-| Zero-shot + bias terms fitted on dev (not pure zero-shot) | 0.567 | 0.397 | 0.563 | 74% / 37% / 8% |
-| Baseline: always "Severe damage" | 0.628 | 0.257 | 0.484 | 100% / 0% / 0% |
-| Baseline: stratified random (expected) | 0.469 | 0.333 | 0.469 | 63% / 24% / 13% |
+| Method | Accuracy | Macro-F1 | Recall Severe / Mild / Little |
+|---|---|---|---|
+| Task 3 k-NN, image + text | 0.667 | 0.491 | 92% / 18% / 32% |
+| Task 3 k-NN, CLIP image only | 0.675 | 0.507 | 91% / 27% / 28% |
+| CLIP zero-shot (prompt set E3) | 0.303 | 0.299 | 26% / 37% / 38% |
+| Zero-shot + bias terms fitted on dev | 0.567 | 0.397 | 74% / 37% / 8% |
+| Always "Severe damage" | 0.628 | 0.257 | 100% / 0% / 0% |
+| Stratified random (expected) | 0.469 | 0.333 | 63% / 24% / 13% |
 
-Reading it: zero-shot is **below chance**, so labelled data is what makes Task 3 work. Adding the tweet text to the k-NN makes no
-meaningful difference (0.491 vs 0.507 macro-F1, within noise on 529 rows with a 13% minority class). "Always Severe" already scores 0.628
-accuracy, which is why macro-F1 is the headline. Feature extraction was checked (text and image features are the projected 512-d
-vectors; a cat-vs-disaster test picks "disaster" 20/20; matched cosine similarities are 0.22-0.29): see `results/s1_sanity.txt`.
-Files: `results/s1_zeroshot.csv`, `results/s1_dev_candidates.csv`, `results/s1_prompts.json`, `results/figures/confusion_s1_zeroshot.png`.
+Zero-shot is below chance, so labelled data is what makes Task 3 work. Adding tweet text to the k-NN makes no meaningful difference. Because "always Severe" already reaches 0.628 accuracy, macro-F1 is the headline metric throughout. Files: `results/s1_*`.
 
-## Live demo
+---
+
+## 2. The audit
+
+Full evidence is in [RESULTS.md](RESULTS.md). The main findings:
+
+1. **Path bug.** `lstrip('data_image/')` strips a character set, not a prefix, which silently dropped the Iraq-Iran and Mexico earthquake events (about 11% of every split). Fixed with `removeprefix`; every image now resolves, asserted.
+2. **Task 3 leakage and pollution.** The FAISS index was built from all annotations, so every test query retrieved itself, and 80% of the index was a "Don't know" class that does not exist in the test split. The index is now built from the damage-train split only.
+3. **Tweet-level overlap.** The official split separates images, not tweets, so multi-image tweets appear in both train and test with identical text (62 test tweets have a twin in train). These are excluded from the index.
+4. **Smaller fixes.** Task 1 report labels were in the wrong order; `T3_CLIP` was used but never defined; a QuickGELU mismatch affected the old `open_clip` image features; the k-NN vote tie-break depended on set-hash order (now deterministic); a `TRAIN` flag now allows running without retraining.
+
+Task 3 ladder (v1 index to v2), 529 test queries:
+
+| Rung | Acc. | Macro-F1 |
+|---|---|---|
+| L0 v1 index (includes test, "Don't know" pollution) | 0.7221 | 0.6880 |
+| L1 test rows removed | 0.5028 | 0.3777 |
+| L2 "Don't know" rows removed | 0.6767 | 0.5037 |
+| L3 dev rows removed (train only) | 0.6749 | 0.5091 |
+| L4 tweet siblings removed (= v2) | 0.6673 | 0.4914 |
+
+The original notebook's Task 3 number looked reasonable only because two opposing defects (self-match inflation, absent-class deflation) roughly cancelled.
+
+---
+
+## 3. Ablation and exploration studies
+
+All studies follow the same rules: one corrected test set, model selection on **dev only**, test scored afterwards, seeds 42-44 for trained models, selection rules committed before the runs (`ablation/SELECTION_RULE*.md`), and paired bootstrap intervals for comparisons. Per-run results are JSON files under `results/ablation/`. Detailed write-ups: [docs/ablation_findings.md](docs/ablation_findings.md), [ABLATION_PLAN.md](ABLATION_PLAN.md), [docs/report_dossier.md](docs/report_dossier.md).
+
+| Study | What it covers | Headline finding |
+|---|---|---|
+| **A. v1 to v2 ladder** | Task 2 and Task 3 rungs from the original notebook to the corrected pipeline | Task 3 changes explained above; Task 1 reproduces exactly |
+| **B. Component ablation** | Image-only, text-only, concat, no text-to-image attention; Task 3 k, voting scheme, probe | Image carries most of the signal for Task 2; text adds little |
+| **C. Robustness** | Missing modality, calibration, leave-one-disaster-out | Task 2 drops about 0.07 macro-F1 on an unseen event (95% CI [-0.109, -0.036]) |
+| **D. Extra analyses** | Label-agreement subsets, bootstrap CIs, duplicate-image check, class imbalance and loss comparison | Most loss and imbalance choices are statistically tied |
+| **Architecture search** | Image backbone, text encoder, head, hyperparameters, fine-tuned vs frozen | CLIP L/14 is the only resolvable pick; other choices are ties |
+| **Task 1 exploration** | TF-IDF models, BiLSTM + GloVe, BERTweet, image heads, early and late fusion | BERTweet beats TF-IDF + LR by +0.0195 dev weighted-F1 (CI [+0.005, +0.034]); fusion adds about +0.006 on test |
+| **Task 2 exploration** | Classical and BERTweet text models, image heads, fusion | Image-only CLIP L/14 (test macro-F1 0.644) matches or beats fused models; text-only tops out near 0.31 |
+| **Preprocessing A/B (Task 1)** | `preprocessing/` branch text and a minimal-cleaning variant against raw text | No arm meets the pre-registered "helps" rule; raw tweet text is kept |
+
+Key take-aways: Task 2 macro-F1 is limited by tiny classes (for example "Missing or found people" has 3 test rows); most architectural differences are within noise at this test size; and Task 1 image and text labels disagree on about 31% of test rows, so Task 1 (text label) and Task 2 (image label) can legitimately disagree.
+
+### Preprocessed datasets
+
+`preprocessing/` contains leakage-checked, ready-to-train versions of the data for all three tasks: cleaned text (BERTweet and TF-IDF variants), verified and resized images, and weighted, balanced, oversampled or undersampled training splits. See [preprocessing/README.md](preprocessing/README.md).
+
+---
+
+## 4. Live demo
 
 ### Requirements
-* Windows, Python 3.13 with a CUDA build of PyTorch (tested on an RTX 4050 Laptop GPU, 6 GB). The demo falls back to CPU if no GPU is found.
-* Packages: `torch`, `transformers==4.57.1`, `sentence-transformers`, `faiss-cpu`, `scikit-learn`, `pandas`, `joblib`, `pillow`,
-  `matplotlib`, `gradio` (6.x), `huggingface-hub<1.0` (gradio pulls in a newer hub that breaks transformers 4.57; pin it as shown),
-  `nbconvert`/`nbformat`/`ipykernel` for the notebook.
+* Python 3.13 with a CUDA build of PyTorch (tested on an RTX 4050 Laptop GPU, 6 GB); falls back to CPU.
+* `torch`, `transformers==4.57.1`, `sentence-transformers`, `faiss-cpu`, `scikit-learn`, `pandas`, `joblib`, `pillow`, `matplotlib`, `gradio` (6.x), `emoji`, `huggingface-hub>=0.34,<1.0` (pin it; gradio otherwise pulls a newer hub that breaks transformers). `nbconvert`, `nbformat` and `ipykernel` are needed for the notebook. Pinned versions for the exploration scripts are in `env/requirements_day4.txt`.
 
-```
-pip install "huggingface-hub>=0.34,<1.0"
-```
+### Start
+`artifacts/` must exist (section 5). From the repository root, using the interpreter that has the packages installed (deactivate any other virtual environment first):
 
-### Start it
-`artifacts/` must exist (see "Reproduce"). From the repository root, in **PowerShell**, use the Python 3.13 interpreter that has the
-packages installed. If another virtual environment (such as a `venv`) is active it will not have them: run `deactivate` first, or call the
-interpreter by its full path as below.
-
-```
+```powershell
 $env:HF_HUB_OFFLINE = "1"
-& "C:\Users\anura\AppData\Local\Programs\Python\Python313\python.exe" demo/app.py
+python demo/app.py
 ```
 
-In Command Prompt, use `set HF_HUB_OFFLINE=1` for the first line instead.
+Open **http://127.0.0.1:7860**. Everything loads from `artifacts/`; no internet is needed.
 
-Then open **http://127.0.0.1:7860**. Everything loads from `artifacts/`, so no internet connection is needed. Loading takes a few
-seconds. Measured on the RTX 4050 laptop GPU (`results/ablation/D4_t1_latency.json`, medians): the Task 1 model call takes 0.28 ms (TF-IDF) or 8.4 ms (BERTweet), the whole cascade in-process 25.6 / 35.1 ms (without upload or file transfer), and a full HTTP round trip through the running Gradio server, including the image upload and the five retrieved images, about 1.75 / 1.78 s. (The earlier "0.1-0.2 s model call" has no recorded benchmark; the "1.8 s" figure matches the HTTP round trip.)
+### Using it
+1. Upload an image, paste the tweet text and press **Analyse**, or click one of the six preloaded test-split examples. Ten more upload-ready cases are in `demo_examples/` (see its `MANIFEST.md`).
+2. Outputs:
+   * **Informative?** A badge from the text-only Task 1 model with a calibrated confidence. It never gates Tasks 2 and 3.
+   * **Humanitarian category:** probabilities over 8 classes, including "Not humanitarian".
+   * **Damage severity:** the predicted level and the 5-NN vote share. The vote share is agreement among neighbours, not a calibrated probability.
+   * **Top-5 similar past cases:** image, tweet and label from the train-only index.
+3. If Task 1 and Task 2 disagree, both are shown with a note.
 
-### Task 1 backend (BERTweet by default, TF-IDF as a fallback)
-Task 1 uses a fine-tuned BERTweet (`vinai/bertweet-base`), chosen over TF-IDF + logistic regression by a rule fixed in advance (`ablation/SELECTION_RULE_DAY4.md`, results in `results/ablation/D4_switch_rule_T1.json`).
-* **Checkpoint:** `artifacts/task1_bertweet/` (about 517 MB: `model.safetensors`, tokenizer files, `t1_meta.json` with the labels, maximum length and dev temperature). It is **git-ignored and must be handed over separately** (zip the folder with the rest of `artifacts/`). The demo loads it from disk only; the `emoji` package must be installed for BERTweet's tokenizer normalisation.
-* **It is a retrain of seed 42** (the original runs saved no weights): dev weighted F1 0.8289 against 0.8321 originally, 94.3% test-prediction agreement. See the "Deviations" section of `ablation/SELECTION_RULE_DAY4.md`.
-* **Fallback:** `CAPSTONE_T1=tfidf` (environment variable) or `Pipeline(t1_backend="tfidf")` serves the original TF-IDF + logistic regression from `artifacts/task1_pipeline.joblib`, which stays in `artifacts/` (git-ignored). On CPU only, set `CAPSTONE_T1=tfidf` for the fastest start.
-* **Confidence:** the displayed probability is temperature-scaled (T = 1.825, fitted on the dev logits of the deployed checkpoint, stored in `demo/calibration.json`).
+### Configuration
 
-### Use it
-1. Upload an image and paste the tweet text, then press **Analyse**. Or click one of the six **Preloaded examples** (test-split tweets).
-2. Read the four outputs:
-   * **Informative?** A badge from the text-only Task 1 model (a fine-tuned BERTweet with a temperature-calibrated confidence; see "Task 1 backend"). It is a badge, never a gate: Tasks 2 and 3 always run.
-   * **Humanitarian category:** probability bars over 8 classes. This includes its own "Not humanitarian" class.
-   * **Damage severity:** the predicted label and a bar titled *agreement among similar past cases (k=5 vote share)*. This is a vote
-     share among retrieved neighbours, **not a calibrated probability**.
-   * **Top-5 similar past cases:** images, tweets and labels from the train-only index.
-3. If Task 1 and Task 2 disagree, both are shown with a note. Task 1 is trained on tweet-text labels and Task 2 on image labels, so a
-   tweet can be informative as text while its image is not humanitarian, or vice versa.
+| Environment variable | Effect |
+|---|---|
+| `CAPSTONE_T1=tfidf` | Serve the TF-IDF + LR Task 1 model instead of BERTweet (fastest start on CPU) |
+| `CAPSTONE_T3_HYBRID=0` | Use v2's plain 5-NN vote for Task 3 instead of the hybrid |
+| `CAPSTONE_T2_CKPT=artifacts/task2_model.pt` | Serve v2's own Task 2 checkpoint instead of L4a |
 
-### Extra demo examples
+### Performance (RTX 4050 laptop GPU, medians)
+Task 1 model call 0.28 ms (TF-IDF) or 8.4 ms (BERTweet); whole cascade in-process 25.6 / 35.1 ms; full HTTP round trip through Gradio including upload and the five retrieved images about 1.75 / 1.78 s. Source: `results/ablation/D4_t1_latency.json`.
 
-`demo_examples/` holds ten upload-ready cases (image + tweet text) with a `MANIFEST.md` of true labels versus model output and why each is worth showing: 7 good picks, 1 case where Task 1 and Task 2 disagree, and 2 deliberate failures. They come from the test split with no twin in the damage-train index and are different from the six built-in examples. Rebuild with `python tools/build_demo_folder.py` (images are git-ignored because they come from the dataset).
+---
 
-### What to expect (be honest on stage)
-* The preloaded examples are test-split tweets with no twin in the damage-train index, chosen by their true labels (not by whether
-  the model gets them right). Four of the six examples have a wrong prediction in at least one task: Task 3 on the Iraq-Iran
-  "I am alive" tweet and on the Irma "Restoration of Water Supply" tweet, and Task 2 on the Harvey "A picture worth a thousand words"
-  tweet and on the Irma "Cuba announces program" tweet.
-* Task 3 is biased towards "Severe damage" (Mild-damage recall is 18%); see the limitations in RESULTS.md.
-* A tweet shown in the neighbour panel is never the query tweet for the preloaded examples (this is asserted in `tools/select_examples.py`).
+## 5. Reproducing the work
 
-## Presentation guide (suggested flow, about 8 minutes)
+Run everything from the repository root.
 
-1. **Problem (30 s).** Disaster tweets arrive with an image and text. Triage needs: is it informative, which humanitarian need, how bad is the damage.
-2. **Architecture (1 min).** Show `results/figures/architecture.png`: three independent stages over one tweet; Task 1 is a badge, never a gate.
-3. **The audit (2 min).** This is the main story. The original notebook scored well for the wrong reasons:
-   * a path bug silently dropped two whole events (about 11% of every split);
-   * the Task 3 index contained the test images, and 80% of it was a class ("Don't know") that does not exist in the test split;
-   * a second, subtler leak: tweets with several images appear in both train and test. We exclude them and document it.
-   After fixing, Task 3 *drops* (0.678 to 0.667 accuracy, macro-F1 0.491). We report it and did not tune it back up.
-4. **Live demo (3 min).** Start with preloaded examples, then upload files from `demo_examples/` (see `MANIFEST.md`):
-   case 01 (clean success), case 08 (Task 1 and Task 2 disagree, note appears), case 10 (vote share 1.0 but wrong: vote share is not accuracy), case 09 (confident Task 2 error).
-5. **Honest limits (1 min).** Mild-damage recall is 18%; Task 2 macro-F1 (0.587) is much lower than accuracy because of tiny classes; S1 shows zero-shot does not work here.
-6. **Q&A cheat sheet.**
-   * *Why is Task 3 lower than before?* The old number used leaked/polluted data; see RESULTS.md section 2.
-   * *Why macro-F1?* Classes are imbalanced; "always Severe" gets 0.628 accuracy but 0.257 macro-F1.
-   * *Why not tune Task 3?* Test is never used for selection; dev tuning is listed as future work.
-   * *Is the comparison with the original paper fair?* Indicative only (different splits and label handling); see RESULTS.md section 3b.
-
-## Reproduce
-
-Everything runs from the repository root with `python` = the Python 3.13 interpreter.
-
-**Data** (not in git): place CrisisMMD v2.0 at
+**Data (not in git).** Place CrisisMMD v2.0 at:
 ```
 data/CrisisMMD_v2.0/
     annotations/   data_image/   json/
     crisismmd_datasplit_all/crisismmd_datasplit_all/   (task_*_text_img_{train,dev,test}.tsv)
 ```
 
-**Fast check (about 10-15 s):** re-runs the whole notebook from the saved models and reproduces the reported test metrics.
+**`artifacts/` (git-ignored).** Models, tokenizers, the FAISS index and cached embeddings. Recreate it with the full retrain below, or unzip a backup copy into the repository root. The BERTweet checkpoint (`artifacts/task1_bertweet/`, about 517 MB) is a seed-42 retrain and must be transferred separately.
+
+**Fast check (about 10-15 s):** reruns the notebook from saved models and reproduces the reported test metrics.
 ```
 python -m jupyter nbconvert --to notebook --execute --inplace capstone-v2.ipynb
 ```
 
-**Full retrain (about 12 minutes on the RTX 4050 with cached embeddings, about 4 minutes more on a cold start):** recomputes the embeddings, retrains Task 2 (at most 10 epochs, AMP, best epoch
-by dev macro-F1), rebuilds the index and re-exports `artifacts/`.
+**Full retrain (about 12 minutes on the RTX 4050 with cached embeddings):** recomputes embeddings, retrains Task 2 (at most 10 epochs, AMP, best epoch by dev macro-F1), rebuilds the index and re-exports `artifacts/`. AMP/cuDNN is not bit-reproducible, so a retrain gives slightly different numbers than the saved artifacts.
 ```
 set CAPSTONE_TRAIN=1
 python -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=-1 capstone-v2.ipynb
 ```
-Training uses seed 42, but AMP/cuDNN is not bit-reproducible, so a retrain gives slightly different numbers than the ones reported.
-The saved artifacts do reproduce the reported test metrics exactly.
 
-**Regenerate** the notebook, the figures, and the demo examples:
+**Regenerate notebook, figures and demo examples:**
 ```
-python tools/build_notebook.py     # writes capstone-v2.ipynb
-python tools/make_figures.py       # results/figures/*.png (reads saved predictions, no retraining)
-python tools/select_examples.py    # demo/examples.json (asserts no tweet/text/image twin in the damage-train split)
-python tools/check_examples.py     # runs the preloaded examples through the pipeline and lists the wrong ones
-python tools/build_demo_folder.py  # demo_examples/ (10 upload-ready cases) then python tools/make_contact_sheet.py
+python tools/build_notebook.py     # capstone-v2.ipynb
+python tools/make_figures.py       # results/figures/*.png
+python tools/select_examples.py    # demo/examples.json (asserts no tweet/text/image twin in the index)
+python tools/check_examples.py     # runs the preloaded examples through the pipeline
+python tools/build_demo_folder.py  # demo_examples/, then tools/make_contact_sheet.py
 ```
 
-**S1 zero-shot experiment** (needs `artifacts/emb/` from a training run; set `PYTHONPATH=.`):
+**Zero-shot experiment** (needs `artifacts/emb/`; set `PYTHONPATH=.`):
 ```
-python tools/s1_write_prompts.py   # writes results/s1_prompts.json (fixed before any result)
-python s1_zeroshot.py              # dev selection, one test evaluation, results/s1_zeroshot.csv
-python tools/s1_extras.py          # trivial baselines and image-only k-NN rows (appended to the same CSV)
-python tools/s1_sanity.py          # feature sanity checks -> results/s1_sanity.txt
+python tools/s1_write_prompts.py
+python s1_zeroshot.py
+python tools/s1_extras.py
+python tools/s1_sanity.py
 ```
 
-**Day 4 tables (model exploration; one command per table).** Use the Python 3.13 interpreter with CUDA PyTorch, `transformers`, `emoji`; run from `ablation/`. Every command reads or writes `results/ablation/`; the rules were committed in `ablation/SELECTION_RULE_DAY4.md` before the runs.
+**Model exploration (Task 1 and Task 2).** Run from `ablation/`, each script reads or writes `results/ablation/`:
 ```
 cd ablation
-python d4_t1_classical.py                 # Task 1 TF-IDF + LR / NB / RF / SVM            -> D4/T1_*  (then d4_t1_step2.py: fair NB, majority, weighting, GloVe check, D4_T1_summary.{json,md})
-python d4_t1_bertweet.py                  # Task 1 BERTweet, seeds 42-44 (add --noweight, or `42 --save` for the deployed checkpoint)
-python d4_t1_bilstm.py                    # Task 1 BiLSTM + GloVe Twitter 200d (needs artifacts/glove/glove.twitter.27B.zip)
-python d4_t1_extract_images.py resnet50 dinov2 clip_l14; python d4_t1_heads.py resnet50 dinov2 clip_l14    # Task 1 image heads
-python d4_t1_fusion.py T1 bertweet img_clip_l14; python d4_t1_early_fusion.py resnet50  # late and early fusion (also: clip_l14)
-python d4_t1_switch.py                    # the pre-registered switch rule             -> D4_switch_rule_T1.json
-python d4_t1_fusion_gain.py               # Task 1 fusion gain, bootstrap, agreed/disagreed -> D4_T1_fusion.{json,md}
-python d4_t2_classical.py; python d4_t2_bertweet_text.py matched; python d4_t2_bertweet_text.py rule8    # Task 2 text models
-python d4_t2_reinfer.py                   # probabilities of the existing L4a / DistilBERT / image-only checkpoints (reproduces the stored results)
-python d4_t2_early_fusion.py              # the guide's core model (add --clip_b32 for the post-hoc backbone swap)
-python d4_t2_summary.py; python d4_t2_fusion_analysis.py   # Task 2 tables, comparisons, tie-break, subsets -> D4_T2_text_summary.*, D4_T2_fusion.*
-python d4_fusion_both.py                  # fusion gain, both tasks, both baselines    -> D4_fusion_gain_both.*
-python d4_t1_dups.py                      # Task 1 text and image duplicates           -> D4_T1_dups.*
-python d4_t1_lodo.py                      # Task 1 leave-one-disaster-out with BERTweet (about 35 min)  -> D4_T1_lodo.*
-python d4_t1_calib_ofli.py                # Task 1 calibration and the indicative Ofli row
-python d4_error_analysis.py               # error analysis, contact sheets            -> docs/day4_error_analysis.*, report_v2/figures/contact_*
-python d4_t1_latency.py; python d4_t1_http_latency.py   # latency (in-process, then through the Gradio server)
-python d4_make_findings.py                # section 9.12 of docs/ablation_findings.md + docs/day4_justification_table.tex
-python d4_make_figures.py; python d4_make_pipeline_fig.py                  # report_v2/figures
-python d4_build_report_v2.py; python d4_check_tex.py; python d4_make_dossier.py   # report_v2/main.tex (+ static checks), docs/report_dossier.md
-python verify_findings.py --write-log     # re-derives every number (docs section 9.12, report_v2 table cells, dossier tokens)
+python d4_t1_classical.py; python d4_t1_step2.py            # Task 1 classical models
+python d4_t1_bertweet.py                                    # Task 1 BERTweet, seeds 42-44 (`42 --save` for the deployed checkpoint)
+python d4_t1_bilstm.py                                      # BiLSTM + GloVe (needs artifacts/glove/)
+python d4_t1_extract_images.py resnet50 dinov2 clip_l14; python d4_t1_heads.py resnet50 dinov2 clip_l14
+python d4_t1_fusion.py T1 bertweet img_clip_l14; python d4_t1_early_fusion.py resnet50
+python d4_t1_switch.py                                      # pre-registered switch rule
+python d4_t2_classical.py; python d4_t2_bertweet_text.py matched
+python d4_t2_early_fusion.py; python d4_t2_summary.py
+python d4_t1_lodo.py                                        # Task 1 leave-one-disaster-out (about 35 min)
+python d4_error_analysis.py
+python d5_prep_c.py; python d5_t1_bertweet_prep.py --c 42 43 44; python d5_summary.py   # preprocessing A/B
+python verify_findings.py --write-log                       # re-derives every reported number
 ```
-Training logs are archived in `results/ablation/d4_logs.tar.gz`. Run the new Task 1 scripts only in a process that has not imported a Task 2 module (and vice versa): `d4_t1_data.py` / `d4_t2_data.py` assert this.
+Run Task 1 scripts and Task 2 scripts in separate processes; `d4_t1_data.py` and `d4_t2_data.py` assert this. The complete command list is in `docs/ablation_findings.md`.
 
-**`artifacts/` is git-ignored** (the Task 2 checkpoint exceeds GitHub's 100 MB limit). Recreate it with the full retrain above, or
-unzip a backup copy into the repository root.
+---
 
-## Repository layout
+## 6. Repository layout
 
 ```
-capstone-final.ipynb       original Kaggle notebook (unmodified, for reference)
-capstone-v2.ipynb          corrected pipeline (TRAIN flag: False loads artifacts/, True retrains)
-crisis_common.py           shared loaders, embedders, models and metrics (used by the notebook and the demo)
-demo/pipeline.py           loads artifacts once; predict(image, text) -> dict
-demo/app.py                Gradio UI
-demo/examples.json         the six preloaded test examples
-demo_examples/             ten upload-ready demo cases (text + MANIFEST.md; images are git-ignored, rebuild with the tool)
-s1_zeroshot.py             S1: CLIP zero-shot damage severity (dev-selected prompts, test scored once)
-tools/                     notebook builder, figure generator, example selection/check scripts, S1 helpers
-results/                   before_after.csv, metrics.json, split_overlap.csv, test predictions, s1_* files, figures/
-artifacts/                 models, tokenizer, FAISS index, metadata, cached embeddings (git-ignored)
-RESULTS.md                 bug audit, before/after table, architecture, limitations, future work
+capstone-final.ipynb     original Kaggle notebook (unmodified)
+capstone-v2.ipynb        corrected pipeline (TRAIN flag: False loads artifacts/, True retrains)
+crisis_common.py         shared loaders, embedders, models and metrics
+s1_zeroshot.py           CLIP zero-shot damage-severity experiment
+demo/                    Gradio app, pipeline, hybrid Task 3, BERTweet Task 1, calibration, examples
+demo_examples/           ten upload-ready cases with MANIFEST.md (images git-ignored)
+ablation/                ablation, exploration, bootstrap, verification and report-building scripts
+preprocessing/           cleaning and split scripts plus preprocessed datasets for Tasks 1-3
+tools/                   notebook builder, figure generator, example selection, zero-shot helpers
+results/                 metrics, before/after table, predictions, figures, results/ablation/* run JSONs
+docs/                    ablation findings, v1 configuration, error analysis, report dossier
+report_v2/               report draft (LaTeX) and figures
+env/                     pinned requirements
+artifacts/               trained models, FAISS index, cached embeddings (git-ignored)
+RESULTS.md               bug audit, before/after table, architecture, limitations
+ABLATION_PLAN.md         ablation protocol
 ```
 
-## The audit in brief
+---
 
-Details, evidence and the reasoning behind each fix are in RESULTS.md.
+## 7. Limitations and future work
 
-1. **Path bug:** `lstrip('data_image/')` strips a character set and silently dropped the Iraq-Iran and Mexico earthquake events
-   (about 11% of every split). Fixed with `removeprefix`; every image now resolves and this is asserted.
-2. **Task 3 leakage:** the index was built from all annotations, including the test images. It is now built from the damage-train split
-   only. A second, subtler overlap (tweets with several images split across train and test) is also excluded.
-3. **Task 1 report labels** were in the wrong order; **undefined `T3_CLIP` objects**, a **`TRAIN` flag**, a **QuickGELU mismatch** in the
-   old open_clip image features, and a non-deterministic **vote tie-break** were also fixed.
-
-## Limitations and future work
-
-* Task 3 retrieves labels of past cases; it is biased towards "Severe damage" and its vote share is not a probability.
+* Task 3 retrieves labels of past cases. It is biased towards "Severe damage" (Mild-damage recall 18% for the plain 5-NN), and its vote share is not a probability.
 * Task 2's cross-attention attends over a single pooled image vector, so it is effectively a projection.
-* Small classes (for example "Missing or found people", 3 test samples) make Task 2 macro-F1 noisy.
-* Future work: distance-weighted or class-balanced voting for Task 3 (tuned on dev, after excluding the 16 dev/test shared tweets),
-  leave-one-event-out evaluation, a zero-shot VLM (LLaVA), patch-token cross-attention for Task 2, and satellite imagery (xBD).
+* Small classes make Task 2 macro-F1 noisy; the test-sampling 95% CI of a macro-F1 is about ±0.04, larger than most gaps between architectures. "No benefit detected" means "not resolvable at this size", not "absent".
+* Performance falls on unseen disaster events (leave-one-disaster-out), so the in-distribution numbers overstate generalisation.
+* Several comparisons are exploratory and uncorrected for multiple testing.
+* Future work: Task 2 leave-one-event-out with the fusion model, patch-token cross-attention, a zero-shot vision-language model, and satellite imagery (xBD).
 
-## Data and references
+---
 
-* CrisisMMD v2.0: Alam, Ofli, Imran (2018), *CrisisMMD: Multimodal Twitter Datasets from Natural Disasters*.
-* Ofli, Alam, Imran (2020), *Analysis of Social Media Data using Multimodal Deep Learning for Disaster Response*, arXiv:2004.11838.
-* Models: OpenAI CLIP ViT-B/32 (`openai/clip-vit-base-patch32`), `distilbert-base-uncased`, `sentence-transformers/all-MiniLM-L6-v2`.
+## 8. Data and references
+
+* Alam, Ofli, Imran (2018). *CrisisMMD: Multimodal Twitter Datasets from Natural Disasters.*
+* Ofli, Alam, Imran (2020). *Analysis of Social Media Data using Multimodal Deep Learning for Disaster Response.* arXiv:2004.11838.
+* Models: OpenAI CLIP ViT-B/32 and ViT-L/14, `distilbert-base-uncased`, `vinai/bertweet-base`, `sentence-transformers/all-MiniLM-L6-v2`.
