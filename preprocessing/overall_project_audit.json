@@ -1,0 +1,119 @@
+{
+    "checks_passed": true,
+    "task1_text": {
+        "train": {
+            "rows": 13608,
+            "labels": {
+                "1": "9638",
+                "0": "3970"
+            },
+            "nulls": 0
+        },
+        "dev": {
+            "rows": 2237,
+            "labels": {
+                "1": "1612",
+                "0": "625"
+            },
+            "nulls": 0
+        },
+        "test": {
+            "rows": 2237,
+            "labels": {
+                "1": "1612",
+                "0": "625"
+            },
+            "nulls": 0
+        },
+        "all": {
+            "rows": 18082,
+            "labels": {
+                "1": "12862",
+                "0": "5220"
+            },
+            "nulls": 0
+        },
+        "train_weighted": 13608,
+        "train_balanced": 7940,
+        "train_unique_balanced": 6598
+    },
+    "task1_images": {
+        "train": {
+            "rows": 13608,
+            "img_labels": {
+                "1": "7059",
+                "0": "6549"
+            }
+        },
+        "dev": {
+            "rows": 2237,
+            "img_labels": {
+                "1": "1164",
+                "0": "1073"
+            }
+        },
+        "test": {
+            "rows": 2237,
+            "img_labels": {
+                "1": "1151",
+                "0": "1086"
+            }
+        },
+        "train_weighted": 13608,
+        "train_balanced": 7940
+    },
+    "task2": {
+        "train": {
+            "rows": 13608,
+            "txt_classes": 8,
+            "img_classes": 8
+        },
+        "dev": {
+            "rows": 2237,
+            "txt_classes": 8,
+            "img_classes": 8
+        },
+        "test": {
+            "rows": 2237,
+            "txt_classes": 8,
+            "img_classes": 8
+        },
+        "multimodal_train_weighted": 13608,
+        "text_train_oversampled": 38536,
+        "multimodal_train_oversampled": 38536,
+        "image_train_oversampled": 52520
+    },
+    "task3": {
+        "train": {
+            "rows": 2468,
+            "classes": 3,
+            "distribution": {
+                "2": "1548",
+                "1": "587",
+                "0": "333"
+            }
+        },
+        "dev": {
+            "rows": 529,
+            "classes": 3,
+            "distribution": {
+                "2": "332",
+                "1": "126",
+                "0": "71"
+            }
+        },
+        "test": {
+            "rows": 529,
+            "classes": 3,
+            "distribution": {
+                "2": "332",
+                "1": "126",
+                "0": "71"
+            }
+        },
+        "multimodal_train_weighted": 2468,
+        "multimodal_train_oversampled": 4644,
+        "multimodal_train_undersampled": 999
+    },
+    "errors": []
+}
